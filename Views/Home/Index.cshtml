@@ -1,0 +1,343 @@
+﻿@{
+    ViewData["Title"] = "Добро пожаловать в Sofia";
+}
+
+<div class="hero-section text-center py-5 mb-5">
+    <div class="container">
+        <h1 class="display-4 mb-4">🌟 Sofia</h1>
+        <p class="lead mb-4">Ваш персональный помощник для отслеживания эмоций и достижения целей</p>
+        <div class="hero-stats row g-3 justify-content-center">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">10+</div>
+                    <div class="stat-label">Разделов</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">5+</div>
+                    <div class="stat-label">Типов эмоций</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Бесплатно</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Features Overview -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h4>Заметки и эмоции</h4>
+                <p>Ведите дневник эмоций, записывайте мысли и отслеживайте настроение каждый день.</p>
+                <a href="/notes" class="btn btn-outline-primary">Начать запись</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h4>Эмоциональный календарь</h4>
+                <p>Визуализируйте свои эмоции на календаре с цветовой кодировкой и статистикой.</p>
+                <a href="/calendar" class="btn btn-outline-primary">Открыть календарь</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h4>Статистика и аналитика</h4>
+                <p>Получайте подробную статистику эмоций, активности и прогресса по целям.</p>
+                <a href="/stats" class="btn btn-outline-primary">Посмотреть статистику</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h4>Цели и достижения</h4>
+                <p>Ставьте цели, отслеживайте прогресс и отмечайте достижения в разных сферах жизни.</p>
+                <a href="/goals" class="btn btn-outline-primary">Создать цель</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">🧘</div>
+                <h4>Практики медитации</h4>
+                <p>Изучайте техники релаксации, медитации и работы с эмоциями.</p>
+                <a href="/practices" class="btn btn-outline-primary">Выбрать практику</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">🐾</div>
+                <h4>Интерактивный компаньон</h4>
+                <p>Общайтесь с виртуальным питомцем, который реагирует на ваше настроение.</p>
+                <a href="/companion" class="btn btn-outline-primary">Встретить компаньона</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h4>Психологи и специалисты</h4>
+                <p>Найдите подходящего психолога, запишитесь на консультацию и получите профессиональную помощь.</p>
+                <a href="/psychologist" class="btn btn-outline-primary">Найти психолога</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h4>Уведомления и напоминания</h4>
+                <p>Получайте умные напоминания о записях, целях и практиках в удобное время.</p>
+                <a href="/notifications" class="btn btn-outline-primary">Настроить уведомления</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h4>Настройки и профиль</h4>
+                <p>Персонализируйте приложение, экспортируйте данные и управляйте аккаунтом.</p>
+                <a href="/settings" class="btn btn-outline-primary">Открыть настройки</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Start Guide -->
+    <div class="card mb-5">
+        <div class="card-header">
+            <h3 class="mb-0">🚀 Быстрый старт</h3>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h5>Создайте первую заметку</h5>
+                            <p>Запишите свои мысли и выберите эмоцию, которую вы сейчас испытываете.</p>
+                            <a href="/notes/create" class="btn btn-primary btn-sm">Создать заметку</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h5>Поставьте первую цель</h5>
+                            <p>Определите, чего вы хотите достичь, и начните отслеживать прогресс.</p>
+                            <a href="/goals/create" class="btn btn-primary btn-sm">Создать цель</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h5>Настройте уведомления</h5>
+                            <p>Включите напоминания, чтобы не забывать о ежедневных записях.</p>
+                            <a href="/notifications/settings" class="btn btn-primary btn-sm">Настроить</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h5>Изучите практики</h5>
+                            <p>Попробуйте техники медитации и релаксации для улучшения самочувствия.</p>
+                            <a href="/practices" class="btn btn-primary btn-sm">Выбрать практику</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips and Benefits -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">💡 Советы по использованию</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="tips-list">
+                        <li>📝 Записывайте заметки каждый день для лучшего отслеживания эмоций</li>
+                        <li>🎯 Ставьте реалистичные цели и отмечайте даже маленькие достижения</li>
+                        <li>📊 Регулярно проверяйте статистику для понимания паттернов</li>
+                        <li>🧘 Используйте практики медитации в стрессовые моменты</li>
+                        <li>🔔 Настройте удобное время для напоминаний</li>
+                        <li>👥 Не стесняйтесь обращаться к психологам при необходимости</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">🌟 Преимущества Sofia</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="benefits-list">
+                        <li>🔒 Полная конфиденциальность ваших данных</li>
+                        <li>📱 Работает в любом браузере без установки</li>
+                        <li>🌙 Поддержка светлой и темной темы</li>
+                        <li>📊 Подробная аналитика и отчеты</li>
+                        <li>🎨 Красивый и интуитивный интерфейс</li>
+                        <li>🆓 Полностью бесплатное использование</li>
+                        <li>📥 Экспорт данных в различных форматах</li>
+                        <li>🤖 Умные напоминания и рекомендации</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center py-5">
+        <h2 class="mb-4">Готовы начать путь к лучшему самочувствию?</h2>
+        <p class="lead mb-4">Присоединяйтесь к тысячам пользователей, которые уже улучшили свою жизнь с помощью Sofia</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="/notes/create" class="btn btn-primary btn-lg">📝 Создать первую заметку</a>
+            <a href="/goals/create" class="btn btn-outline-primary btn-lg">🎯 Поставить цель</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 0 0 20px 20px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.feature-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.feature-card h4 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px 0;
+}
+
+.step-number {
+    background: #667eea;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-content h5 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.step-content p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.tips-list, .benefits-list {
+    list-style: none;
+    padding: 0;
+}
+
+.tips-list li, .benefits-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.tips-list li:last-child, .benefits-list li:last-child {
+    border-bottom: none;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+@@media (max-width: 768px) {
+    .hero-section {
+        padding: 30px 0;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .feature-card {
+        padding: 20px;
+    }
+    
+    .step-item {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>

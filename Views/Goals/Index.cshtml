@@ -1,0 +1,159 @@
+@model IEnumerable<Sofia.Web.Models.Goal>
+@{
+    ViewData["Title"] = "Цели";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Цели</h2>
+    <a href="/goals/create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Новая цель
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 48px;">🎯</div>
+        <h4 class="text-muted">Пока нет целей</h4>
+        <p class="text-muted">Создайте свою первую цель для отслеживания прогресса</p>
+        <a href="/goals/create" class="btn btn-primary">Создать первую цель</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var goal in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 @GetStatusClass(goal.Status)">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">@GetTypeEmoji(goal.Type)</span>
+                            <span class="badge @GetStatusBadgeClass(goal.Status)">@GetStatusText(goal.Status)</span>
+                        </div>
+                        @if (goal.IsFromPsychologist)
+                        {
+                            <span class="badge bg-info">👥 Психолог</span>
+                        }
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">@goal.Title</h5>
+                        @if (!string.IsNullOrEmpty(goal.Description))
+                        {
+                            <p class="card-text">@goal.Description</p>
+                        }
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">Прогресс</small>
+                                <small class="text-muted">@goal.Progress%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar @GetProgressBarClass(goal.Status)" 
+                                     role="progressbar" 
+                                     style="width: @goal.Progress%" 
+                                     aria-valuenow="@goal.Progress" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="small text-muted">
+                            <div>📅 Создано: @goal.CreatedAt.ToString("dd.MM.yyyy")</div>
+                            @if (goal.TargetDate.HasValue)
+                            {
+                                <div>🎯 Цель до: @goal.TargetDate.Value.ToString("dd.MM.yyyy")</div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="/goals/edit/@goal.Id" class="btn btn-sm btn-outline-primary">✏️</a>
+                                <form method="post" action="/goals/delete/@goal.Id" class="d-inline" onsubmit="return confirm('Удалить цель?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                </form>
+                            </div>
+                            @if (goal.Status == Sofia.Web.Models.GoalStatus.Active)
+                            {
+                                <form method="post" action="/goals/update-progress/@goal.Id" class="d-inline">
+                                    <div class="input-group input-group-sm" style="width: 120px;">
+                                        <input type="number" name="progress" class="form-control" min="0" max="100" value="@goal.Progress" />
+                                        <button type="submit" class="btn btn-outline-success">✓</button>
+                                    </div>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@functions {
+    string GetTypeEmoji(Sofia.Web.Models.GoalType type)
+    {
+        return type switch
+        {
+            Sofia.Web.Models.GoalType.Personal => "👤",
+            Sofia.Web.Models.GoalType.Therapy => "🧠",
+            Sofia.Web.Models.GoalType.Wellness => "🌱",
+            Sofia.Web.Models.GoalType.Social => "👥",
+            Sofia.Web.Models.GoalType.Professional => "💼",
+            _ => "🎯"
+        };
+    }
+    
+    string GetStatusText(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Active => "Активна",
+            Sofia.Web.Models.GoalStatus.Completed => "Выполнена",
+            Sofia.Web.Models.GoalStatus.Paused => "Приостановлена",
+            Sofia.Web.Models.GoalStatus.Cancelled => "Отменена",
+            _ => status.ToString()
+        };
+    }
+    
+    string GetStatusBadgeClass(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Active => "bg-success",
+            Sofia.Web.Models.GoalStatus.Completed => "bg-primary",
+            Sofia.Web.Models.GoalStatus.Paused => "bg-warning",
+            Sofia.Web.Models.GoalStatus.Cancelled => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+    
+    string GetStatusClass(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Completed => "border-success",
+            Sofia.Web.Models.GoalStatus.Paused => "border-warning",
+            Sofia.Web.Models.GoalStatus.Cancelled => "border-secondary",
+            _ => ""
+        };
+    }
+    
+    string GetProgressBarClass(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Active => "bg-success",
+            Sofia.Web.Models.GoalStatus.Completed => "bg-primary",
+            Sofia.Web.Models.GoalStatus.Paused => "bg-warning",
+            Sofia.Web.Models.GoalStatus.Cancelled => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+

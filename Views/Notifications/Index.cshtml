@@ -1,0 +1,485 @@
+@{
+    ViewData["Title"] = "Уведомления";
+    var notifications = ViewBag.Notifications as List<Sofia.Web.Models.Notification>;
+    var unreadCount = ViewBag.UnreadCount as int? ?? 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🔔 Уведомления</h2>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm" onclick="checkNotifications()">🔄 Проверить</button>
+        <button class="btn btn-outline-success btn-sm" onclick="markAllAsRead()">✅ Прочитать все</button>
+        <a href="/notifications/settings" class="btn btn-outline-info btn-sm">⚙️ Настройки</a>
+    </div>
+</div>
+
+<!-- Notification Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-primary">@unreadCount</div>
+                <div class="text-muted">Непрочитанных</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-info">@(notifications?.Count ?? 0)</div>
+                <div class="text-muted">Всего уведомлений</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-warning">@(notifications?.Count(n => n.Priority == Sofia.Web.Models.NotificationPriority.High) ?? 0)</div>
+                <div class="text-muted">Важных</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-success">@(notifications?.Count(n => n.Type == Sofia.Web.Models.NotificationType.Achievement) ?? 0)</div>
+                <div class="text-muted">Достижений</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">📬 Все уведомления</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (notifications?.Any() == true)
+        {
+            <div class="notifications-list">
+                @foreach (var notification in notifications)
+                {
+                    <div class="notification-item @(notification.IsRead ? "read" : "unread") @GetPriorityClass(notification.Priority)" 
+                         data-id="@notification.Id">
+                        <div class="notification-content">
+                            <div class="d-flex align-items-start">
+                                <div class="notification-icon me-3">
+                                    @GetNotificationIcon(notification.Type)
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="notification-title mb-0">@notification.Title</h6>
+                                        <div class="notification-actions">
+                                            @if (!notification.IsRead)
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="markAsRead(@notification.Id)">
+                                                    ✓
+                                                </button>
+                                            }
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="dismissNotification(@notification.Id)">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="notification-message mb-2">@notification.Message</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">@notification.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                        @if (!string.IsNullOrEmpty(notification.ActionUrl))
+                                        {
+                                            <a href="@notification.ActionUrl" class="btn btn-sm btn-outline-primary">
+                                                @(notification.ActionText ?? "Перейти")
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 48px;">🔔</div>
+                <h4 class="text-muted">Нет уведомлений</h4>
+                <p class="text-muted">Здесь будут появляться напоминания и важные сообщения</p>
+                <button class="btn btn-primary" onclick="sendTestNotification()">🧪 Отправить тестовое</button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0">⚡ Быстрые действия</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <button class="btn btn-outline-primary w-100" onclick="createReminder('daily')">
+                    📝 Ежедневное напоминание
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-success w-100" onclick="createReminder('mood')">
+                    😊 Проверка настроения
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-info w-100" onclick="createReminder('goal')">
+                    🎯 Напоминание о цели
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-warning w-100" onclick="createReminder('practice')">
+                    🧘 Практика медитации
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Notification Modal -->
+<div class="modal fade" id="createNotificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🔔 Создать уведомление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createNotificationForm">
+                    <div class="mb-3">
+                        <label for="notificationTitle" class="form-label">Заголовок</label>
+                        <input type="text" class="form-control" id="notificationTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notificationMessage" class="form-label">Сообщение</label>
+                        <textarea class="form-control" id="notificationMessage" name="message" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notificationType" class="form-label">Тип</label>
+                        <select class="form-select" id="notificationType" name="type">
+                            <option value="1">Ежедневное напоминание</option>
+                            <option value="2">Напоминание о цели</option>
+                            <option value="3">Проверка настроения</option>
+                            <option value="4">Напоминание о практике</option>
+                            <option value="5">Еженедельный отчет</option>
+                            <option value="6">Напоминание о психологе</option>
+                            <option value="7">Достижение</option>
+                            <option value="8">Системное</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notificationPriority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="notificationPriority" name="priority">
+                            <option value="1">Низкий</option>
+                            <option value="2" selected>Средний</option>
+                            <option value="3">Высокий</option>
+                            <option value="4">Критический</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="submitNotification()">Создать</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.notifications-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background: #f8f9fa;
+}
+
+.notification-item.unread {
+    background: #f0f9ff;
+    border-left: 4px solid #3b82f6;
+}
+
+.notification-item.read {
+    opacity: 0.7;
+}
+
+.notification-item.priority-high {
+    border-left-color: #ef4444;
+}
+
+.notification-item.priority-critical {
+    border-left-color: #dc2626;
+    background: #fef2f2;
+}
+
+.notification-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 50%;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.notification-message {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.notification-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.notification-item:hover .notification-actions {
+    opacity: 1;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function markAsRead(id) {
+    fetch(`/notifications/mark-read/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const item = document.querySelector(`[data-id="${id}"]`);
+            item.classList.remove('unread');
+            item.classList.add('read');
+            updateUnreadCount();
+        }
+    });
+}
+
+function markAllAsRead() {
+    fetch('/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                item.classList.add('read');
+            });
+            updateUnreadCount();
+            showToast('Все уведомления прочитаны', 'success');
+        }
+    });
+}
+
+function dismissNotification(id) {
+    fetch(`/notifications/dismiss/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const item = document.querySelector(`[data-id="${id}"]`);
+            item.remove();
+            updateUnreadCount();
+        }
+    });
+}
+
+function checkNotifications() {
+    fetch('/notifications/check')
+    .then(response => response.json())
+    .then(result => {
+        if (result.notifications && result.notifications.length > 0) {
+            showToast(`Получено ${result.notifications.length} новых уведомлений`, 'info');
+            // В реальном приложении здесь была бы логика добавления новых уведомлений
+        } else {
+            showToast('Новых уведомлений нет', 'info');
+        }
+    });
+}
+
+function sendTestNotification() {
+    fetch('/notifications/test', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast('Тестовое уведомление отправлено!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    });
+}
+
+function createReminder(type) {
+    const modal = new bootstrap.Modal(document.getElementById('createNotificationModal'));
+    
+    // Заполняем форму в зависимости от типа
+    const titleField = document.getElementById('notificationTitle');
+    const messageField = document.getElementById('notificationMessage');
+    const typeField = document.getElementById('notificationType');
+    
+    switch(type) {
+        case 'daily':
+            titleField.value = '📝 Ежедневная запись';
+            messageField.value = 'Время поделиться мыслями о прошедшем дне!';
+            typeField.value = '1';
+            break;
+        case 'mood':
+            titleField.value = '😊 Проверка настроения';
+            messageField.value = 'Как вы себя чувствуете? Запишите свое текущее настроение.';
+            typeField.value = '3';
+            break;
+        case 'goal':
+            titleField.value = '🎯 Работа над целью';
+            messageField.value = 'Не забывайте работать над достижением своих целей!';
+            typeField.value = '2';
+            break;
+        case 'practice':
+            titleField.value = '🧘 Практика медитации';
+            messageField.value = 'Время для расслабления и медитации.';
+            typeField.value = '4';
+            break;
+    }
+    
+    modal.show();
+}
+
+function submitNotification() {
+    const form = document.getElementById('createNotificationForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        title: formData.get('title'),
+        message: formData.get('message'),
+        type: parseInt(formData.get('type')),
+        priority: parseInt(formData.get('priority'))
+    };
+    
+    fetch('/notifications/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast(result.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('createNotificationModal')).hide();
+            form.reset();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Ошибка при создании уведомления', 'error');
+        }
+    });
+}
+
+function updateUnreadCount() {
+    const unreadItems = document.querySelectorAll('.notification-item.unread').length;
+    document.querySelector('.h3.text-primary').textContent = unreadItems;
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Автоматическая проверка уведомлений каждые 5 минут
+setInterval(checkNotifications, 300000);
+</script>
+
+@functions {
+    string GetNotificationIcon(Sofia.Web.Models.NotificationType type)
+    {
+        return type switch
+        {
+            Sofia.Web.Models.NotificationType.DailyReminder => "📝",
+            Sofia.Web.Models.NotificationType.GoalReminder => "🎯",
+            Sofia.Web.Models.NotificationType.MoodCheck => "😊",
+            Sofia.Web.Models.NotificationType.PracticeReminder => "🧘",
+            Sofia.Web.Models.NotificationType.WeeklyReport => "📊",
+            Sofia.Web.Models.NotificationType.PsychologistReminder => "👥",
+            Sofia.Web.Models.NotificationType.Achievement => "🏆",
+            Sofia.Web.Models.NotificationType.System => "⚙️",
+            _ => "🔔"
+        };
+    }
+    
+    string GetPriorityClass(Sofia.Web.Models.NotificationPriority priority)
+    {
+        return priority switch
+        {
+            Sofia.Web.Models.NotificationPriority.High => "priority-high",
+            Sofia.Web.Models.NotificationPriority.Critical => "priority-critical",
+            _ => ""
+        };
+    }
+}

@@ -1,0 +1,274 @@
+@{
+    ViewData["Title"] = "Детали дня";
+    var date = (DateTime)ViewBag.Date;
+    var notes = ViewBag.Notes as List<Sofia.Web.Models.Note>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📅 @date.ToString("dd MMMM yyyy")</h2>
+    <div class="d-flex gap-2">
+        <a href="/calendar" class="btn btn-outline-secondary">← Календарь</a>
+        <a href="/notes/create" class="btn btn-primary">+ Заметка</a>
+    </div>
+</div>
+
+@if (notes?.Any() != true)
+{
+    <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 48px;">📝</div>
+        <h4 class="text-muted">Нет заметок за этот день</h4>
+        <p class="text-muted">Создайте первую заметку, чтобы отслеживать свои эмоции</p>
+        <a href="/notes/create" class="btn btn-primary">Создать заметку</a>
+    </div>
+}
+else
+{
+    <!-- Day Summary -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📊 Сводка дня</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="h4 mb-1">@notes.Count</div>
+                        <div class="text-muted">Заметок</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="h4 mb-1">@GetDominantEmotionEmoji(notes)</div>
+                        <div class="text-muted">Преобладающая эмоция</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="h4 mb-1">@GetUniqueActivitiesCount(notes)</div>
+                        <div class="text-muted">Активностей</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emotion Timeline -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📈 Временная линия эмоций</h5>
+        </div>
+        <div class="card-body">
+            <div class="emotion-timeline">
+                @foreach (var note in notes?.OrderBy(n => n.CreatedAt) ?? Enumerable.Empty<Sofia.Web.Models.Note>())
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-time">@note.CreatedAt.ToString("HH:mm")</div>
+                        <div class="timeline-emotion">@GetEmotionEmoji(note.Emotion)</div>
+                        <div class="timeline-content">
+                            <div class="timeline-emotion-name">@GetEmotionName(note.Emotion)</div>
+                            <div class="timeline-text">@(note.Content.Length > 100 ? note.Content.Substring(0, 100) + "..." : note.Content)</div>
+                            @if (!string.IsNullOrEmpty(note.Activity))
+                            {
+                                <div class="timeline-activity">🏃 @note.Activity</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes List -->
+    <div class="row g-3">
+        @foreach (var note in notes?.OrderByDescending(n => n.CreatedAt) ?? Enumerable.Empty<Sofia.Web.Models.Note>())
+        {
+            <div class="col-12 col-md-6">
+                <div class="card h-100 @(note.IsPinned ? "border-warning" : "")">
+                    @if (note.IsPinned)
+                    {
+                        <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
+                            <small class="text-warning fw-bold">📌 Закреплено</small>
+                            <small class="text-muted">@note.CreatedAt.ToString("HH:mm")</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                            <small class="text-muted">@note.CreatedAt.ToString("HH:mm")</small>
+                        </div>
+                    }
+                    
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2">@GetEmotionEmoji(note.Emotion)</span>
+                            <span class="badge bg-secondary">@GetEmotionName(note.Emotion)</span>
+                            @if (note.ShareWithPsychologist)
+                            {
+                                <span class="badge bg-info ms-2">👥 Психолог</span>
+                            }
+                        </div>
+                        
+                        <p class="card-text">@note.Content</p>
+                        
+                        @if (!string.IsNullOrEmpty(note.Tags))
+                        {
+                            <div class="mb-2">
+                                @foreach (var tag in note.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="badge bg-light text-dark me-1">#@tag.Trim()</span>
+                                }
+                            </div>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(note.Activity))
+                        {
+                            <small class="text-muted">Активность: @note.Activity</small>
+                        }
+                    </div>
+                    
+                    <div class="card-footer bg-transparent d-flex justify-content-between">
+                        <div>
+                            <a href="/notes/edit/@note.Id" class="btn btn-sm btn-outline-primary">✏️</a>
+                            <form method="post" action="/notes/toggle-pin/@note.Id" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-warning">📌</button>
+                            </form>
+                        </div>
+                        <form method="post" action="/notes/delete/@note.Id" class="d-inline" onsubmit="return confirm('Удалить заметку?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+.emotion-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.emotion-timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e5e7eb;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 8px;
+    width: 12px;
+    height: 12px;
+    background: #6b7cff;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 2px #e5e7eb;
+}
+
+.timeline-time {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+    min-width: 40px;
+}
+
+.timeline-emotion {
+    font-size: 1.25rem;
+    min-width: 30px;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-emotion-name {
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.timeline-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.timeline-activity {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+</style>
+
+@functions {
+    string GetDominantEmotionEmoji(List<Sofia.Web.Models.Note> notes)
+    {
+        if (!notes.Any()) return "😐";
+        
+        var dominantEmotion = notes
+            .GroupBy(n => n.Emotion)
+            .OrderByDescending(g => g.Count())
+            .First().Key;
+            
+        return GetEmotionEmoji(dominantEmotion);
+    }
+    
+    int GetUniqueActivitiesCount(List<Sofia.Web.Models.Note> notes)
+    {
+        return notes
+            .Where(n => !string.IsNullOrEmpty(n.Activity))
+            .Select(n => n.Activity)
+            .Distinct()
+            .Count();
+    }
+    
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+}

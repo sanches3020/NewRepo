@@ -1,0 +1,80 @@
+@model Sofia.Web.Models.Goal
+@{
+    ViewData["Title"] = "Новая цель";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">🎯 Новая цель</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Название цели *</label>
+                        <input asp-for="Title" class="form-control" placeholder="Например: Ежедневные практики медитации" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Описание</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Подробнее о том, что вы хотите достичь..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Type" class="form-label">Тип цели</label>
+                                <select asp-for="Type" class="form-select">
+                                    <option value="@Sofia.Web.Models.GoalType.Personal">👤 Личная</option>
+                                    <option value="@Sofia.Web.Models.GoalType.Wellness">🌱 Здоровье</option>
+                                    <option value="@Sofia.Web.Models.GoalType.Therapy">🧠 Терапия</option>
+                                    <option value="@Sofia.Web.Models.GoalType.Social">👥 Социальная</option>
+                                    <option value="@Sofia.Web.Models.GoalType.Professional">💼 Профессиональная</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="TargetDate" class="form-label">Целевая дата</label>
+                                <input asp-for="TargetDate" type="date" class="form-control" />
+                                <div class="form-text">Когда планируете достичь цели?</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsFromPsychologist" class="form-check-input" />
+                            <label asp-for="IsFromPsychologist" class="form-check-label">
+                                👥 Цель от психолога
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="/goals" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Создать цель</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tips -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">💡 Советы для постановки целей</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">✅ Формулируйте цели конкретно и измеримо</li>
+                    <li class="mb-2">✅ Разбивайте большие цели на маленькие шаги</li>
+                    <li class="mb-2">✅ Устанавливайте реалистичные сроки</li>
+                    <li class="mb-2">✅ Регулярно отслеживайте прогресс</li>
+                    <li class="mb-0">✅ Празднуйте даже маленькие достижения</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

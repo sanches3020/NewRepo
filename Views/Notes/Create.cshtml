@@ -1,0 +1,78 @@
+@model Sofia.Web.Models.Note
+@{
+    ViewData["Title"] = "Новая заметка";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">📝 Новая заметка</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">Текст заметки *</label>
+                        <textarea asp-for="Content" class="form-control" rows="6" placeholder="Опишите свои мысли, чувства, события дня..."></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Emotion" class="form-label">Эмоция</label>
+                                <select asp-for="Emotion" class="form-select">
+                                    <option value="@Sofia.Web.Models.EmotionType.Neutral">😐 Нейтрально</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.VeryHappy">😄 Очень радостно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Happy">😊 Радостно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Calm">😌 Спокойно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Grateful">🙏 Благодарно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Excited">🤩 Взволнованно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Sad">😔 Грустно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.VerySad">😢 Очень грустно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Anxious">😰 Тревожно</option>
+                                    <option value="@Sofia.Web.Models.EmotionType.Frustrated">😤 Раздражённо</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Activity" class="form-label">Активность</label>
+                                <input asp-for="Activity" class="form-control" placeholder="Работа, учёба, отдых, спорт..." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Tags" class="form-label">Теги</label>
+                        <input asp-for="Tags" class="form-control" placeholder="тревога, работа, семья (через запятую)" />
+                        <div class="form-text">Теги помогут найти заметки по темам</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsPinned" class="form-check-input" />
+                            <label asp-for="IsPinned" class="form-check-label">
+                                📌 Закрепить заметку
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="ShareWithPsychologist" class="form-check-input" />
+                            <label asp-for="ShareWithPsychologist" class="form-check-label">
+                                👥 Поделиться с психологом
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="/notes" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Сохранить заметку</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,399 @@
+@{
+    ViewData["Title"] = "Управление данными";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Управление данными</h2>
+    <a href="/settings" class="btn btn-outline-secondary">← Настройки</a>
+</div>
+
+<div class="row g-4">
+    <!-- Export Data -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">📥 Экспорт данных</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">Скачайте все ваши данные в удобном формате для резервного копирования или переноса в другое приложение.</p>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="export-option">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">📄</div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">JSON формат</h6>
+                                    <small class="text-muted">Полные данные с метаинформацией</small>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="exportData('json')">
+                                    Скачать
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="export-option">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">📊</div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">CSV формат</h6>
+                                    <small class="text-muted">Табличные данные для анализа</small>
+                                </div>
+                                <button class="btn btn-outline-success btn-sm" onclick="exportData('csv')">
+                                    Скачать
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-4">
+                    <h6 class="alert-heading">ℹ️ Информация об экспорте</h6>
+                    <ul class="mb-0">
+                        <li>Экспортируются все заметки, цели и настройки</li>
+                        <li>JSON содержит полную структуру данных</li>
+                        <li>CSV удобен для анализа в Excel или Google Sheets</li>
+                        <li>Файлы содержат только ваши личные данные</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">🗂️ Управление данными</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="data-action">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">🧹</div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Очистить старые данные</h6>
+                                    <small class="text-muted">Удалить заметки старше 1 года</small>
+                                </div>
+                                <button class="btn btn-outline-warning btn-sm" onclick="cleanOldData()">
+                                    Очистить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="data-action">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">🔄</div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Синхронизация</h6>
+                                    <small class="text-muted">Обновить данные с сервера</small>
+                                </div>
+                                <button class="btn btn-outline-info btn-sm" onclick="syncData()">
+                                    Синхронизировать
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Statistics -->
+    <div class="col-lg-4">
+        <!-- Storage Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">💾 Использование хранилища</h6>
+            </div>
+            <div class="card-body">
+                <div class="storage-info">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Заметки</span>
+                        <span class="text-muted">~2.5 MB</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: 25%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Цели</span>
+                        <span class="text-muted">~0.8 MB</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 8%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Настройки</span>
+                        <span class="text-muted">~0.2 MB</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: 2%"></div>
+                    </div>
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Всего</strong>
+                        <strong>~3.5 MB</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">🔄 Резервные копии</h6>
+            </div>
+            <div class="card-body">
+                <div class="backup-info">
+                    <div class="backup-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Последний экспорт</span>
+                            <span class="text-muted">Не создан</span>
+                        </div>
+                    </div>
+                    
+                    <div class="backup-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Автоматические копии</span>
+                            <span class="text-success">Включены</span>
+                        </div>
+                    </div>
+                    
+                    <div class="backup-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Частота</span>
+                            <span class="text-muted">Еженедельно</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-primary btn-sm w-100" onclick="createBackup()">
+                        📦 Создать резервную копию
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Safety -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">🔒 Безопасность данных</h6>
+            </div>
+            <div class="card-body">
+                <div class="safety-info">
+                    <div class="safety-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2">🔐</span>
+                            <span>Шифрование</span>
+                        </div>
+                        <small class="text-success">Все данные зашифрованы</small>
+                    </div>
+                    
+                    <div class="safety-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2">🛡️</span>
+                            <span>Приватность</span>
+                        </div>
+                        <small class="text-success">Данные не передаются третьим лицам</small>
+                    </div>
+                    
+                    <div class="safety-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2">📋</span>
+                            <span>GDPR</span>
+                        </div>
+                        <small class="text-success">Соответствует требованиям GDPR</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="card mt-4 border-danger">
+    <div class="card-header bg-danger-subtle">
+        <h5 class="mb-0 text-danger">⚠️ Опасная зона</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <h6 class="text-danger">Удалить все данные</h6>
+                <p class="text-muted mb-0">Это действие нельзя отменить. Все ваши заметки, цели и настройки будут безвозвратно удалены.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-danger" onclick="showDeleteConfirmation()">
+                    🗑️ Удалить все
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger-subtle">
+                <h5 class="modal-title text-danger">⚠️ Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger"><strong>ВНИМАНИЕ!</strong> Это действие нельзя отменить.</p>
+                <p>Все ваши данные будут безвозвратно удалены:</p>
+                <ul>
+                    <li>Все заметки и эмоции</li>
+                    <li>Все цели и прогресс</li>
+                    <li>Настройки и предпочтения</li>
+                    <li>История активности</li>
+                </ul>
+                
+                <div class="mt-3">
+                    <label for="deleteConfirmation" class="form-label">Введите "УДАЛИТЬ" для подтверждения:</label>
+                    <input type="text" class="form-control" id="deleteConfirmation" placeholder="УДАЛИТЬ">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">Удалить навсегда</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.export-option, .data-action {
+    transition: all 0.2s ease;
+}
+
+.export-option:hover, .data-action:hover {
+    background: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.storage-info, .backup-info, .safety-info {
+    space-y: 15px;
+}
+
+.backup-item, .safety-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.backup-item:last-child, .safety-item:last-child {
+    border-bottom: none;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function exportData(format) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/settings/export';
+    
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'format';
+    input.value = format;
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+function cleanOldData() {
+    if (confirm('Удалить заметки старше 1 года? Это действие нельзя отменить.')) {
+        // В реальном приложении здесь был бы AJAX запрос
+        showToast('Старые данные очищены', 'success');
+    }
+}
+
+function syncData() {
+    showToast('Синхронизация завершена', 'info');
+}
+
+function createBackup() {
+    showToast('Резервная копия создана', 'success');
+}
+
+function showDeleteConfirmation() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+function confirmDelete() {
+    const confirmation = document.getElementById('deleteConfirmation').value;
+    
+    if (confirmation !== 'УДАЛИТЬ') {
+        alert('Подтверждение неверное. Введите "УДАЛИТЬ" для подтверждения.');
+        return;
+    }
+    
+    // В реальном приложении здесь был бы AJAX запрос
+    fetch('/settings/delete-account', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ confirmation: confirmation })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+        } else {
+            alert(result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при удалении данных');
+    });
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>

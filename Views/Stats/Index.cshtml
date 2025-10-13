@@ -1,0 +1,455 @@
+@{
+    ViewData["Title"] = "Статистика и аналитика";
+    var daysBack = ViewBag.DaysBack as int? ?? 30;
+    var totalNotes = ViewBag.TotalNotes as int? ?? 0;
+    var recentNotes = ViewBag.RecentNotes as int? ?? 0;
+    var totalGoals = ViewBag.TotalGoals as int? ?? 0;
+    var activeGoals = ViewBag.ActiveGoals as int? ?? 0;
+    var completedGoals = ViewBag.CompletedGoals as int? ?? 0;
+    var emotionStats = ViewBag.EmotionStats as List<dynamic>;
+    var weeklyStats = ViewBag.WeeklyStats as List<dynamic>;
+    var hourlyStats = ViewBag.HourlyStats as List<dynamic>;
+    var tagStats = ViewBag.TagStats as List<dynamic>;
+    var activityStats = ViewBag.ActivityStats as List<dynamic>;
+    var practiceStats = ViewBag.PracticeStats as List<Sofia.Web.Models.Practice>;
+    var moodTrends = ViewBag.MoodTrends as List<dynamic>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Статистика и аналитика</h2>
+    <div class="d-flex gap-2">
+        <div class="btn-group" role="group">
+            <a href="/stats?days=7" class="btn btn-outline-primary btn-sm @(daysBack == 7 ? "active" : "")">7 дней</a>
+            <a href="/stats?days=30" class="btn btn-outline-primary btn-sm @(daysBack == 30 ? "active" : "")">30 дней</a>
+            <a href="/stats?days=90" class="btn btn-outline-primary btn-sm @(daysBack == 90 ? "active" : "")">90 дней</a>
+        </div>
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                📊 Отчеты
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/stats/report?days=@daysBack&format=html">📄 HTML отчет</a></li>
+                <li><a class="dropdown-item" href="/stats/report?days=@daysBack&format=json">📥 JSON данные</a></li>
+                <li><a class="dropdown-item" href="/stats/export?days=@daysBack">📊 CSV экспорт</a></li>
+            </ul>
+        </div>
+        <a href="/stats/insights" class="btn btn-outline-info btn-sm">💡 Инсайты</a>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h2 text-primary mb-2">@totalNotes</div>
+                <div class="text-muted">Всего заметок</div>
+                <small class="text-success">+@recentNotes за @daysBack дней</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h2 text-success mb-2">@activeGoals</div>
+                <div class="text-muted">Активных целей</div>
+                <small class="text-info">@completedGoals завершено</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h2 text-info mb-2">@(practiceStats?.Count ?? 0)</div>
+                <div class="text-muted">Практик медитации</div>
+                <small class="text-muted">Доступно для изучения</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h2 text-warning mb-2">@(recentNotes / (double)daysBack):F1</div>
+                <div class="text-muted">Заметок в день</div>
+                <small class="text-muted">Среднее за период</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Emotion Distribution -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🎭 Распределение эмоций</h5>
+            </div>
+            <div class="card-body">
+                @if (emotionStats?.Any() == true)
+                {
+                    <canvas id="emotionChart" height="300"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">📊</div>
+                        <p>Нет данных об эмоциях за выбранный период</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Trends -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">📈 Тренд настроения (7 дней)</h5>
+            </div>
+            <div class="card-body">
+                @if (moodTrends?.Any() == true)
+                {
+                    <canvas id="moodTrendChart" height="300"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">📈</div>
+                        <p>Недостаточно данных для построения тренда</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Activity -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">📅 Активность по дням недели</h5>
+            </div>
+            <div class="card-body">
+                @if (weeklyStats?.Any() == true)
+                {
+                    <canvas id="weeklyChart" height="300"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">📅</div>
+                        <p>Нет данных по дням недели</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Hourly Activity -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🕐 Активность по часам</h5>
+            </div>
+            <div class="card-body">
+                @if (hourlyStats?.Any() == true)
+                {
+                    <canvas id="hourlyChart" height="300"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">🕐</div>
+                        <p>Нет данных по часам</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Tags -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🏷️ Популярные теги</h5>
+            </div>
+            <div class="card-body">
+                @if (tagStats?.Any() == true)
+                {
+                    <div class="tag-cloud">
+                        @foreach (var tag in tagStats.Take(15))
+                        {
+                            var size = Math.Max(12, Math.Min(24, 12 + (tag.Count * 2)));
+                            <span class="badge bg-light text-dark me-2 mb-2" style="font-size: @(size)px;">
+                                #@tag.Tag (@tag.Count)
+                            </span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">🏷️</div>
+                        <p>Нет тегов за выбранный период</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Activities -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🏃 Популярные активности</h5>
+            </div>
+            <div class="card-body">
+                @if (activityStats?.Any() == true)
+                {
+                    <div class="activity-list">
+                        @foreach (var activity in activityStats.Take(10))
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>🏃 @activity.Activity</span>
+                                <span class="badge bg-primary">@activity.Count</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">🏃</div>
+                        <p>Нет активностей за выбранный период</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Goals Progress -->
+@if (activeGoals > 0)
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">🎯 Прогресс по целям</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="h3 text-primary">@activeGoals</div>
+                        <div class="text-muted">Активных целей</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="h3 text-success">@completedGoals</div>
+                        <div class="text-muted">Завершённых целей</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="h3 text-info">@(totalGoals > 0 ? (completedGoals * 100 / totalGoals) : 0)%</div>
+                        <div class="text-muted">Процент успеха</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Emotion Chart
+    const emotionCtx = document.getElementById('emotionChart');
+    if (emotionCtx) {
+        const emotionData = @Html.Raw(Json.Serialize(emotionStats));
+        
+        new Chart(emotionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: emotionData.map(e => e.emotion),
+                datasets: [{
+                    data: emotionData.map(e => e.count),
+                    backgroundColor: emotionData.map(e => getEmotionColor(e.emotion)),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Mood Trend Chart
+    const moodCtx = document.getElementById('moodTrendChart');
+    if (moodCtx) {
+        const moodData = @Html.Raw(Json.Serialize(moodTrends));
+        
+        new Chart(moodCtx, {
+            type: 'line',
+            data: {
+                labels: moodData.map(m => new Date(m.date).toLocaleDateString('ru-RU')),
+                datasets: [{
+                    label: 'Среднее настроение',
+                    data: moodData.map(m => m.averageMood),
+                    borderColor: '#6b7cff',
+                    backgroundColor: 'rgba(107, 124, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        ticks: {
+                            callback: function(value) {
+                                return getEmotionName(value);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Weekly Chart
+    const weeklyCtx = document.getElementById('weeklyChart');
+    if (weeklyCtx) {
+        const weeklyData = @Html.Raw(Json.Serialize(weeklyStats));
+        const daysOfWeek = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+        
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: daysOfWeek,
+                datasets: [{
+                    label: 'Количество заметок',
+                    data: daysOfWeek.map((_, index) => {
+                        const dayData = weeklyData.find(w => w.dayOfWeek === index);
+                        return dayData ? dayData.count : 0;
+                    }),
+                    backgroundColor: 'rgba(107, 124, 255, 0.8)',
+                    borderColor: '#6b7cff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Hourly Chart
+    const hourlyCtx = document.getElementById('hourlyChart');
+    if (hourlyCtx) {
+        const hourlyData = @Html.Raw(Json.Serialize(hourlyStats));
+        
+        new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                datasets: [{
+                    label: 'Количество заметок',
+                    data: Array.from({length: 24}, (_, hour) => {
+                        const hourData = hourlyData.find(h => h.hour === hour);
+                        return hourData ? hourData.count : 0;
+                    }),
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: '#22c55e',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+});
+
+function getEmotionColor(emotion) {
+    const colors = {
+        'VerySad': '#fee2e2',
+        'Sad': '#fecaca',
+        'Neutral': '#f3f4f6',
+        'Happy': '#dcfce7',
+        'VeryHappy': '#bbf7d0',
+        'Anxious': '#fef3c7',
+        'Calm': '#dbeafe',
+        'Excited': '#fde68a',
+        'Frustrated': '#fed7aa',
+        'Grateful': '#e0e7ff'
+    };
+    return colors[emotion] || '#f3f4f6';
+}
+
+function getEmotionName(value) {
+    const emotions = ['Очень грустно', 'Грустно', 'Нейтрально', 'Радостно', 'Очень радостно', 'Тревожно', 'Спокойно', 'Взволнованно', 'Раздражённо', 'Благодарно'];
+    return emotions[Math.round(value)] || 'Неизвестно';
+}
+</script>
+
+<style>
+.tag-cloud {
+    line-height: 2;
+}
+
+.activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+

@@ -1,0 +1,272 @@
+@{
+    ViewData["Title"] = "Психологи";
+    var psychologists = ViewBag.Psychologists as List<Sofia.Web.Models.Psychologist>;
+    var recentNotes = ViewBag.RecentNotes as List<Sofia.Web.Models.Note>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>👥 Психологи</h2>
+    <div class="d-flex gap-2">
+        <a href="/psychologist/appointments" class="btn btn-outline-info btn-sm">📅 Мои записи</a>
+        <a href="/notes/create" class="btn btn-outline-primary btn-sm">📝 Заметка</a>
+    </div>
+</div>
+
+<!-- Recent Shared Notes -->
+@if (recentNotes?.Any() == true)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0">📤 Последние заметки для психолога</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var note in recentNotes.Take(3))
+                {
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="me-2">@GetEmotionEmoji(note.Emotion)</span>
+                                    <span class="badge bg-secondary">@GetEmotionName(note.Emotion)</span>
+                                </div>
+                                <p class="card-text small">@(note.Content.Length > 100 ? note.Content.Substring(0, 100) + "..." : note.Content)</p>
+                                <small class="text-muted">@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Psychologists List -->
+<div class="row g-4">
+    @if (psychologists?.Any() == true)
+    {
+        @foreach (var psychologist in psychologists)
+        {
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">@psychologist.Name</h5>
+                                <p class="text-muted mb-2">@psychologist.Specialization</p>
+                            </div>
+                            <div class="text-end">
+                                @if (psychologist.PricePerHour.HasValue)
+                                {
+                                    <div class="h6 text-primary mb-0">@psychologist.PricePerHour.Value.ToString("N0") ₽/час</div>
+                                }
+                            </div>
+                        </div>
+
+                        <p class="card-text">@psychologist.Description</p>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">Образование:</small><br>
+                                <small>@psychologist.Education</small>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Опыт:</small><br>
+                                <small>@psychologist.Experience</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">Языки:</small><br>
+                                <small>@psychologist.Languages</small>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Методы:</small><br>
+                                <small>@psychologist.Methods</small>
+                            </div>
+                        </div>
+
+                        <!-- Contact Info -->
+                        <div class="contact-info mb-3">
+                            @if (!string.IsNullOrEmpty(psychologist.ContactPhone))
+                            {
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2">📞</span>
+                                    <small>@psychologist.ContactPhone</small>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(psychologist.ContactEmail))
+                            {
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="me-2">✉️</span>
+                                    <small>@psychologist.ContactEmail</small>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill">
+                                👤 Профиль
+                            </a>
+                            <button class="btn btn-outline-success btn-sm" onclick="bookAppointment(@psychologist.Id)">
+                                📅 Записаться
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 48px;">👥</div>
+                <h4 class="text-muted">Психологи не найдены</h4>
+                <p class="text-muted">В данный момент нет доступных психологов</p>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Booking Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📅 Запись на консультацию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bookingForm">
+                    <input type="hidden" id="psychologistId" name="psychologistId">
+                    
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">Дата и время</label>
+                        <input type="datetime-local" class="form-control" id="appointmentDate" name="appointmentDate" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Дополнительные заметки</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Опишите, с чем хотели бы поработать..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="submitBooking()">Записаться</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.contact-info {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.psychologist-card {
+    border-left: 4px solid #6b7cff;
+}
+</style>
+
+<script>
+function bookAppointment(psychologistId) {
+    document.getElementById('psychologistId').value = psychologistId;
+    
+    // Устанавливаем минимальную дату (завтра)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    
+    document.getElementById('appointmentDate').min = tomorrow.toISOString().slice(0, 16);
+    
+    const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+    modal.show();
+}
+
+function submitBooking() {
+    const form = document.getElementById('bookingForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        psychologistId: parseInt(formData.get('psychologistId')),
+        appointmentDate: formData.get('appointmentDate'),
+        notes: formData.get('notes')
+    };
+    
+    fetch('/psychologist/book', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            form.reset();
+        } else {
+            alert('Ошибка при записи на консультацию');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при записи');
+    });
+}
+</script>
+
+@functions {
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+}
+
+

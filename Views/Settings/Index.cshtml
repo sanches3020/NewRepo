@@ -1,0 +1,455 @@
+@{
+    ViewData["Title"] = "Настройки";
+    var totalNotes = ViewBag.TotalNotes as int? ?? 0;
+    var totalGoals = ViewBag.TotalGoals as int? ?? 0;
+    var completedGoals = ViewBag.CompletedGoals as int? ?? 0;
+    var sharedNotes = ViewBag.SharedNotes as int? ?? 0;
+    var pinnedNotes = ViewBag.PinnedNotes as int? ?? 0;
+    var recentNotes = ViewBag.RecentNotes as List<Sofia.Web.Models.Note>;
+    var recentGoals = ViewBag.RecentGoals as List<Sofia.Web.Models.Goal>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>⚙️ Настройки</h2>
+    <div class="d-flex gap-2">
+        <a href="/settings/profile" class="btn btn-outline-primary btn-sm">👤 Профиль</a>
+        <a href="/settings/preferences" class="btn btn-outline-info btn-sm">🎨 Предпочтения</a>
+    </div>
+</div>
+
+<!-- User Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-primary mb-2">@totalNotes</div>
+                <div class="text-muted">Всего заметок</div>
+                <small class="text-success">@pinnedNotes закреплено</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-success mb-2">@completedGoals</div>
+                <div class="text-muted">Завершённых целей</div>
+                <small class="text-info">@totalGoals всего</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-info mb-2">@sharedNotes</div>
+                <div class="text-muted">Заметок для психолога</div>
+                <small class="text-muted">Поделено</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-warning mb-2">@(totalGoals > 0 ? (completedGoals * 100 / totalGoals) : 0)%</div>
+                <div class="text-muted">Успешность целей</div>
+                <small class="text-muted">Прогресс</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Quick Settings -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">🚀 Быстрые настройки</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="setting-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">🌙 Тёмная тема</h6>
+                                    <small class="text-muted">Переключить тему оформления</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="setting-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">🔔 Уведомления</h6>
+                                    <small class="text-muted">Напоминания о записях</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notificationsToggle" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="setting-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">📧 Email обновления</h6>
+                                    <small class="text-muted">Еженедельные отчёты</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailToggle">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="setting-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">🔒 Приватность</h6>
+                                    <small class="text-muted">Скрыть от других пользователей</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="privacyToggle">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Menu -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">⚙️ Все настройки</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="/settings/profile" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">👤</div>
+                                <div>
+                                    <h6 class="mb-1">Профиль</h6>
+                                    <small class="text-muted">Личная информация и аватар</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/settings/preferences" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">🎨</div>
+                                <div>
+                                    <h6 class="mb-1">Предпочтения</h6>
+                                    <small class="text-muted">Тема, язык, интерфейс</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/settings/notifications" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">🔔</div>
+                                <div>
+                                    <h6 class="mb-1">Уведомления</h6>
+                                    <small class="text-muted">Напоминания и алерты</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/settings/privacy" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">🔒</div>
+                                <div>
+                                    <h6 class="mb-1">Приватность</h6>
+                                    <small class="text-muted">Конфиденциальность данных</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/settings/data" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">📊</div>
+                                <div>
+                                    <h6 class="mb-1">Данные</h6>
+                                    <small class="text-muted">Экспорт и управление</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/settings/help" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">❓</div>
+                                <div>
+                                    <h6 class="mb-1">Помощь</h6>
+                                    <small class="text-muted">FAQ и поддержка</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-lg-4">
+        <!-- Recent Notes -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">📝 Последние заметки</h6>
+            </div>
+            <div class="card-body">
+                @if (recentNotes?.Any() == true)
+                {
+                    <div class="recent-activity">
+                        @foreach (var note in recentNotes.Take(3))
+                        {
+                            <div class="activity-item">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">@GetEmotionEmoji(note.Emotion)</span>
+                                    <div class="flex-grow-1">
+                                        <div class="activity-text">@(note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content)</div>
+                                        <small class="text-muted">@note.CreatedAt.ToString("dd.MM HH:mm")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <div style="font-size: 24px;">📝</div>
+                        <p class="mb-0">Нет заметок</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Goals -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">🎯 Последние цели</h6>
+            </div>
+            <div class="card-body">
+                @if (recentGoals?.Any() == true)
+                {
+                    <div class="recent-activity">
+                        @foreach (var goal in recentGoals.Take(3))
+                        {
+                            <div class="activity-item">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">@GetGoalEmoji(goal.Type)</span>
+                                    <div class="flex-grow-1">
+                                        <div class="activity-text">@goal.Title</div>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar @GetGoalProgressClass(goal.Status)" 
+                                                 style="width: @goal.Progress%"></div>
+                                        </div>
+                                        <small class="text-muted">@goal.Progress% • @goal.Status</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <div style="font-size: 24px;">🎯</div>
+                        <p class="mb-0">Нет целей</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">⚡ Быстрые действия</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/notes/create" class="btn btn-outline-primary btn-sm">📝 Новая заметка</a>
+                    <a href="/goals/create" class="btn btn-outline-success btn-sm">🎯 Новая цель</a>
+                    <a href="/stats" class="btn btn-outline-info btn-sm">📊 Статистика</a>
+                    <a href="/settings/data" class="btn btn-outline-warning btn-sm">📥 Экспорт данных</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.setting-item {
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.setting-item:hover {
+    background: #f8f9fa;
+    border-color: #6b7cff;
+}
+
+.settings-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.settings-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.settings-link .border {
+    transition: all 0.2s ease;
+}
+
+.settings-link:hover .border {
+    border-color: #6b7cff !important;
+    background: #f8f9fa;
+}
+
+.recent-activity {
+    space-y: 10px;
+}
+
+.activity-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-text {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Обновляем состояние переключателя
+    document.getElementById('themeToggle').checked = newTheme === 'dark';
+}
+
+// Инициализация темы
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.getElementById('themeToggle').checked = savedTheme === 'dark';
+});
+
+// Сохранение настроек
+function saveSettings() {
+    const settings = {
+        notifications: document.getElementById('notificationsToggle').checked,
+        emailUpdates: document.getElementById('emailToggle').checked,
+        privacy: document.getElementById('privacyToggle').checked
+    };
+    
+    localStorage.setItem('sofiaSettings', JSON.stringify(settings));
+    
+    // Показываем уведомление
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = 'Настройки сохранены!';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Привязываем сохранение к изменениям
+document.getElementById('notificationsToggle').addEventListener('change', saveSettings);
+document.getElementById('emailToggle').addEventListener('change', saveSettings);
+document.getElementById('privacyToggle').addEventListener('change', saveSettings);
+</script>
+
+@functions {
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetGoalEmoji(Sofia.Web.Models.GoalType type)
+    {
+        return type switch
+        {
+            Sofia.Web.Models.GoalType.Personal => "👤",
+            Sofia.Web.Models.GoalType.Therapy => "🩺",
+            Sofia.Web.Models.GoalType.Wellness => "🌱",
+            Sofia.Web.Models.GoalType.Social => "💕",
+            Sofia.Web.Models.GoalType.Professional => "💼",
+            _ => "🎯"
+        };
+    }
+    
+    string GetGoalProgressClass(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Completed => "bg-success",
+            Sofia.Web.Models.GoalStatus.Active => "bg-primary",
+            Sofia.Web.Models.GoalStatus.Paused => "bg-warning",
+            Sofia.Web.Models.GoalStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+

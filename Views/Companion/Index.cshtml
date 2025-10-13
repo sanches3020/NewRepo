@@ -1,0 +1,567 @@
+@{
+    ViewData["Title"] = "Мой компаньон";
+    var petMood = ViewBag.PetMood as string;
+    var petMessage = ViewBag.PetMessage as string;
+    var lastEmotion = ViewBag.LastEmotion as Sofia.Web.Models.EmotionType?;
+    var recentNotes = ViewBag.RecentNotes as List<Sofia.Web.Models.Note>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🐾 Мой компаньон</h2>
+    <div class="d-flex gap-2">
+        <a href="/notes/create" class="btn btn-outline-primary btn-sm">📝 Заметка</a>
+        <a href="/calendar" class="btn btn-outline-info btn-sm">📅 Календарь</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Pet Display -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="pet-container mb-4">
+                    <div class="pet-avatar @petMood" id="petAvatar">
+                        <div class="pet-face">
+                            <div class="pet-eyes">
+                                <div class="pet-eye left"></div>
+                                <div class="pet-eye right"></div>
+                            </div>
+                            <div class="pet-mouth"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pet-speech-bubble mb-4" id="petMessage">
+                    <p class="mb-0">@petMessage</p>
+                </div>
+
+                <!-- Pet Stats -->
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <div class="pet-stat">
+                            <div class="pet-stat-icon">❤️</div>
+                            <div class="pet-stat-value" id="happiness">85</div>
+                            <div class="pet-stat-label">Счастье</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="pet-stat">
+                            <div class="pet-stat-icon">⚡</div>
+                            <div class="pet-stat-value" id="energy">70</div>
+                            <div class="pet-stat-label">Энергия</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="pet-stat">
+                            <div class="pet-stat-icon">😌</div>
+                            <div class="pet-stat-value" id="comfort">90</div>
+                            <div class="pet-stat-label">Комфорт</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interaction Buttons -->
+                <div class="pet-actions">
+                    <button class="btn btn-success me-2" onclick="feedPet()">
+                        🍎 Покормить
+                    </button>
+                    <button class="btn btn-primary me-2" onclick="playWithPet()">
+                        🎾 Поиграть
+                    </button>
+                    <button class="btn btn-info" onclick="comfortPet()">
+                        🤗 Утешить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pet Info & Recent Emotions -->
+    <div class="col-lg-4">
+        <!-- Pet Mood Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">🎭 Настроение питомца</h6>
+            </div>
+            <div class="card-body">
+                <div class="pet-mood-info">
+                    <div class="pet-mood-icon @petMood" id="moodIcon"></div>
+                    <div class="pet-mood-text">
+                        <div class="pet-mood-name" id="moodName">@GetMoodName(petMood ?? "neutral")</div>
+                        <div class="pet-mood-description" id="moodDescription">@GetMoodDescription(petMood ?? "neutral")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Emotions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">📊 Последние эмоции</h6>
+            </div>
+            <div class="card-body">
+                @if (recentNotes?.Any() == true)
+                {
+                    <div class="recent-emotions">
+                        @foreach (var note in recentNotes.Take(3))
+                        {
+                            <div class="emotion-item">
+                                <div class="emotion-emoji">@GetEmotionEmoji(note.Emotion)</div>
+                                <div class="emotion-info">
+                                    <div class="emotion-name">@GetEmotionName(note.Emotion)</div>
+                                    <div class="emotion-time">@note.CreatedAt.ToString("HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted">
+                        <div style="font-size: 24px;">📝</div>
+                        <p class="mb-0">Создайте заметку, чтобы питомец узнал о ваших эмоциях</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Pet Tips -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">💡 Советы</h6>
+            </div>
+            <div class="card-body">
+                <div class="pet-tips">
+                    <div class="tip-item">
+                        <div class="tip-icon">🍎</div>
+                        <div class="tip-text">Кормите питомца каждый день для поддержания счастья</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">🎾</div>
+                        <div class="tip-text">Играйте с питомцем, чтобы повысить его энергию</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">🤗</div>
+                        <div class="tip-text">Утешайте питомца, когда он грустит</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.pet-container {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pet-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    position: relative;
+    transition: all 0.3s ease;
+    animation: float 3s ease-in-out infinite;
+}
+
+.pet-avatar.happy {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    animation: bounce 1s ease-in-out infinite;
+}
+
+.pet-avatar.sad {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    animation: droop 2s ease-in-out infinite;
+}
+
+.pet-avatar.excited {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    animation: wiggle 0.5s ease-in-out infinite;
+}
+
+.pet-avatar.neutral {
+    background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+}
+
+.pet-face {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+}
+
+.pet-eyes {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 20px;
+}
+
+.pet-eye {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #333;
+    border-radius: 50%;
+    top: 4px;
+}
+
+.pet-eye.left {
+    left: 0;
+}
+
+.pet-eye.right {
+    right: 0;
+}
+
+.pet-mouth {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 10px;
+    border: 2px solid #333;
+    border-top: none;
+    border-radius: 0 0 20px 20px;
+}
+
+.pet-speech-bubble {
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 15px 20px;
+    position: relative;
+    max-width: 300px;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pet-speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #fff;
+}
+
+.pet-stat {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.pet-stat-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.pet-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.pet-stat-label {
+    font-size: 12px;
+    color: #666;
+}
+
+.pet-actions {
+    margin-top: 20px;
+}
+
+.pet-mood-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.pet-mood-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.pet-mood-icon.happy { background: #dcfce7; }
+.pet-mood-icon.sad { background: #fee2e2; }
+.pet-mood-icon.excited { background: #fef3c7; }
+.pet-mood-icon.neutral { background: #f3f4f6; }
+
+.pet-mood-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.pet-mood-description {
+    font-size: 12px;
+    color: #666;
+}
+
+.recent-emotions {
+    space-y: 10px;
+}
+
+.emotion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.emotion-item:last-child {
+    border-bottom: none;
+}
+
+.emotion-emoji {
+    font-size: 20px;
+}
+
+.emotion-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.emotion-time {
+    font-size: 12px;
+    color: #666;
+}
+
+.pet-tips {
+    space-y: 15px;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.tip-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.tip-text {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+}
+
+@@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@@keyframes bounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+}
+
+@@keyframes droop {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(5px); }
+}
+
+@@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
+}
+</style>
+
+<script>
+let petStats = {
+    happiness: 85,
+    energy: 70,
+    comfort: 90
+};
+
+function updatePetStats() {
+    document.getElementById('happiness').textContent = petStats.happiness;
+    document.getElementById('energy').textContent = petStats.energy;
+    document.getElementById('comfort').textContent = petStats.comfort;
+}
+
+function feedPet() {
+    fetch('/companion/feed', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            petStats.happiness = Math.min(100, petStats.happiness + 10);
+            updatePetStats();
+            updatePetMessage(data.message);
+            animatePet('happy');
+        }
+    });
+}
+
+function playWithPet() {
+    fetch('/companion/play', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            petStats.energy = Math.min(100, petStats.energy + 15);
+            updatePetStats();
+            updatePetMessage(data.message);
+            animatePet('excited');
+        }
+    });
+}
+
+function comfortPet() {
+    fetch('/companion/comfort', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            petStats.comfort = Math.min(100, petStats.comfort + 5);
+            updatePetStats();
+            updatePetMessage(data.message);
+            animatePet('calm');
+        }
+    });
+}
+
+function updatePetMessage(message) {
+    const messageElement = document.getElementById('petMessage');
+    messageElement.innerHTML = `<p class="mb-0">${message}</p>`;
+    
+    // Анимация появления сообщения
+    messageElement.style.opacity = '0';
+    setTimeout(() => {
+        messageElement.style.opacity = '1';
+    }, 100);
+}
+
+function animatePet(mood) {
+    const petAvatar = document.getElementById('petAvatar');
+    petAvatar.className = `pet-avatar ${mood}`;
+}
+
+// Обновление статуса питомца каждые 30 секунд
+setInterval(() => {
+    fetch('/companion/status')
+    .then(response => response.json())
+    .then(data => {
+        updatePetMessage(data.petMessage);
+        animatePet(data.petMood);
+    });
+}, 30000);
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    updatePetStats();
+});
+</script>
+
+@functions {
+    string GetMoodName(string mood)
+    {
+        return mood switch
+        {
+            "happy" => "Счастливый",
+            "sad" => "Грустный",
+            "excited" => "Возбужденный",
+            "neutral" => "Спокойный",
+            "worried" => "Волнующийся",
+            "peaceful" => "Умиротворенный",
+            "energetic" => "Энергичный",
+            "confused" => "Озадаченный",
+            "loving" => "Любящий",
+            "concerned" => "Обеспокоенный",
+            _ => "Неизвестно"
+        };
+    }
+    
+    string GetMoodDescription(string mood)
+    {
+        return mood switch
+        {
+            "happy" => "Питомец чувствует себя отлично!",
+            "sad" => "Питомец грустит и нуждается в поддержке",
+            "excited" => "Питомец полон энергии и готов играть!",
+            "neutral" => "Питомец спокоен и расслаблен",
+            "worried" => "Питомец волнуется о вас",
+            "peaceful" => "Питомец находится в гармонии",
+            "energetic" => "Питомец полон сил и активности",
+            "confused" => "Питомец не понимает, что происходит",
+            "loving" => "Питомец переполнен любовью к вам",
+            "concerned" => "Питомец беспокоится о вашем состоянии",
+            _ => "Состояние неизвестно"
+        };
+    }
+    
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+}
+
+

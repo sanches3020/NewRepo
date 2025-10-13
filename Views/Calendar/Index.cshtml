@@ -1,0 +1,277 @@
+@{
+    ViewData["Title"] = "Эмоциональный календарь";
+    var currentMonth = (DateTime)ViewBag.CurrentMonth;
+    var previousMonth = (DateTime)ViewBag.PreviousMonth;
+    var nextMonth = (DateTime)ViewBag.NextMonth;
+    var calendarData = ViewBag.CalendarData as Dictionary<DateTime, List<Sofia.Web.Models.Note>>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📅 Эмоциональный календарь</h2>
+    <div class="d-flex gap-2">
+        <a href="/calendar/emotion-stats" class="btn btn-outline-info btn-sm">📊 Статистика</a>
+        <a href="/notes/create" class="btn btn-primary btn-sm">+ Заметка</a>
+    </div>
+</div>
+
+<!-- Month Navigation -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="/calendar?year=@previousMonth.Year&month=@previousMonth.Month" class="btn btn-outline-secondary">
+                ← @previousMonth.ToString("MMMM yyyy")
+            </a>
+            <h4 class="mb-0">@currentMonth.ToString("MMMM yyyy")</h4>
+            <a href="/calendar?year=@nextMonth.Year&month=@nextMonth.Month" class="btn btn-outline-secondary">
+                @nextMonth.ToString("MMMM yyyy") →
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Grid -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="calendar-grid">
+            <!-- Weekday Headers -->
+            <div class="calendar-header">
+                <div class="calendar-day-header">Пн</div>
+                <div class="calendar-day-header">Вт</div>
+                <div class="calendar-day-header">Ср</div>
+                <div class="calendar-day-header">Чт</div>
+                <div class="calendar-day-header">Пт</div>
+                <div class="calendar-day-header">Сб</div>
+                <div class="calendar-day-header">Вс</div>
+            </div>
+
+            <!-- Calendar Days -->
+            @{
+                var startDate = currentMonth.AddDays(-(int)currentMonth.DayOfWeek);
+                if (currentMonth.DayOfWeek == DayOfWeek.Sunday) startDate = startDate.AddDays(-6);
+                else startDate = startDate.AddDays(1);
+            }
+            
+            @for (int week = 0; week < 6; week++)
+            {
+                <div class="calendar-week">
+                    @for (int day = 0; day < 7; day++)
+                    {
+                        var date = startDate.AddDays(week * 7 + day);
+                        var dayNotes = calendarData?.ContainsKey(date) == true ? calendarData[date] : new List<Sofia.Web.Models.Note>();
+                        var isCurrentMonth = date.Month == currentMonth.Month;
+                        var isToday = date.Date == DateTime.Today;
+                        var dominantEmotion = GetDominantEmotion(dayNotes);
+                        
+                        <div class="calendar-day @(isCurrentMonth ? "" : "other-month") @(isToday ? "today" : "")" 
+                             data-date="@date.ToString("yyyy-MM-dd")"
+                             style="background-color: @GetEmotionColor(dominantEmotion)">
+                            <div class="calendar-day-number">@date.Day</div>
+                            @if (dayNotes.Any())
+                            {
+                                <div class="calendar-day-emotions">
+                                    @foreach (var emotion in dayNotes.Take(3).Select(n => n.Emotion).Distinct())
+                                    {
+                                        <span class="emotion-dot" title="@emotion.ToString()">@GetEmotionEmoji(emotion)</span>
+                                    }
+                                    @if (dayNotes.Count > 3)
+                                    {
+                                        <span class="emotion-count">+@(dayNotes.Count - 3)</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0">🎨 Легенда эмоций</h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            @foreach (var emotion in Enum.GetValues<Sofia.Web.Models.EmotionType>())
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="d-flex align-items-center">
+                        <div class="emotion-legend-color me-2" style="background-color: @GetEmotionColor(emotion)"></div>
+                        <span class="small">@GetEmotionEmoji(emotion) @GetEmotionName(emotion)</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.calendar-header {
+    display: contents;
+}
+
+.calendar-day-header {
+    background: #f9fafb;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.calendar-week {
+    display: contents;
+}
+
+.calendar-day {
+    background: #ffffff;
+    min-height: 80px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    position: relative;
+}
+
+.calendar-day:hover {
+    border-color: #6b7cff;
+    transform: scale(1.02);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.calendar-day.other-month {
+    background: #f9fafb;
+    color: #9ca3af;
+}
+
+.calendar-day.today {
+    border-color: #ef4444;
+    font-weight: bold;
+}
+
+.calendar-day-number {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.calendar-day-emotions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.emotion-dot {
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.emotion-count {
+    font-size: 0.625rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.emotion-legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarDays = document.querySelectorAll('.calendar-day');
+    
+    calendarDays.forEach(day => {
+        day.addEventListener('click', function() {
+            const date = this.dataset.date;
+            if (date) {
+                const [year, month, dayNum] = date.split('-');
+                window.location.href = `/calendar/day/${year}/${month}/${dayNum}`;
+            }
+        });
+    });
+});
+</script>
+
+@functions {
+    Sofia.Web.Models.EmotionType GetDominantEmotion(List<Sofia.Web.Models.Note> notes)
+    {
+        if (!notes.Any()) return Sofia.Web.Models.EmotionType.Neutral;
+        
+        return notes
+            .GroupBy(n => n.Emotion)
+            .OrderByDescending(g => g.Count())
+            .First().Key;
+    }
+    
+    string GetEmotionColor(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "#fee2e2", // red-100
+            Sofia.Web.Models.EmotionType.Sad => "#fecaca", // red-200
+            Sofia.Web.Models.EmotionType.Neutral => "#f3f4f6", // gray-100
+            Sofia.Web.Models.EmotionType.Happy => "#dcfce7", // green-100
+            Sofia.Web.Models.EmotionType.VeryHappy => "#bbf7d0", // green-200
+            Sofia.Web.Models.EmotionType.Anxious => "#fef3c7", // yellow-100
+            Sofia.Web.Models.EmotionType.Calm => "#dbeafe", // blue-100
+            Sofia.Web.Models.EmotionType.Excited => "#fde68a", // yellow-200
+            Sofia.Web.Models.EmotionType.Frustrated => "#fed7aa", // orange-200
+            Sofia.Web.Models.EmotionType.Grateful => "#e0e7ff", // indigo-100
+            _ => "#f3f4f6"
+        };
+    }
+    
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+}
+
+

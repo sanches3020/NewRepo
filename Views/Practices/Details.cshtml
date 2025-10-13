@@ -1,0 +1,110 @@
+@model Sofia.Web.Models.Practice
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">@GetCategoryEmoji(Model.Category) @Model.Name</h4>
+                    <span class="badge bg-primary">⏱️ @Model.DurationMinutes мин</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge bg-secondary">@GetCategoryName(Model.Category)</span>
+                </div>
+                
+                <p class="lead">@Model.Description</p>
+                
+                @if (!string.IsNullOrEmpty(Model.Instructions))
+                {
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">📋 Инструкция:</h6>
+                        <p class="mb-0">@Model.Instructions</p>
+                    </div>
+                }
+                
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>⏱️ Длительность</h6>
+                                <h4 class="text-primary">@Model.DurationMinutes мин</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>📂 Категория</h6>
+                                <h5>@GetCategoryEmoji(Model.Category) @GetCategoryName(Model.Category)</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="/practices" class="btn btn-secondary">← Назад к списку</a>
+                    <form method="post" action="/practices/start/@Model.Id" class="d-inline">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            ▶️ Начать практику
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Practice Tips -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">💡 Советы для практики</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">✅ Найдите тихое место без отвлечений</li>
+                    <li class="mb-2">✅ Устройтесь удобно, но не слишком расслабленно</li>
+                    <li class="mb-2">✅ Отключите уведомления на телефоне</li>
+                    <li class="mb-2">✅ Не критикуйте себя, если мысли блуждают</li>
+                    <li class="mb-0">✅ Записывайте свои ощущения после практики</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetCategoryEmoji(Sofia.Web.Models.PracticeCategory category)
+    {
+        return category switch
+        {
+            Sofia.Web.Models.PracticeCategory.Breathing => "🫁",
+            Sofia.Web.Models.PracticeCategory.Visualization => "🌅",
+            Sofia.Web.Models.PracticeCategory.CBT => "🧠",
+            Sofia.Web.Models.PracticeCategory.Gestalt => "🎭",
+            Sofia.Web.Models.PracticeCategory.Meditation => "🧘",
+            Sofia.Web.Models.PracticeCategory.Mindfulness => "🌱",
+            Sofia.Web.Models.PracticeCategory.Relaxation => "😌",
+            _ => "🧘"
+        };
+    }
+    
+    string GetCategoryName(Sofia.Web.Models.PracticeCategory category)
+    {
+        return category switch
+        {
+            Sofia.Web.Models.PracticeCategory.Breathing => "Дыхание",
+            Sofia.Web.Models.PracticeCategory.Visualization => "Визуализация",
+            Sofia.Web.Models.PracticeCategory.CBT => "КПТ",
+            Sofia.Web.Models.PracticeCategory.Gestalt => "Гештальт",
+            Sofia.Web.Models.PracticeCategory.Meditation => "Медитация",
+            Sofia.Web.Models.PracticeCategory.Mindfulness => "Осознанность",
+            Sofia.Web.Models.PracticeCategory.Relaxation => "Релаксация",
+            _ => category.ToString()
+        };
+    }
+}

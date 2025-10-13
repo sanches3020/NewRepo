@@ -1,0 +1,131 @@
+@model IEnumerable<Sofia.Web.Models.Practice>
+@{
+    ViewData["Title"] = "Практики и медитации";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Практики и медитации</h2>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Категория</label>
+                <select name="category" class="form-select">
+                    <option value="">Все категории</option>
+                    @foreach (var cat in ViewBag.Categories)
+                    {
+                        <option value="@cat" selected="@(ViewBag.SelectedCategory == cat.ToString())">
+                            @GetCategoryEmoji(cat) @GetCategoryName(cat)
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Максимальная длительность</label>
+                <select name="duration" class="form-select">
+                    <option value="">Любая</option>
+                    <option value="5" selected="@(ViewBag.SelectedDuration == 5)">До 5 минут</option>
+                    <option value="10" selected="@(ViewBag.SelectedDuration == 10)">До 10 минут</option>
+                    <option value="15" selected="@(ViewBag.SelectedDuration == 15)">До 15 минут</option>
+                    <option value="20" selected="@(ViewBag.SelectedDuration == 20)">До 20 минут</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Применить</button>
+                <a href="/practices" class="btn btn-outline-secondary">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 48px;">🧘</div>
+        <h4 class="text-muted">Практики не найдены</h4>
+        <p class="text-muted">Попробуйте изменить фильтры поиска</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var practice in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">@GetCategoryEmoji(practice.Category) @GetCategoryName(practice.Category)</span>
+                        <small class="text-muted">⏱️ @practice.DurationMinutes мин</small>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">@practice.Name</h5>
+                        <p class="card-text">@practice.Description</p>
+                        
+                        @if (!string.IsNullOrEmpty(practice.Instructions))
+                        {
+                            <div class="mt-3">
+                                <small class="text-muted fw-bold">Инструкция:</small>
+                                <p class="small text-muted">@practice.Instructions</p>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between">
+                            <a href="/practices/details/@practice.Id" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                            <form method="post" action="/practices/start/@practice.Id" class="d-inline">
+                                <button type="submit" class="btn btn-primary btn-sm">▶️ Начать</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@functions {
+    string GetCategoryEmoji(Sofia.Web.Models.PracticeCategory category)
+    {
+        return category switch
+        {
+            Sofia.Web.Models.PracticeCategory.Breathing => "🫁",
+            Sofia.Web.Models.PracticeCategory.Visualization => "🌅",
+            Sofia.Web.Models.PracticeCategory.CBT => "🧠",
+            Sofia.Web.Models.PracticeCategory.Gestalt => "🎭",
+            Sofia.Web.Models.PracticeCategory.Meditation => "🧘",
+            Sofia.Web.Models.PracticeCategory.Mindfulness => "🌱",
+            Sofia.Web.Models.PracticeCategory.Relaxation => "😌",
+            _ => "🧘"
+        };
+    }
+    
+    string GetCategoryName(Sofia.Web.Models.PracticeCategory category)
+    {
+        return category switch
+        {
+            Sofia.Web.Models.PracticeCategory.Breathing => "Дыхание",
+            Sofia.Web.Models.PracticeCategory.Visualization => "Визуализация",
+            Sofia.Web.Models.PracticeCategory.CBT => "КПТ",
+            Sofia.Web.Models.PracticeCategory.Gestalt => "Гештальт",
+            Sofia.Web.Models.PracticeCategory.Meditation => "Медитация",
+            Sofia.Web.Models.PracticeCategory.Mindfulness => "Осознанность",
+            Sofia.Web.Models.PracticeCategory.Relaxation => "Релаксация",
+            _ => category.ToString()
+        };
+    }
+}
+
+

@@ -1,0 +1,394 @@
+@{
+    ViewData["Title"] = "Отчет";
+    var reportData = ViewBag.ReportData as dynamic;
+    var format = ViewBag.Format as string;
+}
+
+@if (format == "pdf")
+{
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .report-header { text-align: center; margin-bottom: 30px; }
+        .report-section { margin-bottom: 25px; }
+        .chart-placeholder { background: #f8f9fa; padding: 20px; text-align: center; border: 1px solid #dee2e6; }
+        .no-print { display: none; }
+    </style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <h2>📊 Отчет по данным</h2>
+    <div class="d-flex gap-2">
+        <a href="/stats" class="btn btn-outline-secondary">← Статистика</a>
+        <button class="btn btn-outline-primary" onclick="window.print()">🖨️ Печать</button>
+        <a href="/stats/report?days=@reportData.Period.Days&format=json" class="btn btn-outline-success">📥 JSON</a>
+    </div>
+</div>
+
+<!-- Report Header -->
+<div class="report-header">
+    <h1>Sofia - Отчет о самочувствии</h1>
+    <p class="text-muted">Период: @reportData.Period.Start.ToString("dd.MM.yyyy") - @reportData.Period.End.ToString("dd.MM.yyyy") (@reportData.Period.Days дней)</p>
+    <p class="text-muted">Сгенерирован: @reportData.GeneratedAt.ToString("dd.MM.yyyy HH:mm")</p>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-primary">@reportData.Summary.TotalNotes</div>
+                <div class="text-muted">Заметок</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-success">@reportData.Summary.CompletedGoals</div>
+                <div class="text-muted">Завершённых целей</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-info">@reportData.Summary.ActiveGoals</div>
+                <div class="text-muted">Активных целей</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3 text-warning">@reportData.Summary.AverageMood.ToString("F1")</div>
+                <div class="text-muted">Среднее настроение</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emotion Analysis -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">🎭 Анализ эмоций</h5>
+    </div>
+    <div class="card-body">
+        @if (reportData.EmotionStats.Count > 0)
+        {
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="emotion-chart">
+                        @foreach (var emotion in reportData.EmotionStats)
+                        {
+                            var percentage = (emotion.Count / (double)reportData.Summary.TotalNotes) * 100;
+                            <div class="emotion-bar mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="emotion-legend-color me-2" style="background-color: @GetEmotionColor(emotion.Emotion)"></div>
+                                        <span class="small">@GetEmotionEmoji(emotion.Emotion) @GetEmotionName(emotion.Emotion)</span>
+                                    </div>
+                                    <span class="small text-muted">@emotion.Count (@percentage.ToString("F1"))%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" style="width: @percentage%; background-color: @GetEmotionColor(emotion.Emotion);" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="chart-placeholder">
+                        <h6>📈 График эмоций</h6>
+                        <p class="text-muted">Визуализация распределения эмоций за период</p>
+                        @if (reportData.Summary.MostFrequentEmotion != null)
+                        {
+                            <div class="alert alert-info">
+                                <strong>Самая частая эмоция:</strong><br>
+                                @GetEmotionEmoji(reportData.Summary.MostFrequentEmotion) @GetEmotionName(reportData.Summary.MostFrequentEmotion)
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <div style="font-size: 48px;">📊</div>
+                <p>Нет данных об эмоциях за выбранный период</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Activity Analysis -->
+@if (reportData.ActivityStats.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">🏃 Анализ активности</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Топ активностей:</h6>
+                    <div class="activity-list">
+                        @foreach (var activity in reportData.ActivityStats.Take(5))
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>🏃 @activity.Activity</span>
+                                <span class="badge bg-primary">@activity.Count</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    @if (reportData.Summary.MostFrequentActivity != null)
+                    {
+                        <div class="alert alert-success">
+                            <h6 class="alert-heading">⭐ Самая частая активность</h6>
+                            <p class="mb-0">@reportData.Summary.MostFrequentActivity</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Goals Analysis -->
+@if (reportData.Goals.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">🎯 Анализ целей</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="h4 text-primary">@reportData.GoalStats.Total</div>
+                        <div class="text-muted">Всего целей</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="h4 text-success">@reportData.GoalStats.Completed</div>
+                        <div class="text-muted">Завершено</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="h4 text-info">@reportData.GoalStats.Active</div>
+                        <div class="text-muted">Активных</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="h4 text-warning">@reportData.GoalStats.AverageProgress.ToString("F0")%</div>
+                        <div class="text-muted">Средний прогресс</div>
+                    </div>
+                </div>
+            </div>
+            
+            @if (reportData.Goals.Count > 0)
+            {
+                <div class="mt-4">
+                    <h6>Активные цели:</h6>
+                    <div class="row g-2">
+                        @foreach (var goal in ((IEnumerable<dynamic>)reportData.Goals).Where(g => g.Status == Sofia.Web.Models.GoalStatus.Active).Take(6))
+                        {
+                            <div class="col-md-6">
+                                <div class="goal-item p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">@goal.Title</h6>
+                                        <span class="badge bg-primary">@goal.Progress%</span>
+                                    </div>
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar bg-primary" style="width: @goal.Progress%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Mood Trends -->
+@if (reportData.MoodTrends.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📈 Тренды настроения</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-placeholder">
+                <h6>📊 График настроения по дням</h6>
+                <p class="text-muted">Динамика эмоционального состояния за период</p>
+                <div class="row g-2">
+                    @foreach (var trend in reportData.MoodTrends.Take(7))
+                    {
+                        <div class="col">
+                            <div class="text-center">
+                                <div class="small">@trend.Date.ToString("dd.MM")</div>
+                                <div class="h6">@GetEmotionEmoji((Sofia.Web.Models.EmotionType)(int)trend.AverageMood)</div>
+                                <div class="small text-muted">@trend.Count записей</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Recent Notes -->
+@if (reportData.Notes.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📝 Последние заметки</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var note in reportData.Notes.Take(12))
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="note-item p-3 border rounded">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="me-2">@GetEmotionEmoji(note.Emotion)</span>
+                                <span class="badge bg-secondary">@GetEmotionName(note.Emotion)</span>
+                                <small class="text-muted ms-auto">@note.CreatedAt.ToString("dd.MM")</small>
+                            </div>
+                            <p class="small mb-0">@(note.Content.Length > 100 ? note.Content.Substring(0, 100) + "..." : note.Content)</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Tags Analysis -->
+@if (reportData.TagStats.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">🏷️ Популярные теги</h5>
+        </div>
+        <div class="card-body">
+            <div class="tag-cloud">
+                @foreach (var tag in reportData.TagStats.Take(20))
+                {
+                    var size = Math.Max(12, Math.Min(24, 12 + (tag.Count * 2)));
+                    <span class="badge bg-light text-dark me-2 mb-2" style="font-size: @(size)px;">
+                        #@tag.Tag (@tag.Count)
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Footer -->
+<div class="text-center text-muted py-4">
+    <p>Отчет сгенерирован системой Sofia - ваш персональный помощник для отслеживания эмоций и целей</p>
+    <p class="small">Версия @reportData.Version • @reportData.GeneratedAt.ToString("dd.MM.yyyy HH:mm")</p>
+</div>
+
+<style>
+.emotion-legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.tag-cloud {
+    line-height: 2;
+}
+
+.goal-item, .note-item {
+    transition: all 0.2s ease;
+}
+
+.goal-item:hover, .note-item:hover {
+    background: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.chart-placeholder {
+    background: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+@@media print {
+    .no-print { display: none !important; }
+    .card { break-inside: avoid; }
+    .page-break { page-break-before: always; }
+}
+</style>
+
+@functions {
+    string GetEmotionColor(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "#fee2e2",
+            Sofia.Web.Models.EmotionType.Sad => "#fecaca",
+            Sofia.Web.Models.EmotionType.Neutral => "#f3f4f6",
+            Sofia.Web.Models.EmotionType.Happy => "#dcfce7",
+            Sofia.Web.Models.EmotionType.VeryHappy => "#bbf7d0",
+            Sofia.Web.Models.EmotionType.Anxious => "#fef3c7",
+            Sofia.Web.Models.EmotionType.Calm => "#dbeafe",
+            Sofia.Web.Models.EmotionType.Excited => "#fde68a",
+            Sofia.Web.Models.EmotionType.Frustrated => "#fed7aa",
+            Sofia.Web.Models.EmotionType.Grateful => "#e0e7ff",
+            _ => "#f3f4f6"
+        };
+    }
+    
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+}

@@ -1,0 +1,472 @@
+@{
+    ViewData["Title"] = "Настройки уведомлений";
+    var settings = ViewBag.Settings as Sofia.Web.Models.NotificationSettings;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🔔 Настройки уведомлений</h2>
+    <a href="/notifications" class="btn btn-outline-secondary">← Уведомления</a>
+</div>
+
+<div class="row g-4">
+    <!-- Notification Settings -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">⚙️ Основные настройки</h5>
+            </div>
+            <div class="card-body">
+                <form id="notificationSettingsForm">
+                    <div class="row g-3">
+                        <!-- Daily Reminder -->
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">📝 Ежедневное напоминание</h6>
+                                        <small class="text-muted">Напоминание о записи в дневник</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="dailyReminder" 
+                                               @(settings?.DailyReminder == true ? "checked" : "")>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="dailyReminderTime" class="form-label small">Время:</label>
+                                    <input type="time" class="form-control form-control-sm" id="dailyReminderTime" 
+                                           value="@(settings?.DailyReminderTime.ToString(@"hh\:mm") ?? "20:00")">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mood Check -->
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">😊 Проверка настроения</h6>
+                                        <small class="text-muted">Напоминание о записи эмоций</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="moodCheckReminder" 
+                                               @(settings?.MoodCheckReminder == true ? "checked" : "")>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="moodCheckTime" class="form-label small">Время:</label>
+                                    <input type="time" class="form-control form-control-sm" id="moodCheckTime" 
+                                           value="@(settings?.MoodCheckTime.ToString(@"hh\:mm") ?? "19:00")">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Goal Reminder -->
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">🎯 Напоминания о целях</h6>
+                                        <small class="text-muted">Напоминания о работе над целями</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="goalReminder" 
+                                               @(settings?.GoalReminder == true ? "checked" : "")>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Practice Reminder -->
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">🧘 Напоминания о практиках</h6>
+                                        <small class="text-muted">Напоминания о медитации и релаксации</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="practiceReminder" 
+                                               @(settings?.PracticeReminder == true ? "checked" : "")>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Report -->
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">📊 Еженедельные отчеты</h6>
+                                        <small class="text-muted">Отчеты о прогрессе за неделю</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="weeklyReport" 
+                                               @(settings?.WeeklyReport == true ? "checked" : "")>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="weeklyReportDay" class="form-label small">День недели:</label>
+                                    <select class="form-select form-select-sm" id="weeklyReportDay">
+                                        <option value="Monday">Понедельник</option>
+                                        <option value="Tuesday">Вторник</option>
+                                        <option value="Wednesday">Среда</option>
+                                        <option value="Thursday">Четверг</option>
+                                        <option value="Friday">Пятница</option>
+                                        <option value="Saturday">Суббота</option>
+                                        <option value="Sunday">Воскресенье</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Psychologist Reminder -->
+                        <div class="col-md-6">
+                            <div class="setting-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">👥 Напоминания о психологе</h6>
+                                        <small class="text-muted">Напоминания о записях к психологу</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="psychologistReminder" 
+                                               @(settings?.PsychologistReminder == true ? "checked" : "")>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notification Channels -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📱 Каналы уведомлений</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="setting-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">🔔 Push уведомления</h6>
+                                    <small class="text-muted">Уведомления в браузере</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="pushNotifications" 
+                                           @(settings?.PushNotifications == true ? "checked" : "")>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="setting-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">📧 Email уведомления</h6>
+                                    <small class="text-muted">Уведомления на почту</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                           @(settings?.EmailNotifications == true ? "checked" : "")>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Info -->
+    <div class="col-lg-4">
+        <!-- Current Settings Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">📋 Текущие настройки</h6>
+            </div>
+            <div class="card-body">
+                <div class="settings-summary">
+                    <div class="setting-summary-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Ежедневное напоминание</span>
+                            <span class="badge @(settings?.DailyReminder == true ? "bg-success" : "bg-secondary")">
+                                @(settings?.DailyReminder == true ? "Включено" : "Выключено")
+                            </span>
+                        </div>
+                        @if (settings?.DailyReminder == true)
+                        {
+                            <small class="text-muted">@settings.DailyReminderTime.ToString(@"hh\:mm")</small>
+                        }
+                    </div>
+                    
+                    <div class="setting-summary-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Проверка настроения</span>
+                            <span class="badge @(settings?.MoodCheckReminder == true ? "bg-success" : "bg-secondary")">
+                                @(settings?.MoodCheckReminder == true ? "Включено" : "Выключено")
+                            </span>
+                        </div>
+                        @if (settings?.MoodCheckReminder == true)
+                        {
+                            <small class="text-muted">@settings.MoodCheckTime.ToString(@"hh\:mm")</small>
+                        }
+                    </div>
+                    
+                    <div class="setting-summary-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Напоминания о целях</span>
+                            <span class="badge @(settings?.GoalReminder == true ? "bg-success" : "bg-secondary")">
+                                @(settings?.GoalReminder == true ? "Включено" : "Выключено")
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-summary-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Push уведомления</span>
+                            <span class="badge @(settings?.PushNotifications == true ? "bg-success" : "bg-secondary")">
+                                @(settings?.PushNotifications == true ? "Включено" : "Выключено")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Tips -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">💡 Советы</h6>
+            </div>
+            <div class="card-body">
+                <div class="tips-list">
+                    <div class="tip-item">
+                        <div class="tip-icon">⏰</div>
+                        <div class="tip-text">Установите удобное время для ежедневных напоминаний</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">🎯</div>
+                        <div class="tip-text">Включите напоминания о целях для лучшего прогресса</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">😊</div>
+                        <div class="tip-text">Регулярная проверка настроения помогает отслеживать эмоции</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon">🔔</div>
+                        <div class="tip-text">Push уведомления работают только при открытом сайте</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">⚡ Быстрые действия</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="saveSettings()">
+                        💾 Сохранить настройки
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="testNotification()">
+                        🧪 Тестовое уведомление
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="requestPermission()">
+                        🔔 Разрешить уведомления
+                    </button>
+                    <a href="/notifications" class="btn btn-outline-secondary btn-sm">
+                        📬 Все уведомления
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.setting-item {
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.setting-item:hover {
+    background: #f8f9fa;
+    border-color: #6b7cff;
+}
+
+.settings-summary {
+    space-y: 15px;
+}
+
+.setting-summary-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.setting-summary-item:last-child {
+    border-bottom: none;
+}
+
+.tips-list {
+    space-y: 15px;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.tip-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.tip-text {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function saveSettings() {
+    const form = document.getElementById('notificationSettingsForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        dailyReminder: document.getElementById('dailyReminder').checked,
+        dailyReminderTime: document.getElementById('dailyReminderTime').value,
+        goalReminder: document.getElementById('goalReminder').checked,
+        moodCheckReminder: document.getElementById('moodCheckReminder').checked,
+        moodCheckTime: document.getElementById('moodCheckTime').value,
+        weeklyReport: document.getElementById('weeklyReport').checked,
+        weeklyReportDay: document.getElementById('weeklyReportDay').value,
+        practiceReminder: document.getElementById('practiceReminder').checked,
+        psychologistReminder: document.getElementById('psychologistReminder').checked,
+        emailNotifications: document.getElementById('emailNotifications').checked,
+        pushNotifications: document.getElementById('pushNotifications').checked
+    };
+    
+    fetch('/notifications/settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast(result.message, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Ошибка при сохранении настроек', 'error');
+        }
+    });
+}
+
+function testNotification() {
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            new Notification('🧪 Тестовое уведомление', {
+                body: 'Это тестовое уведомление от Sofia!',
+                icon: '/favicon.ico'
+            });
+            showToast('Тестовое уведомление отправлено!', 'success');
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification('🧪 Тестовое уведомление', {
+                        body: 'Это тестовое уведомление от Sofia!',
+                        icon: '/favicon.ico'
+                    });
+                    showToast('Тестовое уведомление отправлено!', 'success');
+                } else {
+                    showToast('Разрешение на уведомления отклонено', 'warning');
+                }
+            });
+        } else {
+            showToast('Уведомления заблокированы в браузере', 'warning');
+        }
+    } else {
+        showToast('Браузер не поддерживает уведомления', 'warning');
+    }
+}
+
+function requestPermission() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                showToast('Разрешение на уведомления получено!', 'success');
+            } else {
+                showToast('Разрешение на уведомления отклонено', 'warning');
+            }
+        });
+    } else {
+        showToast('Браузер не поддерживает уведомления', 'warning');
+    }
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Автоматическое сохранение при изменении настроек
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input[type="checkbox"], input[type="time"], select');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Показываем индикатор изменения
+            const settingItem = this.closest('.setting-item');
+            if (settingItem) {
+                settingItem.style.background = '#f0f9ff';
+                settingItem.style.borderColor = '#3b82f6';
+            }
+        });
+    });
+});
+</script>

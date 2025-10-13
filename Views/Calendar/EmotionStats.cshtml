@@ -1,0 +1,290 @@
+@{
+    ViewData["Title"] = "Статистика эмоций";
+    var emotionStats = ViewBag.EmotionStats as List<dynamic>;
+    var daysBack = ViewBag.DaysBack as int? ?? 30;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Статистика эмоций</h2>
+    <div class="d-flex gap-2">
+        <a href="/calendar" class="btn btn-outline-secondary">← Календарь</a>
+        <div class="btn-group" role="group">
+            <a href="/calendar/emotion-stats?days=7" class="btn btn-outline-primary btn-sm @(daysBack == 7 ? "active" : "")">7 дней</a>
+            <a href="/calendar/emotion-stats?days=30" class="btn btn-outline-primary btn-sm @(daysBack == 30 ? "active" : "")">30 дней</a>
+            <a href="/calendar/emotion-stats?days=90" class="btn btn-outline-primary btn-sm @(daysBack == 90 ? "active" : "")">90 дней</a>
+        </div>
+    </div>
+</div>
+
+@if (emotionStats?.Any() != true)
+{
+    <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 48px;">📈</div>
+        <h4 class="text-muted">Нет данных за последние @daysBack дней</h4>
+        <p class="text-muted">Создайте заметки, чтобы увидеть статистику эмоций</p>
+        <a href="/notes/create" class="btn btn-primary">Создать заметку</a>
+    </div>
+}
+else
+{
+    var totalNotes = emotionStats?.Sum(s => s.Count) ?? 0;
+    
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h3 text-primary">@totalNotes</div>
+                    <div class="text-muted">Всего заметок</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h3 text-success">@(emotionStats?.Count ?? 0)</div>
+                    <div class="text-muted">Уникальных эмоций</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="h3 text-info">@(totalNotes / (double)daysBack):F1</div>
+                    <div class="text-muted">Заметок в день</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                        <div class="h3 text-warning">@GetMostFrequentEmotionEmoji(emotionStats ?? new List<dynamic>())</div>
+                        <div class="text-muted">Частая эмоция</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emotion Distribution -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📊 Распределение эмоций</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="emotion-chart">
+                        @foreach (var stat in emotionStats?.OrderByDescending(s => s.Count) ?? Enumerable.Empty<dynamic>())
+                        {
+                            var percentage = (stat.Count / (double)totalNotes) * 100;
+                            <div class="emotion-bar mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">@GetEmotionEmoji(stat.Emotion)</span>
+                                        <span class="fw-medium">@GetEmotionName(stat.Emotion)</span>
+                                    </div>
+                                    <div class="text-muted">
+                                        <span class="fw-bold">@stat.Count</span> (@percentage:F1%)
+                                    </div>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar @GetEmotionBarClass(stat.Emotion)" 
+                                         role="progressbar" 
+                                         style="width: @percentage%" 
+                                         aria-valuenow="@percentage" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="emotion-pie-chart">
+                        <canvas id="emotionPieChart" width="200" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Pattern -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📅 Паттерны по дням недели</h5>
+        </div>
+        <div class="card-body">
+            <div class="text-center text-muted">
+                <p>Анализ паттернов по дням недели поможет понять, в какие дни вы чувствуете себя лучше или хуже.</p>
+                <small>Эта функция будет доступна при накоплении большего количества данных.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">💡 Инсайты</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var mostFrequent = emotionStats?.OrderByDescending(s => s.Count).FirstOrDefault();
+                var leastFrequent = emotionStats?.OrderBy(s => s.Count).FirstOrDefault();
+                var averagePerDay = totalNotes / (double)daysBack;
+            }
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">🎯 Самая частая эмоция</h6>
+                        <p class="mb-0">
+                            @if (mostFrequent != null)
+                            {
+                                <text>За последние @daysBack дней вы чаще всего чувствовали 
+                                <strong>@GetEmotionEmoji(mostFrequent.Emotion) @GetEmotionName(mostFrequent.Emotion)</strong> 
+                                (@mostFrequent.Count раз).</text>
+                            }
+                            else
+                            {
+                                <text>Недостаточно данных для анализа.</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">📈 Активность</h6>
+                        <p class="mb-0">
+                            Вы создаете в среднем <strong>@averagePerDay:F1 заметок в день</strong>. 
+                            @if (averagePerDay >= 1)
+                            {
+                                <span>Отличная регулярность!</span>
+                            }
+                            else
+                            {
+                                <span>Попробуйте записывать заметки чаще.</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('emotionPieChart');
+    if (ctx) {
+        const emotionStats = @Html.Raw(Json.Serialize(emotionStats));
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: emotionStats.map(s => s.emotion),
+                datasets: [{
+                    data: emotionStats.map(s => s.count),
+                    backgroundColor: emotionStats.map(s => getEmotionColor(s.emotion)),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+function getEmotionColor(emotion) {
+    const colors = {
+        'VerySad': '#fee2e2',
+        'Sad': '#fecaca',
+        'Neutral': '#f3f4f6',
+        'Happy': '#dcfce7',
+        'VeryHappy': '#bbf7d0',
+        'Anxious': '#fef3c7',
+        'Calm': '#dbeafe',
+        'Excited': '#fde68a',
+        'Frustrated': '#fed7aa',
+        'Grateful': '#e0e7ff'
+    };
+    return colors[emotion] || '#f3f4f6';
+}
+</script>
+
+@functions {
+    string GetMostFrequentEmotionEmoji(List<dynamic> stats)
+    {
+        if (!stats.Any()) return "😐";
+        
+        var mostFrequent = stats.OrderByDescending(s => s.Count).First();
+        return GetEmotionEmoji(mostFrequent.Emotion);
+    }
+    
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+    
+    string GetEmotionBarClass(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "bg-danger",
+            Sofia.Web.Models.EmotionType.Sad => "bg-danger",
+            Sofia.Web.Models.EmotionType.Neutral => "bg-secondary",
+            Sofia.Web.Models.EmotionType.Happy => "bg-success",
+            Sofia.Web.Models.EmotionType.VeryHappy => "bg-success",
+            Sofia.Web.Models.EmotionType.Anxious => "bg-warning",
+            Sofia.Web.Models.EmotionType.Calm => "bg-info",
+            Sofia.Web.Models.EmotionType.Excited => "bg-warning",
+            Sofia.Web.Models.EmotionType.Frustrated => "bg-warning",
+            Sofia.Web.Models.EmotionType.Grateful => "bg-primary",
+            _ => "bg-secondary"
+        };
+    }
+}
