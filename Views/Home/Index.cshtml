@@ -214,6 +214,53 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add companion interactions to buttons
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Random companion reaction based on button type
+                    if (this.classList.contains('btn-primary')) {
+                        if (Math.random() < 0.3) { // 30% chance
+                            celebrateCompanion();
+                        }
+                    } else if (this.textContent.includes('заметк') || this.textContent.includes('запис')) {
+                        if (Math.random() < 0.4) { // 40% chance
+                            remindCompanion();
+                        }
+                    } else if (this.textContent.includes('цел') || this.textContent.includes('достижени')) {
+                        if (Math.random() < 0.3) { // 30% chance
+                            encourageCompanion();
+                        }
+                    } else if (this.textContent.includes('компаньон')) {
+                        openCompanionDialog();
+                    }
+                });
+            });
+            
+            // Special interaction for feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    if (Math.random() < 0.1) { // 10% chance
+                        if (window.sofiaCompanion) {
+                            const messages = [
+                                "Этот раздел очень полезный! 🌟",
+                                "Попробуй этот функционал! 💫",
+                                "Отличный выбор! 👍"
+                            ];
+                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                            window.sofiaCompanion.showMessage(randomMessage);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
+
 <style>
 .hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

@@ -1,0 +1,244 @@
+@{
+    ViewData["Title"] = "Компаньон София";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">🌟 Встречайте Софию!</h1>
+                <p class="lead">Ваш персональный компаньон, который всегда готов поддержать и мотивировать</p>
+            </div>
+
+            <!-- Companion Features -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">💬</div>
+                            <h5>Диалоговое окно</h5>
+                            <p>Откройте полноценное диалоговое окно с Софией для взаимодействия!</p>
+                            <button class="btn btn-primary" onclick="testCompanionClick()">Открыть диалог</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">🎉</div>
+                            <h5>Празднование успехов</h5>
+                            <p>София радуется вашим достижениям и подбадривает в трудные моменты!</p>
+                            <button class="btn btn-success" onclick="celebrateCompanion()">Праздновать</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">💪</div>
+                            <h5>Мотивация и поддержка</h5>
+                            <p>Получайте ободряющие слова, когда нужна поддержка!</p>
+                            <button class="btn btn-info" onclick="encourageCompanion()">Поддержать</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">⭐</div>
+                            <h5>Напоминания о целях</h5>
+                            <p>София напомнит о ваших целях и поможет не сбиться с пути!</p>
+                            <button class="btn btn-warning" onclick="remindCompanion()">Напомнить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Features Row -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">🏆</div>
+                            <h5>Система достижений</h5>
+                            <p>Разблокируйте достижения за активность в приложении!</p>
+                            <button class="btn btn-info" onclick="openCompanionDialog()">Посмотреть</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">📈</div>
+                            <h5>Уровни и опыт</h5>
+                            <p>София растет вместе с вами! Получайте опыт за активность!</p>
+                            <button class="btn btn-success" onclick="openCompanionDialog()">Открыть</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">🍎</div>
+                            <h5>Уход за компаньоном</h5>
+                            <p>Кормите, играйте и заботьтесь о Софии!</p>
+                            <button class="btn btn-primary" onclick="openCompanionDialog()">Заботиться</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3" style="font-size: 3rem;">💰</div>
+                            <h5>Монеты и награды</h5>
+                            <p>Зарабатывайте монеты за активность и тратьте их на уход!</p>
+                            <button class="btn btn-warning" onclick="openCompanionDialog()">Заработать</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How it works -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h3 class="mb-0">🤖 Как работает София?</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">1</div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Диалоговое окно</h5>
+                                    <p>Полноценное взаимодействие через красивое модальное окно с статистикой и действиями.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Система уровней</h5>
+                                    <p>София растет вместе с вами! Получайте опыт и повышайте уровень компаньона.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Достижения и награды</h5>
+                                    <p>Разблокируйте достижения за активность и зарабатывайте монеты для ухода за Софией.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">4</div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Уход и забота</h5>
+                                    <p>Кормите, играйте, гладьте Софию и занимайтесь медитацией вместе!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">💡 Советы по использованию</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">🌟 <strong>Открывайте диалог</strong> - кликните на Софию для полноценного взаимодействия!</li>
+                        <li class="mb-2">📝 <strong>Создавайте заметки</strong> - получайте опыт и разблокируйте достижения</li>
+                        <li class="mb-2">🎯 <strong>Достигайте целей</strong> - София будет праздновать ваши успехи и давать награды</li>
+                        <li class="mb-2">🍎 <strong>Заботьтесь о Софии</strong> - кормите, играйте и медитируйте вместе</li>
+                        <li class="mb-2">🏆 <strong>Собирайте достижения</strong> - разблокируйте все награды за активность</li>
+                        <li class="mb-2">📈 <strong>Повышайте уровень</strong> - София растет и становится мудрее с вами</li>
+                        <li class="mb-2">💰 <strong>Зарабатывайте монеты</strong> - тратьте их на уход за компаньоном</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function testCompanionClick() {
+            if (window.sofiaCompanion) {
+                // Open the dialog directly
+                window.sofiaCompanion.openDialog();
+            } else {
+                alert('София ещё загружается. Попробуйте через несколько секунд!');
+            }
+        }
+        
+        // Add some demo interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Welcome message after page load
+            setTimeout(() => {
+                if (window.sofiaCompanion) {
+                    window.sofiaCompanion.showMessage("Привет! Я рада познакомиться! 👋");
+                }
+            }, 2000);
+            
+            // React to card hovers
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    if (Math.random() < 0.3) { // 30% chance
+                        if (window.sofiaCompanion) {
+                            const messages = [
+                                "Этот раздел очень полезный! 🌟",
+                                "Отличный выбор! 👍",
+                                "Попробуй этот функционал! 💫"
+                            ];
+                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                            window.sofiaCompanion.showMessage(randomMessage);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+</style>

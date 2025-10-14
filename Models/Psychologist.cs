@@ -10,6 +10,10 @@ public class Psychologist
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
     
+    // Связь с пользователем
+    public int? UserId { get; set; }
+    public virtual User? User { get; set; }
+    
     [StringLength(500)]
     public string? Specialization { get; set; }
     
@@ -69,6 +73,8 @@ public class PsychologistAppointment
     
     public int PsychologistId { get; set; }
     
+    public int? UserId { get; set; }
+    
     public DateTime AppointmentDate { get; set; }
     
     [StringLength(1000)]
@@ -80,6 +86,7 @@ public class PsychologistAppointment
     
     // Navigation properties
     public virtual Psychologist Psychologist { get; set; } = null!;
+    public virtual User? User { get; set; }
 }
 
 public enum AppointmentStatus

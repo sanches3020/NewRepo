@@ -94,6 +94,118 @@ else
     </div>
 }
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Companion reactions for goal actions
+            const createButton = document.querySelector('a[href="/goals/create"]');
+            if (createButton) {
+                createButton.addEventListener('click', function() {
+                    if (Math.random() < 0.6) { // 60% chance
+                        if (window.sofiaCompanion) {
+                            const messages = [
+                                "Отлично! Ставь цели и достигай их! 🎯",
+                                "Цели - это путь к успеху! ⭐",
+                                "Планируй и достигай! 💪"
+                            ];
+                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                            window.sofiaCompanion.showMessage(randomMessage);
+                        }
+                    }
+                    // Track goal creation
+                    onGoalCreated();
+                });
+            }
+            
+            // React to progress updates
+            const progressInputs = document.querySelectorAll('input[name="progress"]');
+            progressInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const progress = parseInt(this.value);
+                    if (window.sofiaCompanion) {
+                        let message = "";
+                        
+                        if (progress >= 100) {
+                            message = "Поздравляю! Цель достигнута! 🎉🎊";
+                            celebrateCompanion();
+                            onGoalCompleted();
+                        } else if (progress >= 75) {
+                            message = "Почти у цели! Продолжай! 🔥";
+                        } else if (progress >= 50) {
+                            message = "Отличный прогресс! Половина пути! 👏";
+                        } else if (progress >= 25) {
+                            message = "Хорошее начало! Не останавливайся! 💪";
+                        } else {
+                            message = "Каждый шаг важен! Продолжай! 🌟";
+                        }
+                        
+                        if (message) {
+                            window.sofiaCompanion.showMessage(message);
+                        }
+                    }
+                });
+            });
+            
+            // React to goal cards based on status
+            const goalCards = document.querySelectorAll('.card');
+            goalCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    if (Math.random() < 0.2) { // 20% chance
+                        if (window.sofiaCompanion) {
+                            const statusBadge = this.querySelector('.badge');
+                            if (statusBadge) {
+                                const status = statusBadge.textContent.toLowerCase();
+                                let message = "";
+                                
+                                if (status.includes('активн')) {
+                                    message = "Активная цель! Вперёд! 🚀";
+                                } else if (status.includes('выполнен')) {
+                                    message = "Поздравляю с достижением! 🏆";
+                                } else if (status.includes('приостановлен')) {
+                                    message = "Иногда нужна пауза. Это нормально! ⏸️";
+                                } else if (status.includes('отменен')) {
+                                    message = "Иногда нужно пересмотреть планы! 🔄";
+                                }
+                                
+                                if (message) {
+                                    window.sofiaCompanion.showMessage(message);
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // React to progress bars
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                bar.addEventListener('mouseenter', function() {
+                    if (Math.random() < 0.3) { // 30% chance
+                        if (window.sofiaCompanion) {
+                            const progress = parseInt(this.style.width);
+                            let message = "";
+                            
+                            if (progress >= 100) {
+                                message = "100%! Ты молодец! 🎊";
+                            } else if (progress >= 75) {
+                                message = "Почти финиш! 🏁";
+                            } else if (progress >= 50) {
+                                message = "Половина пути пройдена! 📈";
+                            } else {
+                                message = "Каждый процент важен! 📊";
+                            }
+                            
+                            if (message) {
+                                window.sofiaCompanion.showMessage(message);
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
+
 @functions {
     string GetTypeEmoji(Sofia.Web.Models.GoalType type)
     {

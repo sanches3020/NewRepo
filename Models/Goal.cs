@@ -24,6 +24,10 @@ public class Goal
     public int Progress { get; set; } = 0;
     
     public bool IsFromPsychologist { get; set; }
+    
+    // Связь с пользователем
+    public int? UserId { get; set; }
+    public virtual User? User { get; set; }
 }
 
 public enum GoalType
