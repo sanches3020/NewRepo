@@ -21,6 +21,10 @@ public class Note
     public bool IsPinned { get; set; }
     
     public bool ShareWithPsychologist { get; set; }
+    
+    // Связь с пользователем
+    public int? UserId { get; set; }
+    public virtual User? User { get; set; }
 }
 
 public enum EmotionType

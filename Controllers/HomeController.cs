@@ -15,11 +15,26 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
         return View();
     }
 
     public IActionResult Privacy()
     {
+        return View();
+    }
+
+    public IActionResult Companion()
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
         return View();
     }
 

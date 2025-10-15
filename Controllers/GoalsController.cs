@@ -18,7 +18,14 @@ public class GoalsController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         var goals = await _context.Goals
+            .Where(g => g.UserId == int.Parse(userId))
             .OrderByDescending(g => g.Status == GoalStatus.Active)
             .ThenByDescending(g => g.CreatedAt)
             .ToListAsync();
@@ -29,15 +36,28 @@ public class GoalsController : Controller
     [HttpGet("create")]
     public IActionResult Create()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         return View(new Goal());
     }
 
     [HttpPost("create")]
     public async Task<IActionResult> Create(Goal goal)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         if (ModelState.IsValid)
         {
             goal.CreatedAt = DateTime.Now;
+            goal.UserId = int.Parse(userId);
             _context.Goals.Add(goal);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -48,7 +68,16 @@ public class GoalsController : Controller
     [HttpGet("edit/{id}")]
     public async Task<IActionResult> Edit(int id)
     {
-        var goal = await _context.Goals.FindAsync(id);
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var goal = await _context.Goals
+            .Where(g => g.Id == id && g.UserId == int.Parse(userId))
+            .FirstOrDefaultAsync();
+        
         if (goal == null) return NotFound();
         return View(goal);
     }
@@ -56,12 +85,19 @@ public class GoalsController : Controller
     [HttpPost("edit/{id}")]
     public async Task<IActionResult> Edit(int id, Goal goal)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         if (id != goal.Id) return NotFound();
 
         if (ModelState.IsValid)
         {
             try
             {
+                goal.UserId = int.Parse(userId);
                 _context.Update(goal);
                 await _context.SaveChangesAsync();
             }
@@ -78,7 +114,16 @@ public class GoalsController : Controller
     [HttpPost("delete/{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var goal = await _context.Goals.FindAsync(id);
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var goal = await _context.Goals
+            .Where(g => g.Id == id && g.UserId == int.Parse(userId))
+            .FirstOrDefaultAsync();
+        
         if (goal != null)
         {
             _context.Goals.Remove(goal);
@@ -90,7 +135,16 @@ public class GoalsController : Controller
     [HttpPost("update-progress/{id}")]
     public async Task<IActionResult> UpdateProgress(int id, int progress)
     {
-        var goal = await _context.Goals.FindAsync(id);
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var goal = await _context.Goals
+            .Where(g => g.Id == id && g.UserId == int.Parse(userId))
+            .FirstOrDefaultAsync();
+        
         if (goal != null)
         {
             goal.Progress = Math.Max(0, Math.Min(100, progress));

@@ -85,6 +85,86 @@ else
     </div>
 }
 
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Companion reactions for note actions
+            const createButton = document.querySelector('a[href="/notes/create"]');
+            if (createButton) {
+                createButton.addEventListener('click', function() {
+                    if (Math.random() < 0.5) { // 50% chance
+                        if (window.sofiaCompanion) {
+                            const messages = [
+                                "Отлично! Записывай свои мысли! 📝",
+                                "Время для рефлексии! ✨",
+                                "Поделись тем, что у тебя на душе! 💭"
+                            ];
+                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                            window.sofiaCompanion.showMessage(randomMessage);
+                        }
+                    }
+                });
+            }
+            
+            // Track note creation for achievements
+            const noteCards = document.querySelectorAll('.card');
+            if (noteCards.length > 0) {
+                // Simulate note creation for demo purposes
+                setTimeout(() => {
+                    onNoteCreated();
+                }, 1000);
+            }
+            
+            // React to emotion badges
+            const emotionBadges = document.querySelectorAll('.badge');
+            emotionBadges.forEach(badge => {
+                badge.addEventListener('mouseenter', function() {
+                    if (Math.random() < 0.2) { // 20% chance
+                        if (window.sofiaCompanion) {
+                            const emotion = this.textContent.toLowerCase();
+                            let message = "";
+                            
+                            if (emotion.includes('happy') || emotion.includes('очень счастлив')) {
+                                message = "Рада, что ты счастлив! 😊";
+                            } else if (emotion.includes('sad') || emotion.includes('грустн')) {
+                                message = "Понимаю, что грустно. Я здесь! 🤗";
+                            } else if (emotion.includes('anxious') || emotion.includes('тревожн')) {
+                                message = "Дыши глубоко, всё будет хорошо! 🌸";
+                            } else if (emotion.includes('calm') || emotion.includes('спокоен')) {
+                                message = "Отлично! Спокойствие - это сила! 🧘‍♀️";
+                            } else if (emotion.includes('grateful') || emotion.includes('благодарен')) {
+                                message = "Благодарность - прекрасное чувство! 🙏";
+                            }
+                            
+                            if (message) {
+                                window.sofiaCompanion.showMessage(message);
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // React to note cards
+            const noteCards = document.querySelectorAll('.card');
+            noteCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    if (Math.random() < 0.15) { // 15% chance
+                        if (window.sofiaCompanion) {
+                            const messages = [
+                                "Интересная запись! 📖",
+                                "Хорошо, что ты это записал! ✍️",
+                                "Важные мысли! 💭"
+                            ];
+                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                            window.sofiaCompanion.showMessage(randomMessage);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
+
 @functions {
     string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
     {

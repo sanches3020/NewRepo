@@ -9,6 +9,7 @@ public class SofiaDbContext : DbContext
     {
     }
 
+    public DbSet<User> Users { get; set; }
     public DbSet<Note> Notes { get; set; }
     public DbSet<Practice> Practices { get; set; }
     public DbSet<Goal> Goals { get; set; }
@@ -21,6 +22,31 @@ public class SofiaDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Настройка связей User
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.PsychologistProfile)
+            .WithOne(p => p.User)
+            .HasForeignKey<Psychologist>(p => p.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Note>()
+            .HasOne(n => n.User)
+            .WithMany(u => u.Notes)
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Goal>()
+            .HasOne(g => g.User)
+            .WithMany(u => u.Goals)
+            .HasForeignKey(g => g.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PsychologistAppointment>()
+            .HasOne(a => a.User)
+            .WithMany(u => u.Appointments)
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Seed practices
         modelBuilder.Entity<Practice>().HasData(
