@@ -21,7 +21,49 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label asp-for="Emotion" class="form-label">Эмоция</label>
-                                <select asp-for="Emotion" class="form-select">
+                                <div class="emotion-picker" id="emotion-picker">
+                                    <button type="button" class="emotion-btn active" data-emotion="@Sofia.Web.Models.EmotionType.Neutral" data-icon="😐" title="Нейтрально">
+                                        <span class="emotion-icon">😐</span>
+                                        <span class="emotion-label">Нейтрально</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.VeryHappy" data-icon="😄" title="Очень радостно">
+                                        <span class="emotion-icon">😄</span>
+                                        <span class="emotion-label">Очень радостно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Happy" data-icon="😊" title="Радостно">
+                                        <span class="emotion-icon">😊</span>
+                                        <span class="emotion-label">Радостно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Calm" data-icon="😌" title="Спокойно">
+                                        <span class="emotion-icon">😌</span>
+                                        <span class="emotion-label">Спокойно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Grateful" data-icon="🙏" title="Благодарно">
+                                        <span class="emotion-icon">🙏</span>
+                                        <span class="emotion-label">Благодарно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Excited" data-icon="🤩" title="Взволнованно">
+                                        <span class="emotion-icon">🤩</span>
+                                        <span class="emotion-label">Взволнованно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Sad" data-icon="😔" title="Грустно">
+                                        <span class="emotion-icon">😔</span>
+                                        <span class="emotion-label">Грустно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.VerySad" data-icon="😢" title="Очень грустно">
+                                        <span class="emotion-icon">😢</span>
+                                        <span class="emotion-label">Очень грустно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Anxious" data-icon="😰" title="Тревожно">
+                                        <span class="emotion-icon">😰</span>
+                                        <span class="emotion-label">Тревожно</span>
+                                    </button>
+                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Frustrated" data-icon="😤" title="Раздражённо">
+                                        <span class="emotion-icon">😤</span>
+                                        <span class="emotion-label">Раздражённо</span>
+                                    </button>
+                                </div>
+                                <select asp-for="Emotion" class="form-select d-none">
                                     <option value="@Sofia.Web.Models.EmotionType.Neutral">😐 Нейтрально</option>
                                     <option value="@Sofia.Web.Models.EmotionType.VeryHappy">😄 Очень радостно</option>
                                     <option value="@Sofia.Web.Models.EmotionType.Happy">😊 Радостно</option>
@@ -33,6 +75,146 @@
                                     <option value="@Sofia.Web.Models.EmotionType.Anxious">😰 Тревожно</option>
                                     <option value="@Sofia.Web.Models.EmotionType.Frustrated">😤 Раздражённо</option>
                                 </select>
+@section Scripts {
+    <script>
+        // Enhanced note creation with emotion picker and auto-save
+        document.addEventListener('DOMContentLoaded', function() {
+            const emotionPicker = document.getElementById('emotion-picker');
+            const emotionSelect = document.querySelector('[asp-for="Emotion"]');
+            const contentTextarea = document.querySelector('[asp-for="Content"]');
+            const form = document.querySelector('form');
+            const charCounter = document.createElement('div');
+            let autoSaveTimeout;
+
+            // Initialize emotion picker
+            emotionPicker.addEventListener('click', function(e) {
+                const btn = e.target.closest('.emotion-btn');
+                if (!btn) return;
+
+                // Remove active class from all buttons
+                emotionPicker.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+
+                // Update hidden select
+                const emotionValue = btn.dataset.emotion;
+                emotionSelect.value = emotionValue;
+
+                // Add bounce animation
+                btn.style.animation = 'bounce 0.5s ease';
+                setTimeout(() => btn.style.animation = '', 500);
+            });
+
+            // Set initial active emotion
+            const initialEmotion = emotionSelect.value;
+            if (initialEmotion) {
+                const initialBtn = emotionPicker.querySelector(`[data-emotion="${initialEmotion}"]`);
+                if (initialBtn) {
+                    initialBtn.classList.add('active');
+                }
+            }
+
+            // Character counter
+            charCounter.className = 'form-text mt-1';
+            charCounter.style.fontSize = '0.8rem';
+            contentTextarea.parentNode.appendChild(charCounter);
+
+            function updateCharCount() {
+                const current = contentTextarea.value.length;
+                const max = 2000;
+                charCounter.textContent = `${current}/${max} символов`;
+                charCounter.style.color = current > max * 0.9 ? 'var(--color-danger)' : 'var(--color-muted)';
+            }
+
+            contentTextarea.addEventListener('input', updateCharCount);
+            updateCharCount();
+
+            // Auto-save functionality
+            function autoSave() {
+                const data = {
+                    content: contentTextarea.value,
+                    emotion: emotionSelect.value,
+                    activity: document.querySelector('[asp-for="Activity"]').value,
+                    tags: document.querySelector('[asp-for="Tags"]').value,
+                    isPinned: document.querySelector('[asp-for="IsPinned"]').checked,
+                    shareWithPsychologist: document.querySelector('[asp-for="ShareWithPsychologist"]').checked,
+                    timestamp: new Date().toISOString()
+                };
+
+                if (data.content.trim()) {
+                    localStorage.setItem('note-draft', JSON.stringify(data));
+                    showSaveIndicator();
+                }
+            }
+
+            function showSaveIndicator() {
+                const indicator = document.createElement('div');
+                indicator.textContent = '💾 Сохранено';
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--color-success);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: var(--radius);
+                    font-size: 0.9rem;
+                    z-index: 1000;
+                    animation: fadeInOut 2s ease;
+                `;
+
+                document.body.appendChild(indicator);
+                setTimeout(() => indicator.remove(), 2000);
+            }
+
+            function loadDraft() {
+                const draftData = localStorage.getItem('note-draft');
+                if (!draftData) return;
+
+                try {
+                    const draft = JSON.parse(draftData);
+                    const draftDate = new Date(draft.timestamp);
+                    const hoursDiff = (new Date() - draftDate) / (1000 * 60 * 60);
+
+                    if (hoursDiff < 24) {
+                        contentTextarea.value = draft.content || '';
+                        emotionSelect.value = draft.emotion || 'Neutral';
+                        document.querySelector('[asp-for="Activity"]').value = draft.activity || '';
+                        document.querySelector('[asp-for="Tags"]').value = draft.tags || '';
+                        document.querySelector('[asp-for="IsPinned"]').checked = draft.isPinned || false;
+                        document.querySelector('[asp-for="ShareWithPsychologist"]').checked = draft.shareWithPsychologist || false;
+
+                        // Update emotion picker UI
+                        emotionPicker.querySelectorAll('.emotion-btn').forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.emotion === draft.emotion);
+                        });
+
+                        updateCharCount();
+                        console.log('Draft loaded');
+                    }
+                } catch (e) {
+                    console.error('Error loading draft:', e);
+                }
+            }
+
+            // Load draft on page load
+            loadDraft();
+
+            // Auto-save on input
+            [contentTextarea, emotionSelect, ...document.querySelectorAll('input, textarea')].forEach(el => {
+                el.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(autoSave, 1000);
+                });
+            });
+
+            // Clear draft on successful submit
+            form.addEventListener('submit', function() {
+                localStorage.removeItem('note-draft');
+            });
+        });
+    </script>
+}
                             </div>
                         </div>
                         <div class="col-md-6">
