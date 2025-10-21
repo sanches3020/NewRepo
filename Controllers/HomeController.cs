@@ -38,6 +38,13 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpPost("api/onboarding/complete")]
+    public IActionResult CompleteOnboarding()
+    {
+        HttpContext.Session.SetString("OnboardingCompleted", "true");
+        return Ok();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

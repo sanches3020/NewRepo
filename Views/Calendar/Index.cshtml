@@ -50,7 +50,7 @@
                 if (currentMonth.DayOfWeek == DayOfWeek.Sunday) startDate = startDate.AddDays(-6);
                 else startDate = startDate.AddDays(1);
             }
-            
+
             @for (int week = 0; week < 6; week++)
             {
                 <div class="calendar-week">
@@ -61,10 +61,11 @@
                         var isCurrentMonth = date.Month == currentMonth.Month;
                         var isToday = date.Date == DateTime.Today;
                         var dominantEmotion = GetDominantEmotion(dayNotes);
-                        
-                        <div class="calendar-day @(isCurrentMonth ? "" : "other-month") @(isToday ? "today" : "")" 
-                             data-date="@date.ToString("yyyy-MM-dd")"
-                             style="background-color: @GetEmotionColor(dominantEmotion)">
+
+                        <div class="calendar-day @(isCurrentMonth ? "" : "other-month") @(isToday ? "today" : "")"
+                              data-date="@date.ToString("yyyy-MM-dd")"
+                              style="background-color: @GetEmotionColor(dominantEmotion)"
+                              onclick="openDayDetails('@date.ToString("yyyy-MM-dd")', @dayNotes.Count)">
                             <div class="calendar-day-number">@date.Day</div>
                             @if (dayNotes.Any())
                             {
@@ -79,10 +80,33 @@
                                     }
                                 </div>
                             }
+                            @if (isToday && !dayNotes.Any())
+                            {
+                                <div class="calendar-day-hint">💭</div>
+                            }
                         </div>
                     }
                 </div>
             }
+        </div>
+    </div>
+</div>
+
+<!-- Day Details Modal -->
+<div class="modal fade" id="dayDetailsModal" tabindex="-1" aria-labelledby="dayDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dayDetailsModalLabel">Детали дня</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="dayDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <a href="#" id="createNoteBtn" class="btn btn-primary">Создать заметку</a>
+            </div>
         </div>
     </div>
 </div>
@@ -232,44 +256,44 @@
 document.addEventListener('DOMContentLoaded', function() {
     const calendarDays = document.querySelectorAll('.calendar-day');
     const emotionModal = new bootstrap.Modal(document.getElementById('emotionModal'));
+    const dayDetailsModal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
     let selectedDate = null;
     let selectedEmotion = null;
-    
+
+    // Calendar day click handler
     calendarDays.forEach(day => {
         day.addEventListener('click', function() {
             const date = this.dataset.date;
             if (date) {
-                selectedDate = date;
-                document.getElementById('emotionModalLabel').textContent = `Выберите эмоцию для ${new Date(date).toLocaleDateString('ru-RU')}`;
-                emotionModal.show();
+                openDayDetails(date, parseInt(this.querySelector('.emotion-count')?.textContent?.replace('+', '') || '0'));
             }
         });
     });
-    
+
     // Обработка выбора эмоции
     document.querySelectorAll('.emotion-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             // Убираем выделение с других кнопок
             document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('btn-primary', 'btn-secondary'));
             document.querySelectorAll('.emotion-btn').forEach(b => b.classList.add('btn-outline-secondary'));
-            
+
             // Выделяем выбранную кнопку
             this.classList.remove('btn-outline-secondary');
             this.classList.add('btn-primary');
-            
+
             selectedEmotion = this.dataset.emotion;
         });
     });
-    
+
     // Сохранение эмоции
     document.getElementById('saveEmotion').addEventListener('click', function() {
         if (!selectedEmotion) {
             alert('Пожалуйста, выберите эмоцию');
             return;
         }
-        
+
         const note = document.getElementById('emotionNote').value;
-        
+
         // Отправляем данные на сервер
         fetch('/calendar/save-emotion', {
             method: 'POST',
@@ -297,6 +321,58 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Function to open day details
+function openDayDetails(date, noteCount) {
+    const dayDetailsModal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
+    const modalLabel = document.getElementById('dayDetailsModalLabel');
+    const modalContent = document.getElementById('dayDetailsContent');
+    const createNoteBtn = document.getElementById('createNoteBtn');
+
+    const dateObj = new Date(date);
+    modalLabel.textContent = `Детали дня: ${dateObj.toLocaleDateString('ru-RU')}`;
+    createNoteBtn.href = `/notes/create?date=${date}`;
+
+    // Load day details via AJAX
+    fetch(`/calendar/day-details?date=${date}`)
+        .then(response => response.text())
+        .then(html => {
+            modalContent.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading day details:', error);
+            modalContent.innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
+        });
+
+    dayDetailsModal.show();
+}
+
+// Quick emotion selection from calendar
+function quickAddEmotion(date, emotion) {
+    fetch('/calendar/save-emotion', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            date: date,
+            emotion: emotion,
+            note: ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка при сохранении эмоции');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при сохранении');
+    });
+}
 </script>
 
 @functions {

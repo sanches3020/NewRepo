@@ -6,6 +6,21 @@
     <div class="container">
         <h1 class="display-4 mb-4">🌟 Sofia</h1>
         <p class="lead mb-4">Ваш персональный помощник для отслеживания эмоций и достижения целей</p>
+
+        <!-- Onboarding Modal Trigger -->
+        @if (Context.Session.GetString("UserId") != null && Context.Session.GetString("OnboardingCompleted") != "true")
+        {
+            <div class="onboarding-welcome mb-4">
+                <div class="alert alert-info d-inline-flex align-items-center gap-3">
+                    <span>🎉</span>
+                    <div>
+                        <strong>Добро пожаловать!</strong> Давайте настроим ваше пространство для максимальной пользы.
+                        <button class="btn btn-primary btn-sm ms-3" onclick="startOnboarding()">Начать настройку</button>
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="hero-stats row g-3 justify-content-center">
             <div class="col-md-3">
                 <div class="stat-card">
@@ -15,7 +30,7 @@
             </div>
             <div class="col-md-3">
                 <div class="stat-card">
-                    <div class="stat-number">5+</div>
+                    <div class="stat-number">10+</div>
                     <div class="stat-label">Типов эмоций</div>
                 </div>
             </div>
@@ -216,6 +231,148 @@
 
 @section Scripts {
     <script>
+        // Onboarding system
+        let currentOnboardingStep = 0;
+        const onboardingSteps = [
+            {
+                title: "Добро пожаловать в Sofia! 🌟",
+                content: "Я - ваш персональный помощник для отслеживания эмоций и достижения целей. Давайте настроим всё для комфортной работы.",
+                action: "Продолжить",
+                highlight: null
+            },
+            {
+                title: "Создайте первую заметку 📝",
+                content: "Начните с записи ваших текущих мыслей и эмоций. Это поможет вам лучше понимать себя.",
+                action: "Создать заметку",
+                highlight: ".feature-card:has(.feature-icon:contains('📝'))",
+                actionUrl: "/notes/create"
+            },
+            {
+                title: "Поставьте первую цель 🎯",
+                content: "Цели помогают структурировать жизнь и отслеживать прогресс. Начните с чего-то небольшого и достижимого.",
+                action: "Создать цель",
+                highlight: ".feature-card:has(.feature-icon:contains('🎯'))",
+                actionUrl: "/goals/create"
+            },
+            {
+                title: "Настройте уведомления 🔔",
+                content: "Регулярные напоминания помогут не забывать о ежедневных записях и достижении целей.",
+                action: "Настроить уведомления",
+                highlight: ".feature-card:has(.feature-icon:contains('🔔'))",
+                actionUrl: "/notifications/settings"
+            },
+            {
+                title: "Познакомьтесь с компаньоном 🐾",
+                content: "Ваш виртуальный друг будет реагировать на ваше настроение и помогать в трудные моменты.",
+                action: "Встретить компаньона",
+                highlight: ".feature-card:has(.feature-icon:contains('🐾'))",
+                actionFunction: "openCompanionDialog"
+            }
+        ];
+
+        function startOnboarding() {
+            currentOnboardingStep = 0;
+            showOnboardingModal();
+        }
+
+        function showOnboardingModal() {
+            const step = onboardingSteps[currentOnboardingStep];
+            const modal = document.createElement('div');
+            modal.className = 'onboarding-modal';
+            modal.innerHTML = `
+                <div class="onboarding-dialog">
+                    <div class="onboarding-header">
+                        <h3>${step.title}</h3>
+                        <button class="onboarding-close" onclick="closeOnboarding()">&times;</button>
+                    </div>
+                    <div class="onboarding-body">
+                        <p>${step.content}</p>
+                        <div class="onboarding-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(currentOnboardingStep + 1) / onboardingSteps.length * 100}%"></div>
+                            </div>
+                            <span class="progress-text">${currentOnboardingStep + 1} из ${onboardingSteps.length}</span>
+                        </div>
+                    </div>
+                    <div class="onboarding-footer">
+                        <button class="btn btn-secondary" onclick="closeOnboarding()">Пропустить</button>
+                        <button class="btn btn-primary" onclick="nextOnboardingStep()">${step.action}</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Highlight element if specified
+            if (step.highlight) {
+                setTimeout(() => {
+                    const element = document.querySelector(step.highlight);
+                    if (element) {
+                        element.classList.add('onboarding-highlight');
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 300);
+            }
+        }
+
+        function nextOnboardingStep() {
+            const step = onboardingSteps[currentOnboardingStep];
+
+            // Perform action based on step
+            if (step.actionUrl) {
+                window.location.href = step.actionUrl;
+                return;
+            } else if (step.actionFunction) {
+                window[step.actionFunction]();
+            }
+
+            // Remove previous highlight
+            document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+
+            currentOnboardingStep++;
+
+            if (currentOnboardingStep >= onboardingSteps.length) {
+                completeOnboarding();
+                return;
+            }
+
+            // Close current modal and show next
+            document.querySelector('.onboarding-modal').remove();
+            showOnboardingModal();
+        }
+
+        function closeOnboarding() {
+            document.querySelectorAll('.onboarding-modal').forEach(modal => modal.remove());
+            document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+        }
+
+        function completeOnboarding() {
+            closeOnboarding();
+            // Mark as completed in session
+            fetch('/api/onboarding/complete', { method: 'POST' })
+                .then(() => {
+                    // Hide welcome message
+                    document.querySelector('.onboarding-welcome').style.display = 'none';
+                    // Show celebration
+                    if (window.sofiaCompanion) {
+                        window.sofiaCompanion.celebrate();
+                        setTimeout(() => {
+                            window.sofiaCompanion.showMessage("Отлично! Теперь вы готовы к работе! 🚀");
+                        }, 1000);
+                    }
+                })
+                .catch(() => {
+                    // Fallback for when API is not available
+                    document.querySelector('.onboarding-welcome').style.display = 'none';
+                    if (window.sofiaCompanion) {
+                        window.sofiaCompanion.celebrate();
+                        setTimeout(() => {
+                            window.sofiaCompanion.showMessage("Отлично! Теперь вы готовы к работе! 🚀");
+                        }, 1000);
+                    }
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Add companion interactions to buttons
             const buttons = document.querySelectorAll('.btn');
@@ -239,7 +396,7 @@
                     }
                 });
             });
-            
+
             // Special interaction for feature cards
             const featureCards = document.querySelectorAll('.feature-card');
             featureCards.forEach(card => {

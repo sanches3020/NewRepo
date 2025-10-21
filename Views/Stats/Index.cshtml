@@ -109,7 +109,44 @@
             <div class="card-body">
                 @if (moodTrends?.Any() == true)
                 {
-                    <canvas id="moodTrendChart" height="300"></canvas>
+                    <div class="timeline-container">
+                        <div class="timeline-header">
+                            <button class="btn btn-sm btn-outline-primary" onclick="switchTimelineView('chart')">📊 График</button>
+                            <button class="btn btn-sm btn-outline-secondary active" onclick="switchTimelineView('timeline')">📅 Таймлайн</button>
+                        </div>
+                        <div id="timeline-view" class="timeline-view">
+                            @foreach (var trend in moodTrends.OrderByDescending(t => t.date))
+                            {
+                                var emotionName = GetEmotionName((int)trend.averageMood);
+                                var emotionIcon = GetEmotionIcon((int)trend.averageMood);
+                                var date = DateTime.Parse(trend.date.ToString()).ToString("dd.MM");
+                                string GetEmotionName(int value)
+                                {
+                                    var emotions = new[] { "Очень грустно", "Грустно", "Нейтрально", "Радостно", "Очень радостно", "Тревожно", "Спокойно", "Взволнованно", "Раздражённо", "Благодарно" };
+                                    return value >= 0 && value < emotions.Length ? emotions[value] : "Неизвестно";
+                                }
+                                string GetEmotionIcon(int value)
+                                {
+                                    var icons = new[] { "😢", "😔", "😐", "😊", "😄", "😰", "😌", "🤩", "😤", "🙏" };
+                                    return value >= 0 && value < icons.Length ? icons[value] : "😐";
+                                }
+                                <div class="timeline-item">
+                                    <div class="timeline-date">@date</div>
+                                    <div class="timeline-content">
+                                        <div class="timeline-emotion">
+                                            <span class="emotion-icon">@emotionIcon</span>
+                                            <span class="emotion-name">@emotionName</span>
+                                        </div>
+                                        <div class="timeline-stats">
+                                            <small>@trend.count заметок</small>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-bar" style="width: @((int)trend.averageMood * 10)%"></div>
+                                </div>
+                            }
+                        </div>
+                        <canvas id="moodTrendChart" height="300" style="display: none;"></canvas>
+                    </div>
                 }
                 else
                 {
@@ -430,6 +467,76 @@ function getEmotionColor(emotion) {
 function getEmotionName(value) {
     const emotions = ['Очень грустно', 'Грустно', 'Нейтрально', 'Радостно', 'Очень радостно', 'Тревожно', 'Спокойно', 'Взволнованно', 'Раздражённо', 'Благодарно'];
     return emotions[Math.round(value)] || 'Неизвестно';
+}
+
+function getEmotionIcon(value) {
+    const icons = ['😢', '😔', '😐', '😊', '😄', '😰', '😌', '🤩', '😤', '🙏'];
+    return icons[Math.round(value)] || '😐';
+}
+
+function switchTimelineView(view) {
+    const timelineView = document.getElementById('timeline-view');
+    const chartView = document.getElementById('moodTrendChart');
+    const chartBtn = document.querySelector('[onclick*="chart"]');
+    const timelineBtn = document.querySelector('[onclick*="timeline"]');
+
+    if (view === 'chart') {
+        timelineView.style.display = 'none';
+        chartView.style.display = 'block';
+        chartBtn.classList.add('active');
+        timelineBtn.classList.remove('active');
+        // Initialize chart if not already done
+        if (!chartView.chart) {
+            initializeMoodChart();
+        }
+    } else {
+        timelineView.style.display = 'block';
+        chartView.style.display = 'none';
+        timelineBtn.classList.add('active');
+        chartBtn.classList.remove('active');
+    }
+}
+
+function initializeMoodChart() {
+    const moodCtx = document.getElementById('moodTrendChart');
+    if (!moodCtx) return;
+
+    const moodData = @Html.Raw(Json.Serialize(moodTrends));
+
+    moodCtx.chart = new Chart(moodCtx, {
+        type: 'line',
+        data: {
+            labels: moodData.map(m => new Date(m.date).toLocaleDateString('ru-RU')),
+            datasets: [{
+                label: 'Среднее настроение',
+                data: moodData.map(m => m.averageMood),
+                borderColor: '#6b7cff',
+                backgroundColor: 'rgba(107, 124, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    ticks: {
+                        callback: function(value) {
+                            return getEmotionName(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
 }
 </script>
 

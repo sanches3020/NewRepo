@@ -4,43 +4,233 @@
 
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="text-center">Регистрация в Sofia</h3>
+        <div class="card shadow-lg">
+            <div class="card-header bg-gradient-primary text-white">
+                <h3 class="text-center mb-0">
+                    <span class="me-2">🌟</span>
+                    Добро пожаловать в Sofia!
+                </h3>
+                <p class="text-center mb-0 opacity-75">Создайте аккаунт для начала вашего пути</p>
             </div>
             <div class="card-body">
                 <form asp-action="Register" method="post">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Имя пользователя</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label for="username" class="form-label">Имя пользователя *</label>
+                        <input type="text" class="form-control" id="username" name="username" required placeholder="Придумайте уникальное имя">
+                        <div class="form-text">Минимум 3 символа</div>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="your.email@example.com">
+                        <div class="form-text">Используется для восстановления доступа</div>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Пароль</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <label for="fullName" class="form-label">Полное имя</label>
+                        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Иван Иванов">
+                        <div class="form-text">Необязательно, но помогает персонализировать опыт</div>
                     </div>
                     <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Подтвердите пароль</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        <label for="password" class="form-label">Пароль *</label>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="Минимум 6 символов">
+                        <div class="form-text">Используйте буквы, цифры и специальные символы</div>
                     </div>
                     <div class="mb-3">
-                        <label for="role" class="form-label">Роль</label>
+                        <label for="confirmPassword" class="form-label">Подтвердите пароль *</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="Повторите пароль">
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Тип аккаунта *</label>
                         <select class="form-select" id="role" name="role">
-                            <option value="user">Пользователь</option>
-                            <option value="psychologist">Психолог</option>
+                            <option value="user" selected>👤 Пользователь - веду дневник и работаю над собой</option>
+                            <option value="psychologist">👨‍⚕️ Психолог - помогаю другим в их пути</option>
                         </select>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                        <button type="submit" class="btn btn-primary btn-lg">🚀 Создать аккаунт</button>
                     </div>
                 </form>
-                <div class="text-center mt-3">
-                    <p>Уже есть аккаунт? <a asp-action="Login">Войти</a></p>
+                <div class="text-center mt-4">
+                    <p class="text-muted">Уже есть аккаунт? <a asp-action="Login" class="text-primary fw-bold">Войти в систему</a></p>
+                    <hr class="my-3">
+                    <small class="text-muted">
+                        Регистрируясь, вы соглашаетесь с <a href="/home/privacy" class="text-decoration-none">политикой конфиденциальности</a>
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Enhanced registration form with real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const username = document.getElementById('username');
+            const email = document.getElementById('email');
+            const fullName = document.getElementById('fullName');
+            const form = document.querySelector('form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            // Real-time validation functions
+            function validateUsername() {
+                const value = username.value.trim();
+                if (value.length < 3) {
+                    username.setCustomValidity('Имя пользователя должно содержать минимум 3 символа');
+                    showFieldError(username, 'Минимум 3 символа');
+                } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+                    username.setCustomValidity('Имя пользователя может содержать только буквы, цифры и подчёркивание');
+                    showFieldError(username, 'Только буквы, цифры и _');
+                } else {
+                    username.setCustomValidity('');
+                    hideFieldError(username);
+                }
+            }
+
+            function validateEmail() {
+                const value = email.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    email.setCustomValidity('Введите корректный email адрес');
+                    showFieldError(email, 'Некорректный email');
+                } else {
+                    email.setCustomValidity('');
+                    hideFieldError(email);
+                }
+            }
+
+            function validatePassword() {
+                const value = password.value;
+                if (value.length < 6) {
+                    password.setCustomValidity('Пароль должен содержать минимум 6 символов');
+                    showFieldError(password, 'Минимум 6 символов');
+                } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+                    password.setCustomValidity('Пароль должен содержать буквы разного регистра и цифры');
+                    showFieldError(password, 'Буквы, цифры, регистр');
+                } else {
+                    password.setCustomValidity('');
+                    hideFieldError(password);
+                }
+                validateConfirmPassword();
+            }
+
+            function validateConfirmPassword() {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Пароли не совпадают');
+                    showFieldError(confirmPassword, 'Пароли не совпадают');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                    hideFieldError(confirmPassword);
+                }
+            }
+
+            function showFieldError(field, message) {
+                let errorDiv = field.parentNode.querySelector('.field-error');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'field-error text-danger small mt-1';
+                    field.parentNode.appendChild(errorDiv);
+                }
+                errorDiv.textContent = message;
+                field.classList.add('is-invalid');
+                field.classList.remove('is-valid');
+            }
+
+            function hideFieldError(field) {
+                const errorDiv = field.parentNode.querySelector('.field-error');
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+            }
+
+            // Event listeners
+            username.addEventListener('input', validateUsername);
+            username.addEventListener('blur', validateUsername);
+
+            email.addEventListener('input', validateEmail);
+            email.addEventListener('blur', validateEmail);
+
+            password.addEventListener('input', validatePassword);
+            password.addEventListener('blur', validatePassword);
+
+            confirmPassword.addEventListener('input', validateConfirmPassword);
+            confirmPassword.addEventListener('blur', validateConfirmPassword);
+
+            fullName.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid', 'is-invalid');
+                }
+            });
+
+            // Form submission with loading state
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    // Trigger validation on all fields
+                    [username, email, password, confirmPassword].forEach(field => {
+                        const event = new Event('blur');
+                        field.dispatchEvent(event);
+                    });
+                    return false;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Создание аккаунта...';
+
+                // Re-enable after 10 seconds as fallback
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '🚀 Создать аккаунт';
+                }, 10000);
+            });
+
+            // Password strength indicator
+            password.addEventListener('input', function() {
+                const strength = calculatePasswordStrength(this.value);
+                updatePasswordStrengthIndicator(strength);
+            });
+
+            function calculatePasswordStrength(password) {
+                let strength = 0;
+                if (password.length >= 6) strength++;
+                if (password.length >= 8) strength++;
+                if (/[a-z]/.test(password)) strength++;
+                if (/[A-Z]/.test(password)) strength++;
+                if (/\d/.test(password)) strength++;
+                if (/[^a-zA-Z\d]/.test(password)) strength++;
+                return strength;
+            }
+
+            function updatePasswordStrengthIndicator(strength) {
+                let indicator = password.parentNode.querySelector('.password-strength');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.className = 'password-strength mt-1';
+                    password.parentNode.appendChild(indicator);
+                }
+
+                const labels = ['Очень слабый', 'Слабый', 'Средний', 'Хороший', 'Отличный'];
+                const colors = ['#dc3545', '#fd7e14', '#ffc107', '#20c997', '#28a745'];
+
+                if (strength === 0) {
+                    indicator.style.display = 'none';
+                } else {
+                    indicator.style.display = 'block';
+                    indicator.innerHTML = `
+                        <small class="text-muted">Надёжность пароля:
+                            <span style="color: ${colors[strength - 1]}; font-weight: bold;">
+                                ${labels[strength - 1]}
+                            </span>
+                        </small>
+                    `;
+                }
+            }
+        });
+    </script>
+}

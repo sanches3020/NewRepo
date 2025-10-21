@@ -21,11 +21,48 @@
 }
 else
 {
-    <div class="row g-3">
+    <!-- Filters and Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 Поиск по заметкам...">
+                </div>
+                <div class="col-md-3">
+                    <select id="emotionFilter" class="form-select">
+                        <option value="">Все эмоции</option>
+                        <option value="VeryHappy">😄 Очень радостно</option>
+                        <option value="Happy">😊 Радостно</option>
+                        <option value="Neutral">😐 Нейтрально</option>
+                        <option value="Sad">😔 Грустно</option>
+                        <option value="VerySad">😢 Очень грустно</option>
+                        <option value="Anxious">😰 Тревожно</option>
+                        <option value="Calm">😌 Спокойно</option>
+                        <option value="Excited">🤩 Взволнованно</option>
+                        <option value="Frustrated">😤 Раздражённо</option>
+                        <option value="Grateful">🙏 Благодарно</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="sortSelect" class="form-select">
+                        <option value="date-desc">📅 Новые сначала</option>
+                        <option value="date-asc">📅 Старые сначала</option>
+                        <option value="emotion">🎭 По эмоциям</option>
+                        <option value="pinned">📌 Закреплённые</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button id="clearFilters" class="btn btn-outline-secondary w-100">🧹 Сброс</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3" id="notesContainer">
         @foreach (var note in Model)
         {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100 @(note.IsPinned ? "border-warning" : "")">
+            <div class="col-12 col-md-6 col-lg-4 note-card" data-note-id="@note.Id" data-emotion="@note.Emotion" data-pinned="@note.IsPinned" data-content="@note.Content.ToLower()" data-tags="@(note.Tags?.ToLower() ?? "")">
+                <div class="card h-100 @(note.IsPinned ? "border-warning pinned-card" : "")">
                     @if (note.IsPinned)
                     {
                         <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
@@ -39,128 +76,310 @@ else
                             <small class="text-muted">@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
                         </div>
                     }
-                    
+
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
-                            <span class="me-2">@GetEmotionEmoji(note.Emotion)</span>
-                            <span class="badge bg-secondary">@note.Emotion.ToString()</span>
+                            <span class="me-2 emotion-icon">@GetEmotionEmoji(note.Emotion)</span>
+                            <span class="badge bg-secondary emotion-badge">@note.Emotion.ToString()</span>
                             @if (note.ShareWithPsychologist)
                             {
                                 <span class="badge bg-info ms-2">👥 Психолог</span>
                             }
                         </div>
-                        
-                        <p class="card-text">@(note.Content.Length > 150 ? note.Content.Substring(0, 150) + "..." : note.Content)</p>
-                        
+
+                        <p class="card-text note-content">@(note.Content.Length > 150 ? note.Content.Substring(0, 150) + "..." : note.Content)</p>
+
                         @if (!string.IsNullOrEmpty(note.Tags))
                         {
-                            <div class="mb-2">
+                            <div class="mb-2 tags-container">
                                 @foreach (var tag in note.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
                                 {
-                                    <span class="badge bg-light text-dark me-1">#@tag.Trim()</span>
+                                    <span class="badge bg-light text-dark me-1 tag-badge">#@tag.Trim()</span>
                                 }
                             </div>
                         }
-                        
+
                         @if (!string.IsNullOrEmpty(note.Activity))
                         {
-                            <small class="text-muted">Активность: @note.Activity</small>
+                            <small class="text-muted activity-text">🏃 Активность: @note.Activity</small>
                         }
                     </div>
-                    
+
                     <div class="card-footer bg-transparent d-flex justify-content-between">
                         <div>
-                            <a href="/notes/edit/@note.Id" class="btn btn-sm btn-outline-primary">✏️</a>
+                            <a href="/notes/edit/@note.Id" class="btn btn-sm btn-outline-primary edit-btn" title="Редактировать">✏️</a>
                             <form method="post" action="/notes/toggle-pin/@note.Id" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-outline-warning">📌</button>
+                                <button type="submit" class="btn btn-sm btn-outline-warning pin-btn" title="Закрепить/открепить">📌</button>
                             </form>
                         </div>
                         <form method="post" action="/notes/delete/@note.Id" class="d-inline" onsubmit="return confirm('Удалить заметку?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Удалить">🗑️</button>
                         </form>
                     </div>
                 </div>
             </div>
         }
     </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Навигация по заметкам" class="mt-4">
+        <ul class="pagination justify-content-center" id="paginationContainer">
+            <!-- Pagination will be generated by JavaScript -->
+        </ul>
+    </nav>
 }
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Companion reactions for note actions
-            const createButton = document.querySelector('a[href="/notes/create"]');
-            if (createButton) {
-                createButton.addEventListener('click', function() {
-                    if (Math.random() < 0.5) { // 50% chance
-                        if (window.sofiaCompanion) {
-                            const messages = [
-                                "Отлично! Записывай свои мысли! 📝",
-                                "Время для рефлексии! ✨",
-                                "Поделись тем, что у тебя на душе! 💭"
-                            ];
-                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                            window.sofiaCompanion.showMessage(randomMessage);
+            // Enhanced Notes Management
+            const NotesManager = {
+                notesContainer: document.getElementById('notesContainer'),
+                searchInput: document.getElementById('searchInput'),
+                emotionFilter: document.getElementById('emotionFilter'),
+                sortSelect: document.getElementById('sortSelect'),
+                clearFilters: document.getElementById('clearFilters'),
+                paginationContainer: document.getElementById('paginationContainer'),
+                notesPerPage: 12,
+                currentPage: 1,
+
+                init() {
+                    this.bindEvents();
+                    this.updateDisplay();
+                },
+
+                bindEvents() {
+                    // Search functionality
+                    this.searchInput?.addEventListener('input', this.debounce(() => {
+                        this.currentPage = 1;
+                        this.updateDisplay();
+                    }, 300));
+
+                    // Filter functionality
+                    this.emotionFilter?.addEventListener('change', () => {
+                        this.currentPage = 1;
+                        this.updateDisplay();
+                    });
+
+                    // Sort functionality
+                    this.sortSelect?.addEventListener('change', () => {
+                        this.currentPage = 1;
+                        this.updateDisplay();
+                    });
+
+                    // Clear filters
+                    this.clearFilters?.addEventListener('click', () => {
+                        this.searchInput.value = '';
+                        this.emotionFilter.value = '';
+                        this.sortSelect.value = 'date-desc';
+                        this.currentPage = 1;
+                        this.updateDisplay();
+                    });
+
+                    // Companion reactions for note actions
+                    const createButton = document.querySelector('a[href="/notes/create"]');
+                    if (createButton) {
+                        createButton.addEventListener('click', function() {
+                            if (Math.random() < 0.5) {
+                                if (window.sofiaCompanion) {
+                                    const messages = [
+                                        "Отлично! Записывай свои мысли! 📝",
+                                        "Время для рефлексии! ✨",
+                                        "Поделись тем, что у тебя на душе! 💭"
+                                    ];
+                                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                                    window.sofiaCompanion.showMessage(randomMessage);
+                                }
+                            }
+                        });
+                    }
+
+                    // Enhanced companion interactions
+                    this.bindCompanionInteractions();
+                },
+
+                bindCompanionInteractions() {
+                    // React to emotion badges with enhanced logic
+                    document.addEventListener('mouseenter', (e) => {
+                        if (e.target.classList.contains('emotion-badge') && Math.random() < 0.3) {
+                            if (window.sofiaCompanion) {
+                                const emotion = e.target.textContent.toLowerCase();
+                                let message = "";
+
+                                if (emotion.includes('happy') || emotion.includes('очень счастлив')) {
+                                    message = "Рада, что ты счастлив! 😊";
+                                } else if (emotion.includes('sad') || emotion.includes('грустн')) {
+                                    message = "Понимаю, что грустно. Я здесь! 🤗";
+                                } else if (emotion.includes('anxious') || emotion.includes('тревожн')) {
+                                    message = "Дыши глубоко, всё будет хорошо! 🌸";
+                                } else if (emotion.includes('calm') || emotion.includes('спокоен')) {
+                                    message = "Отлично! Спокойствие - это сила! 🧘‍♀️";
+                                } else if (emotion.includes('grateful') || emotion.includes('благодарен')) {
+                                    message = "Благодарность - прекрасное чувство! 🙏";
+                                }
+
+                                if (message) {
+                                    window.sofiaCompanion.showMessage(message);
+                                }
+                            }
+                        }
+                    }, true);
+
+                    // React to note cards with better logic
+                    document.addEventListener('mouseenter', (e) => {
+                        const card = e.target.closest('.note-card');
+                        if (card && Math.random() < 0.2) {
+                            if (window.sofiaCompanion) {
+                                const messages = [
+                                    "Интересная запись! 📖",
+                                    "Хорошо, что ты это записал! ✍️",
+                                    "Важные мысли! 💭",
+                                    "Твои чувства важны! 💝"
+                                ];
+                                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                                window.sofiaCompanion.showMessage(randomMessage);
+                            }
+                        }
+                    });
+                },
+
+                debounce(func, wait) {
+                    let timeout;
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                    };
+                },
+
+                updateDisplay() {
+                    const allNotes = Array.from(document.querySelectorAll('.note-card'));
+                    const filteredNotes = this.filterNotes(allNotes);
+                    const sortedNotes = this.sortNotes(filteredNotes);
+                    const paginatedNotes = this.paginateNotes(sortedNotes);
+
+                    this.renderNotes(paginatedNotes);
+                    this.renderPagination(sortedNotes.length);
+                },
+
+                filterNotes(notes) {
+                    const searchTerm = this.searchInput?.value.toLowerCase() || '';
+                    const emotionFilter = this.emotionFilter?.value || '';
+
+                    return notes.filter(note => {
+                        const matchesSearch = !searchTerm ||
+                            note.dataset.content.includes(searchTerm) ||
+                            note.dataset.tags.includes(searchTerm);
+
+                        const matchesEmotion = !emotionFilter ||
+                            note.dataset.emotion === emotionFilter;
+
+                        return matchesSearch && matchesEmotion;
+                    });
+                },
+
+                sortNotes(notes) {
+                    const sortBy = this.sortSelect?.value || 'date-desc';
+
+                    return notes.sort((a, b) => {
+                        switch (sortBy) {
+                            case 'date-asc':
+                                return new Date(a.querySelector('.text-muted').textContent) -
+                                       new Date(b.querySelector('.text-muted').textContent);
+                            case 'date-desc':
+                                return new Date(b.querySelector('.text-muted').textContent) -
+                                       new Date(a.querySelector('.text-muted').textContent);
+                            case 'emotion':
+                                return a.dataset.emotion.localeCompare(b.dataset.emotion);
+                            case 'pinned':
+                                return (b.dataset.pinned === 'true' ? 1 : 0) -
+                                       (a.dataset.pinned === 'true' ? 1 : 0);
+                            default:
+                                return 0;
+                        }
+                    });
+                },
+
+                paginateNotes(notes) {
+                    const start = (this.currentPage - 1) * this.notesPerPage;
+                    const end = start + this.notesPerPage;
+                    return notes.slice(start, end);
+                },
+
+                renderNotes(notes) {
+                    // Hide all notes first
+                    document.querySelectorAll('.note-card').forEach(note => {
+                        note.style.display = 'none';
+                    });
+
+                    // Show only current page notes
+                    notes.forEach(note => {
+                        note.style.display = 'block';
+                    });
+                },
+
+                renderPagination(totalNotes) {
+                    const totalPages = Math.ceil(totalNotes / this.notesPerPage);
+
+                    if (totalPages <= 1) {
+                        this.paginationContainer.innerHTML = '';
+                        return;
+                    }
+
+                    let paginationHtml = '';
+
+                    // Previous button
+                    paginationHtml += `<li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="NotesManager.goToPage(${this.currentPage - 1})">Предыдущая</a>
+                    </li>`;
+
+                    // Page numbers
+                    for (let i = 1; i <= totalPages; i++) {
+                        if (i === this.currentPage ||
+                            i === 1 ||
+                            i === totalPages ||
+                            (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+                            paginationHtml += `<li class="page-item ${i === this.currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" onclick="NotesManager.goToPage(${i})">${i}</a>
+                            </li>`;
+                        } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
+                            paginationHtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
                         }
                     }
-                });
-            }
-            
+
+                    // Next button
+                    paginationHtml += `<li class="page-item ${this.currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="NotesManager.goToPage(${this.currentPage + 1})">Следующая</a>
+                    </li>`;
+
+                    this.paginationContainer.innerHTML = paginationHtml;
+                },
+
+                goToPage(page) {
+                    if (page >= 1 && page <= Math.ceil(document.querySelectorAll('.note-card').length / this.notesPerPage)) {
+                        this.currentPage = page;
+                        this.updateDisplay();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                }
+            };
+
+            // Initialize notes manager
+            window.NotesManager = NotesManager;
+            NotesManager.init();
+
             // Track note creation for achievements
-            const noteCards = document.querySelectorAll('.card');
+            const noteCards = document.querySelectorAll('.note-card');
             if (noteCards.length > 0) {
-                // Simulate note creation for demo purposes
                 setTimeout(() => {
-                    onNoteCreated();
+                    if (typeof onNoteCreated === 'function') {
+                        onNoteCreated();
+                    }
                 }, 1000);
             }
-            
-            // React to emotion badges
-            const emotionBadges = document.querySelectorAll('.badge');
-            emotionBadges.forEach(badge => {
-                badge.addEventListener('mouseenter', function() {
-                    if (Math.random() < 0.2) { // 20% chance
-                        if (window.sofiaCompanion) {
-                            const emotion = this.textContent.toLowerCase();
-                            let message = "";
-                            
-                            if (emotion.includes('happy') || emotion.includes('очень счастлив')) {
-                                message = "Рада, что ты счастлив! 😊";
-                            } else if (emotion.includes('sad') || emotion.includes('грустн')) {
-                                message = "Понимаю, что грустно. Я здесь! 🤗";
-                            } else if (emotion.includes('anxious') || emotion.includes('тревожн')) {
-                                message = "Дыши глубоко, всё будет хорошо! 🌸";
-                            } else if (emotion.includes('calm') || emotion.includes('спокоен')) {
-                                message = "Отлично! Спокойствие - это сила! 🧘‍♀️";
-                            } else if (emotion.includes('grateful') || emotion.includes('благодарен')) {
-                                message = "Благодарность - прекрасное чувство! 🙏";
-                            }
-                            
-                            if (message) {
-                                window.sofiaCompanion.showMessage(message);
-                            }
-                        }
-                    }
-                });
-            });
-            
-            // React to note cards
-            const noteCards = document.querySelectorAll('.card');
-            noteCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    if (Math.random() < 0.15) { // 15% chance
-                        if (window.sofiaCompanion) {
-                            const messages = [
-                                "Интересная запись! 📖",
-                                "Хорошо, что ты это записал! ✍️",
-                                "Важные мысли! 💭"
-                            ];
-                            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                            window.sofiaCompanion.showMessage(randomMessage);
-                        }
-                    }
-                });
-            });
         });
     </script>
 }

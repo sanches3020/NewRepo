@@ -1,68 +1,248 @@
-﻿// Enhanced theme system with smooth transitions
+// Sofia App - Modular JavaScript Architecture
 (function() {
-  const THEME_KEY = 'sofia.theme';
-  const root = document.documentElement;
-  
-  function applyTheme(theme) {
-    // Add transition for smooth theme change
-    root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
-    
-    if (theme === 'dark') {
-      root.classList.add('theme-dark');
-    } else {
-      root.classList.remove('theme-dark');
-    }
-    
-    // Update theme toggle button text
-    const toggleBtn = document.querySelector('[data-theme-toggle]');
-    if (toggleBtn) {
-      const icon = toggleBtn.querySelector('span');
-      if (icon) {
-        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  'use strict';
+
+  // Theme Manager Module
+  const ThemeManager = {
+    THEME_KEY: 'sofia.theme',
+    root: document.documentElement,
+
+    init() {
+      this.loadTheme();
+      this.bindEvents();
+    },
+
+    applyTheme(theme) {
+      this.root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+
+      if (theme === 'dark') {
+        this.root.classList.add('theme-dark');
+      } else {
+        this.root.classList.remove('theme-dark');
       }
+
+      this.updateToggleButton(theme);
+
+      setTimeout(() => {
+        this.root.style.transition = '';
+      }, 300);
+    },
+
+    updateToggleButton(theme) {
+      const toggleBtn = document.querySelector('[data-theme-toggle]');
+      if (toggleBtn) {
+        const icon = toggleBtn.querySelector('.theme-text');
+        if (icon) {
+          icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+      }
+    },
+
+    loadTheme() {
+      // Force light theme regardless of saved/system preference
+      try { localStorage.setItem(this.THEME_KEY, 'light'); } catch (e) {}
+      this.applyTheme('light');
+    },
+
+    bindEvents() {
+      document.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('[data-theme-toggle]');
+        if (!toggleBtn) return;
+
+        // Make toggle a no-op: always enforce light
+        this.applyTheme('light');
+        localStorage.setItem(this.THEME_KEY, 'light');
+
+        toggleBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          toggleBtn.style.transform = '';
+        }, 150);
+      });
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        // Ignore system changes; keep light
+        this.applyTheme('light');
+      });
     }
-    
-    // Remove transition after animation
-    setTimeout(() => {
-      root.style.transition = '';
-    }, 300);
-  }
-  
-  // Load saved theme
-  const saved = localStorage.getItem(THEME_KEY);
-  if (saved) {
-    applyTheme(saved);
-  } else {
-    // Default to system preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    applyTheme(prefersDark ? 'dark' : 'light');
-  }
-  
-  // Theme toggle handler
-  document.addEventListener('click', function(e) {
-    const toggleBtn = e.target.closest('[data-theme-toggle]');
-    if (!toggleBtn) return;
-    
-    const isDark = root.classList.contains('theme-dark');
-    const next = isDark ? 'light' : 'dark';
-    
-    applyTheme(next);
-    localStorage.setItem(THEME_KEY, next);
-    
-    // Add a subtle animation feedback
-    toggleBtn.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-      toggleBtn.style.transform = '';
-    }, 150);
-  });
-  
-  // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-    // Only apply if user hasn't manually set a preference
-    if (!localStorage.getItem(THEME_KEY)) {
-      applyTheme(e.matches ? 'dark' : 'light');
+  };
+
+  // Mobile Navigation Module
+  const MobileNav = {
+    init() {
+      this.bindEvents();
+      this.updateActiveState();
+    },
+
+    bindEvents() {
+      // Update active state on navigation
+      document.addEventListener('click', (e) => {
+        const navItem = e.target.closest('.mobile-nav-item');
+        if (navItem) {
+          this.updateActiveState();
+        }
+      });
+
+      // Update on page load and navigation
+      window.addEventListener('load', () => this.updateActiveState());
+      window.addEventListener('popstate', () => this.updateActiveState());
+    },
+
+    updateActiveState() {
+      const currentPath = window.location.pathname;
+      const navItems = document.querySelectorAll('.mobile-nav-item');
+
+      navItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (href && currentPath.startsWith(href)) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
     }
-  });
+  };
+
+  // Progress Indicators Module
+  const ProgressIndicators = {
+    init() {
+      this.bindEvents();
+    },
+
+    bindEvents() {
+      // Add progress indicators to forms
+      document.addEventListener('DOMContentLoaded', () => {
+        this.addFormProgress();
+        this.addScrollProgress();
+      });
+    },
+
+    addFormProgress() {
+      const forms = document.querySelectorAll('form');
+      forms.forEach(form => {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        if (inputs.length > 3) {
+          this.createFormProgressBar(form, inputs);
+        }
+      });
+    },
+
+    createFormProgressBar(form, inputs) {
+      const progressContainer = document.createElement('div');
+      progressContainer.className = 'form-progress';
+      progressContainer.innerHTML = `
+        <div class="form-progress-bar">
+          <div class="form-progress-fill" style="width: 0%"></div>
+        </div>
+        <span class="form-progress-text">0 из ${inputs.length} полей заполнено</span>
+      `;
+
+      form.insertBefore(progressContainer, form.firstChild);
+
+      const updateProgress = () => {
+        const filled = Array.from(inputs).filter(input => {
+          if (input.type === 'checkbox') return input.checked;
+          return input.value.trim() !== '';
+        }).length;
+
+        const percentage = (filled / inputs.length) * 100;
+        const fill = progressContainer.querySelector('.form-progress-fill');
+        const text = progressContainer.querySelector('.form-progress-text');
+
+        fill.style.width = `${percentage}%`;
+        text.textContent = `${filled} из ${inputs.length} полей заполнено`;
+      };
+
+      inputs.forEach(input => {
+        input.addEventListener('input', updateProgress);
+        input.addEventListener('change', updateProgress);
+      });
+
+      updateProgress();
+    },
+
+    addScrollProgress() {
+      const progressBar = document.createElement('div');
+      progressBar.className = 'scroll-progress';
+      progressBar.innerHTML = '<div class="scroll-progress-fill"></div>';
+
+      document.body.appendChild(progressBar);
+
+      window.addEventListener('scroll', () => {
+        const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        progressBar.querySelector('.scroll-progress-fill').style.width = `${scrolled}%`;
+      });
+    }
+  };
+
+  // Drag and Drop Module
+  const DragDropManager = {
+    init() {
+      this.bindEvents();
+    },
+
+    bindEvents() {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.makeListsDraggable();
+      });
+    },
+
+    makeListsDraggable() {
+      const lists = document.querySelectorAll('.draggable-list');
+      lists.forEach(list => {
+        this.makeListDraggable(list);
+      });
+    },
+
+    makeListDraggable(list) {
+      const items = list.querySelectorAll('.draggable-item');
+      let draggedItem = null;
+
+      items.forEach(item => {
+        item.draggable = true;
+        item.addEventListener('dragstart', (e) => {
+          draggedItem = item;
+          item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragend', () => {
+          draggedItem = null;
+          item.classList.remove('dragging');
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          const afterElement = this.getDragAfterElement(list, e.clientY);
+          if (afterElement) {
+            list.insertBefore(draggedItem, afterElement);
+          } else {
+            list.appendChild(draggedItem);
+          }
+        });
+      });
+    },
+
+    getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+  };
+
+  // Initialize all modules
+  ThemeManager.init();
+  MobileNav.init();
+  ProgressIndicators.init();
+  DragDropManager.init();
+
 })();
 
 // Enhanced UI interactions
@@ -548,8 +728,38 @@ class SofiaCompanion {
   unlockAchievement(achievementKey) {
     this.achievements[achievementKey].unlocked = true;
     this.addCoins(50);
+
+    // Show achievement notification with animation
+    this.showAchievementNotification(this.achievements[achievementKey]);
+
     this.addMessage(`🏆 Достижение разблокировано: ${this.achievements[achievementKey].name}!`);
     this.updateDialogStats();
+  }
+
+  showAchievementNotification(achievement) {
+    const notification = document.createElement('div');
+    notification.className = 'achievement-notification';
+    notification.innerHTML = `
+      <div class="achievement-content">
+        <div class="achievement-icon">${achievement.icon}</div>
+        <div class="achievement-text">
+          <div class="achievement-title">Новое достижение!</div>
+          <div class="achievement-name">${achievement.name}</div>
+        </div>
+        <div class="achievement-reward">+50 монет</div>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Remove after animation
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 4000);
   }
 
   // External actions (called from other parts of the app)
