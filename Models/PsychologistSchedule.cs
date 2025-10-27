@@ -46,4 +46,3 @@ public class PsychologistTimeSlot
     public virtual Psychologist Psychologist { get; set; } = null!;
     public virtual User? BookedByUser { get; set; }
 }
-
