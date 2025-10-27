@@ -1,0 +1,224 @@
+@{
+    var date = (DateTime)ViewBag.Date;
+    var notes = ViewBag.Notes as List<Sofia.Web.Models.Note>;
+    var emotions = ViewBag.Emotions as List<Sofia.Web.Models.EmotionEntry>;
+    var goals = ViewBag.Goals as List<Sofia.Web.Models.Goal>;
+}
+
+<div class="day-details">
+    <div class="row g-3">
+        <!-- Emotions Section -->
+        <div class="col-12">
+            <h6 class="text-primary mb-3">😊 Эмоции дня</h6>
+            @if (emotions?.Any() == true)
+            {
+                <div class="emotions-list">
+                    @foreach (var emotion in emotions)
+                    {
+                        <div class="emotion-item d-flex align-items-center mb-2 p-2 border rounded">
+                            <span class="me-2" style="font-size: 20px;">@GetEmotionEmoji(emotion.Emotion)</span>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">@GetEmotionName(emotion.Emotion)</div>
+                                @if (!string.IsNullOrEmpty(emotion.Note))
+                                {
+                                    <small class="text-muted">@emotion.Note</small>
+                                }
+                            </div>
+                            <small class="text-muted">@emotion?.CreatedAt.ToString("HH:mm")</small>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <div style="font-size: 24px;">😐</div>
+                    <p class="mb-0">Эмоции не записаны</p>
+                </div>
+            }
+            
+            @if (emotions?.Count < 5)
+            {
+                <div class="mt-3">
+                    <button class="btn btn-outline-primary btn-sm" onclick="openEmotionModal('@date.ToString("yyyy-MM-dd")')">
+                        + Добавить эмоцию (@(emotions?.Count ?? 0)/5)
+                    </button>
+                </div>
+            }
+        </div>
+
+        <!-- Notes Section -->
+        <div class="col-12">
+            <h6 class="text-success mb-3">📝 Заметки</h6>
+            @if (notes?.Any() == true)
+            {
+                <div class="notes-list">
+                    @foreach (var note in notes)
+                    {
+                        <div class="note-item d-flex align-items-start mb-2 p-2 border rounded">
+                            <span class="me-2" style="font-size: 16px;">@GetEmotionEmoji(note.Emotion)</span>
+                            <div class="flex-grow-1">
+                                <div class="note-content">@note.Content</div>
+                                @if (!string.IsNullOrEmpty(note.Tags))
+                                {
+                                    <div class="note-tags mt-1">
+                                        @foreach (var tag in note.Tags.Split(','))
+                                        {
+                                            <span class="badge bg-secondary me-1">@tag.Trim()</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted">@note?.CreatedAt.ToString("HH:mm")</small>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <div style="font-size: 24px;">📝</div>
+                    <p class="mb-0">Заметок нет</p>
+                </div>
+            }
+            
+            <div class="mt-3">
+                <a href="/notes/create?date=@date.ToString("yyyy-MM-dd")" class="btn btn-outline-success btn-sm">
+                    + Добавить заметку
+                </a>
+            </div>
+        </div>
+
+        <!-- Goals Section -->
+        <div class="col-12">
+            <h6 class="text-warning mb-3">🎯 Цели</h6>
+            @if (goals?.Any() == true)
+            {
+                <div class="goals-list">
+                    @foreach (var goal in goals)
+                    {
+                        <div class="goal-item d-flex align-items-center mb-2 p-2 border rounded">
+                            <span class="me-2" style="font-size: 16px;">@GetGoalEmoji(goal.Type)</span>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">@goal.Title</div>
+                                <div class="progress mt-1" style="height: 4px;">
+                                    <div class="progress-bar @GetGoalProgressClass(goal.Status)" 
+                                         style="width: @goal.Progress%"></div>
+                                </div>
+                                <small class="text-muted">@goal.Progress% • @GetGoalStatusName(goal.Status)</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <div style="font-size: 24px;">🎯</div>
+                    <p class="mb-0">Целей нет</p>
+                </div>
+            }
+            
+            <div class="mt-3">
+                <a href="/goals/create?date=@date.ToString("yyyy-MM-dd")" class="btn btn-outline-warning btn-sm">
+                    + Добавить цель
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.emotion-item, .note-item, .goal-item {
+    transition: all 0.2s ease;
+}
+
+.emotion-item:hover, .note-item:hover, .goal-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.note-content {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.note-tags .badge {
+    font-size: 0.7rem;
+}
+</style>
+
+@functions {
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+    
+    string GetGoalEmoji(Sofia.Web.Models.GoalType type)
+    {
+        return type switch
+        {
+            Sofia.Web.Models.GoalType.Personal => "👤",
+            Sofia.Web.Models.GoalType.Therapy => "🩺",
+            Sofia.Web.Models.GoalType.Wellness => "🌱",
+            Sofia.Web.Models.GoalType.Social => "💕",
+            Sofia.Web.Models.GoalType.Professional => "💼",
+            _ => "🎯"
+        };
+    }
+    
+    string GetGoalProgressClass(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Completed => "bg-success",
+            Sofia.Web.Models.GoalStatus.Active => "bg-primary",
+            Sofia.Web.Models.GoalStatus.Paused => "bg-warning",
+            Sofia.Web.Models.GoalStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+    
+    string GetGoalStatusName(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Completed => "Завершено",
+            Sofia.Web.Models.GoalStatus.Active => "Активно",
+            Sofia.Web.Models.GoalStatus.Paused => "Приостановлено",
+            Sofia.Web.Models.GoalStatus.Cancelled => "Отменено",
+            _ => status.ToString()
+        };
+    }
+}

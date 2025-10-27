@@ -1,10 +1,12 @@
 @{
     ViewData["Title"] = "Настройки";
+    var user = ViewBag.User as Sofia.Web.Models.User;
     var totalNotes = ViewBag.TotalNotes as int? ?? 0;
     var totalGoals = ViewBag.TotalGoals as int? ?? 0;
     var completedGoals = ViewBag.CompletedGoals as int? ?? 0;
     var sharedNotes = ViewBag.SharedNotes as int? ?? 0;
     var pinnedNotes = ViewBag.PinnedNotes as int? ?? 0;
+    var totalEmotions = ViewBag.TotalEmotions as int? ?? 0;
     var recentNotes = ViewBag.RecentNotes as List<Sofia.Web.Models.Note>;
     var recentGoals = ViewBag.RecentGoals as List<Sofia.Web.Models.Goal>;
 }
@@ -40,9 +42,9 @@
     <div class="col-md-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <div class="h3 text-info mb-2">@sharedNotes</div>
-                <div class="text-muted">Заметок для психолога</div>
-                <small class="text-muted">Поделено</small>
+                <div class="h3 text-info mb-2">@totalEmotions</div>
+                <div class="text-muted">Записей эмоций</div>
+                <small class="text-success">@sharedNotes для психолога</small>
             </div>
         </div>
     </div>
@@ -58,71 +60,8 @@
 </div>
 
 <div class="row g-4">
-    <!-- Quick Settings -->
+    <!-- Settings Menu -->
     <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">🚀 Быстрые настройки</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="setting-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">🌙 Тёмная тема</h6>
-                                    <small class="text-muted">Переключить тему оформления</small>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="themeToggle" onchange="toggleTheme()">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="setting-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">🔔 Уведомления</h6>
-                                    <small class="text-muted">Напоминания о записях</small>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="notificationsToggle" checked>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="setting-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">📧 Email обновления</h6>
-                                    <small class="text-muted">Еженедельные отчёты</small>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="emailToggle">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="setting-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">🔒 Приватность</h6>
-                                    <small class="text-muted">Скрыть от других пользователей</small>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="privacyToggle">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Menu -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">⚙️ Все настройки</h5>
@@ -146,7 +85,7 @@
                                 <div class="me-3" style="font-size: 24px;">🎨</div>
                                 <div>
                                     <h6 class="mb-1">Предпочтения</h6>
-                                    <small class="text-muted">Тема, язык, интерфейс</small>
+                                    <small class="text-muted">Язык, интерфейс, уведомления</small>
                                 </div>
                             </div>
                         </a>
@@ -158,6 +97,17 @@
                                 <div>
                                     <h6 class="mb-1">Уведомления</h6>
                                     <small class="text-muted">Напоминания и алерты</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/home/companion" class="settings-link">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3" style="font-size: 24px;">🤖</div>
+                                <div>
+                                    <h6 class="mb-1">Компаньен</h6>
+                                    <small class="text-muted">ИИ помощник и поддержка</small>
                                 </div>
                             </div>
                         </a>

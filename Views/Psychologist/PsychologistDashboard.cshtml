@@ -1,164 +1,434 @@
 @{
-    ViewData["Title"] = "Панель психолога";
+    ViewData["Title"] = "Дашборд психолога";
     var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
     var appointments = ViewBag.Appointments as List<Sofia.Web.Models.PsychologistAppointment>;
+    var clientData = ViewBag.ClientData as List<Sofia.Web.Controllers.ClientDataViewModel>;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>👨‍⚕️ Панель психолога</h2>
+    <h2>👨‍⚕️ Дашборд психолога</h2>
     <div class="d-flex gap-2">
-        <a href="/psychologist/profile/@psychologist.Id" class="btn btn-outline-primary btn-sm">Редактировать профиль</a>
+        <a href="/psychologist/schedule" class="btn btn-outline-primary btn-sm">📅 Расписание</a>
+        <a href="/psychologist/clients" class="btn btn-outline-info btn-sm">👥 Клиенты</a>
     </div>
 </div>
 
-<!-- Статистика -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title text-primary">@appointments.Count</h5>
-                <p class="card-text">Всего записей</p>
+<div class="row g-4">
+    <!-- Stats Cards -->
+    <div class="col-12">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="h3 text-primary mb-2">@appointments?.Count</div>
+                        <div class="text-muted">Всего записей</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="h3 text-success mb-2">@appointments?.Count(a => a.Status == Sofia.Web.Models.AppointmentStatus.Confirmed)</div>
+                        <div class="text-muted">Подтверждённых</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="h3 text-info mb-2">@appointments?.Count(a => a.Status == Sofia.Web.Models.AppointmentStatus.Completed)</div>
+                        <div class="text-muted">Завершённых</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="h3 text-warning mb-2">@appointments?.Count(a => a.AppointmentDate.Date == DateTime.Today)</div>
+                        <div class="text-muted">Сегодня</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center">
+
+    <!-- Today's Appointments -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">📅 Сегодняшние записи</h5>
+            </div>
             <div class="card-body">
-                <h5 class="card-title text-success">@appointments.Count(a => a.Status == Sofia.Web.Models.AppointmentStatus.Confirmed)</h5>
-                <p class="card-text">Подтверждено</p>
+                @{
+                    var todayAppointments = appointments?.Where(a => a.AppointmentDate.Date == DateTime.Today).OrderBy(a => a.AppointmentDate).ToList();
+                }
+                @if (todayAppointments?.Any() == true)
+                {
+                    @foreach (var appointment in todayAppointments)
+                    {
+                        <div class="appointment-item d-flex align-items-center mb-3 p-3 border rounded">
+                            <div class="appointment-time me-3">
+                                <div class="time-badge">@appointment.AppointmentDate.ToString("HH:mm")</div>
+                            </div>
+                            <div class="appointment-info flex-grow-1">
+                                <h6 class="mb-1">@appointment.User?.Username</h6>
+                                @if (!string.IsNullOrEmpty(appointment.Notes))
+                                {
+                                    <p class="small text-muted mb-1">@appointment.Notes</p>
+                                }
+                                <div class="appointment-status">
+                                    <span class="badge @GetStatusBadgeClass(appointment.Status)">@GetStatusName(appointment.Status)</span>
+                                </div>
+                            </div>
+                            <div class="appointment-actions">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                        ⋮
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Confirmed')">✅ Подтвердить</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Completed')">✅ Завершить</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Cancelled')">❌ Отменить</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">📅</div>
+                        <h5 class="mt-3">Нет записей на сегодня</h5>
+                        <p class="mb-0">Отличный день для планирования!</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Appointments -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Последние записи</h5>
+            </div>
+            <div class="card-body">
+                @if (appointments?.Any() == true)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Время</th>
+                                    <th>Клиент</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var appointment in appointments.Take(10))
+                                {
+                                    <tr>
+                                        <td>@appointment.AppointmentDate.ToString("dd.MM.yyyy")</td>
+                                        <td>@appointment.AppointmentDate.ToString("HH:mm")</td>
+                                        <td>@appointment.User?.Username</td>
+                                        <td>
+                                            <span class="badge @GetStatusBadgeClass(appointment.Status)">@GetStatusName(appointment.Status)</span>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    ⋮
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="/psychologist/client/@appointment.UserId">👤 Данные клиента</a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Confirmed')">✅ Подтвердить</a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Completed')">✅ Завершить</a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@appointment.Id, 'Cancelled')">❌ Отменить</a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">📋</div>
+                        <h5 class="mt-3">Нет записей</h5>
+                        <p class="mb-0">Клиенты пока не записывались на консультации</p>
+                    </div>
+                }
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center">
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">⚡ Быстрые действия</h6>
+            </div>
             <div class="card-body">
-                <h5 class="card-title text-warning">@appointments.Count(a => a.Status == Sofia.Web.Models.AppointmentStatus.Scheduled)</h5>
-                <p class="card-text">Запланировано</p>
+                <div class="d-grid gap-2">
+                    <a href="/psychologist/schedule" class="btn btn-outline-primary btn-sm">📅 Управление расписанием</a>
+                    <a href="/psychologist/profile/@psychologist?.Id" class="btn btn-outline-success btn-sm">✏️ Редактировать профиль</a>
+                    <a href="/settings" class="btn btn-outline-secondary btn-sm">⚙️ Настройки</a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center">
+
+        <!-- Profile Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">👨‍⚕️ Профиль</h6>
+            </div>
             <div class="card-body">
-                <h5 class="card-title text-info">@appointments.Count(a => a.Status == Sofia.Web.Models.AppointmentStatus.Completed)</h5>
-                <p class="card-text">Завершено</p>
+                <div class="profile-summary">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-circle-small me-3">
+                            <div class="avatar-initial-small">@(psychologist?.Name?.FirstOrDefault().ToString().ToUpper() ?? "П")</div>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">@psychologist?.Name</h6>
+                            <small class="text-muted">@psychologist?.Specialization</small>
+                        </div>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-item d-flex justify-content-between mb-2">
+                            <span>Опыт:</span>
+                            <span class="text-primary">@psychologist?.Experience</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between mb-2">
+                            <span>Цена за час:</span>
+                            <span class="text-success">@psychologist?.PricePerHour?.ToString("C0")</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between">
+                            <span>Статус:</span>
+                            <span class="badge bg-success">Активен</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">🔔 Уведомления</h6>
+            </div>
+            <div class="card-body">
+                <div class="notifications">
+                    <div class="notification-item mb-2 p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">📅</span>
+                            <div class="flex-grow-1">
+                                <div class="notification-text">Новая запись на завтра</div>
+                                <small class="text-muted">2 часа назад</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notification-item mb-2 p-2 border rounded">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">⭐</span>
+                            <div class="flex-grow-1">
+                                <div class="notification-text">Новый отзыв от клиента</div>
+                                <small class="text-muted">1 день назад</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Информация о психологе -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Информация о профиле</h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Имя:</strong> @psychologist.Name</p>
-                <p><strong>Специализация:</strong> @psychologist.Specialization</p>
-                <p><strong>Образование:</strong> @psychologist.Education</p>
+<!-- Данные клиентов -->
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">👥 Данные клиентов</h5>
             </div>
-            <div class="col-md-6">
-                <p><strong>Опыт:</strong> @psychologist.Experience</p>
-                <p><strong>Языки:</strong> @psychologist.Languages</p>
-                <p><strong>Методы:</strong> @psychologist.Methods</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Записи -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Записи на консультации</h5>
-    </div>
-    <div class="card-body">
-        @if (appointments.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Дата и время</th>
-                            <th>Клиент</th>
-                            <th>Статус</th>
-                            <th>Заметки</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var appointment in appointments)
+            <div class="card-body">
+                @if (clientData?.Any() == true)
+                {
+                    <div class="row g-3">
+                        @foreach (var client in clientData)
                         {
-                            <tr>
-                                <td>@appointment.AppointmentDate.ToString("dd.MM.yyyy HH:mm")</td>
-                                <td>@(appointment.User?.Username ?? "Не указан")</td>
-                                <td>
-                                    <span class="badge @GetStatusBadgeClass(appointment.Status)">
-                                        @GetStatusText(appointment.Status)
-                                    </span>
-                                </td>
-                                <td>@(appointment.Notes ?? "-")</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        @if (appointment.Status == Sofia.Web.Models.AppointmentStatus.Scheduled)
-                                        {
-                                            <button class="btn btn-outline-success btn-sm" onclick="updateStatus(@appointment.Id, 'Confirmed')">
-                                                Подтвердить
-                                            </button>
-                                        }
-                                        @if (appointment.Status == Sofia.Web.Models.AppointmentStatus.Confirmed)
-                                        {
-                                            <button class="btn btn-outline-primary btn-sm" onclick="updateStatus(@appointment.Id, 'Completed')">
-                                                Завершить
-                                            </button>
-                                        }
-                                        <button class="btn btn-outline-danger btn-sm" onclick="updateStatus(@appointment.Id, 'Cancelled')">
-                                            Отменить
-                                        </button>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">@client.User.Username</h6>
                                     </div>
-                                </td>
-                            </tr>
+                                    <div class="card-body">
+                                        <div class="mb-2">
+                                            <small class="text-muted">Заметок: @client.Notes.Count</small>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Целей: @client.Goals.Count</small>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Эмоций: @client.Emotions.Count</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <small class="text-muted">Сессий: @client.RecentAppointments.Count</small>
+                                        </div>
+                                        
+                                        @if (client.Notes.Any())
+                                        {
+                                            <div class="mb-2">
+                                                <strong>Последние заметки:</strong>
+                                                @foreach (var note in client.Notes.Take(2))
+                                                {
+                                                    <div class="small text-muted mb-1">
+                                                        @(note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content)
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        
+                                        <a href="/psychologist/client/@client.User.Id" class="btn btn-outline-primary btn-sm">
+                                            Подробнее
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center">У вас пока нет клиентов.</p>
+                }
             </div>
-        }
-        else
-        {
-            <div class="text-center text-muted py-4">
-                <p>У вас пока нет записей на консультации</p>
-            </div>
-        }
+        </div>
     </div>
 </div>
+
+<style>
+.appointment-item {
+    transition: all 0.2s ease;
+}
+
+.appointment-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.time-badge {
+    background: linear-gradient(135deg, #6b7cff 0%, #9c88ff 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.avatar-circle-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6b7cff 0%, #9c88ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-initial-small {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.profile-stats .stat-item {
+    padding: 5px 0;
+}
+
+.notification-item {
+    transition: all 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
 
 <script>
-function updateStatus(appointmentId, newStatus) {
-    if (confirm('Вы уверены, что хотите изменить статус записи?')) {
-        fetch('/psychologist/update-status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                appointmentId: appointmentId,
-                status: newStatus
-            })
+function updateStatus(appointmentId, status) {
+    fetch('/psychologist/update-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            appointmentId: appointmentId,
+            status: status
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Ошибка при обновлении статуса: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при обновлении статуса');
-        });
-    }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Статус обновлён', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Ошибка: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Произошла ошибка', 'error');
+    });
+}
+
+function viewClientData(userId) {
+    // В реальном приложении здесь был бы переход к данным клиента
+    showToast('Функция просмотра данных клиента в разработке', 'info');
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 }
 </script>
 
@@ -167,16 +437,16 @@ function updateStatus(appointmentId, newStatus) {
     {
         return status switch
         {
-            Sofia.Web.Models.AppointmentStatus.Scheduled => "bg-warning",
-            Sofia.Web.Models.AppointmentStatus.Confirmed => "bg-info",
-            Sofia.Web.Models.AppointmentStatus.Completed => "bg-success",
+            Sofia.Web.Models.AppointmentStatus.Scheduled => "bg-primary",
+            Sofia.Web.Models.AppointmentStatus.Confirmed => "bg-success",
+            Sofia.Web.Models.AppointmentStatus.Completed => "bg-info",
             Sofia.Web.Models.AppointmentStatus.Cancelled => "bg-danger",
-            Sofia.Web.Models.AppointmentStatus.NoShow => "bg-secondary",
+            Sofia.Web.Models.AppointmentStatus.NoShow => "bg-warning",
             _ => "bg-secondary"
         };
     }
     
-    string GetStatusText(Sofia.Web.Models.AppointmentStatus status)
+    string GetStatusName(Sofia.Web.Models.AppointmentStatus status)
     {
         return status switch
         {

@@ -1,260 +1,277 @@
-@model Sofia.Web.Models.Note
 @{
     ViewData["Title"] = "Новая заметка";
+    var targetDate = ViewBag.TargetDate as DateTime? ?? DateTime.Today;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📝 Новая заметка</h2>
+    <a href="/notes" class="btn btn-outline-secondary">← Назад к заметкам</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0">📝 Новая заметка</h4>
+                <h5 class="mb-0">✍️ Создание заметки</h5>
             </div>
             <div class="card-body">
-                <form method="post">
-                    <div class="mb-3">
-                        <label asp-for="Content" class="form-label">Текст заметки *</label>
-                        <textarea asp-for="Content" class="form-control" rows="6" placeholder="Опишите свои мысли, чувства, события дня..."></textarea>
-                        <span asp-validation-for="Content" class="text-danger"></span>
-                    </div>
-
-                    <div class="row">
+                <form id="noteForm">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="content" class="form-label">Содержание заметки *</label>
+                            <textarea class="form-control" id="content" name="content" rows="6" 
+                                      placeholder="Опишите, что произошло, как вы себя чувствуете, о чем думаете..." required></textarea>
+                        </div>
+                        
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <label asp-for="Emotion" class="form-label">Эмоция</label>
-                                <div class="emotion-picker" id="emotion-picker">
-                                    <button type="button" class="emotion-btn active" data-emotion="@Sofia.Web.Models.EmotionType.Neutral" data-icon="😐" title="Нейтрально">
-                                        <span class="emotion-icon">😐</span>
-                                        <span class="emotion-label">Нейтрально</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.VeryHappy" data-icon="😄" title="Очень радостно">
-                                        <span class="emotion-icon">😄</span>
-                                        <span class="emotion-label">Очень радостно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Happy" data-icon="😊" title="Радостно">
-                                        <span class="emotion-icon">😊</span>
-                                        <span class="emotion-label">Радостно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Calm" data-icon="😌" title="Спокойно">
-                                        <span class="emotion-icon">😌</span>
-                                        <span class="emotion-label">Спокойно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Grateful" data-icon="🙏" title="Благодарно">
-                                        <span class="emotion-icon">🙏</span>
-                                        <span class="emotion-label">Благодарно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Excited" data-icon="🤩" title="Взволнованно">
-                                        <span class="emotion-icon">🤩</span>
-                                        <span class="emotion-label">Взволнованно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Sad" data-icon="😔" title="Грустно">
-                                        <span class="emotion-icon">😔</span>
-                                        <span class="emotion-label">Грустно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.VerySad" data-icon="😢" title="Очень грустно">
-                                        <span class="emotion-icon">😢</span>
-                                        <span class="emotion-label">Очень грустно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Anxious" data-icon="😰" title="Тревожно">
-                                        <span class="emotion-icon">😰</span>
-                                        <span class="emotion-label">Тревожно</span>
-                                    </button>
-                                    <button type="button" class="emotion-btn" data-emotion="@Sofia.Web.Models.EmotionType.Frustrated" data-icon="😤" title="Раздражённо">
-                                        <span class="emotion-icon">😤</span>
-                                        <span class="emotion-label">Раздражённо</span>
-                                    </button>
-                                </div>
-                                <select asp-for="Emotion" class="form-select d-none">
-                                    <option value="@Sofia.Web.Models.EmotionType.Neutral">😐 Нейтрально</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.VeryHappy">😄 Очень радостно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Happy">😊 Радостно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Calm">😌 Спокойно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Grateful">🙏 Благодарно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Excited">🤩 Взволнованно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Sad">😔 Грустно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.VerySad">😢 Очень грустно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Anxious">😰 Тревожно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Frustrated">😤 Раздражённо</option>
-                                </select>
-@section Scripts {
-    <script>
-        // Enhanced note creation with emotion picker and auto-save
-        document.addEventListener('DOMContentLoaded', function() {
-            const emotionPicker = document.getElementById('emotion-picker');
-            const emotionSelect = document.querySelector('[asp-for="Emotion"]');
-            const contentTextarea = document.querySelector('[asp-for="Content"]');
-            const form = document.querySelector('form');
-            const charCounter = document.createElement('div');
-            let autoSaveTimeout;
-
-            // Initialize emotion picker
-            emotionPicker.addEventListener('click', function(e) {
-                const btn = e.target.closest('.emotion-btn');
-                if (!btn) return;
-
-                // Remove active class from all buttons
-                emotionPicker.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active'));
-                // Add active class to clicked button
-                btn.classList.add('active');
-
-                // Update hidden select
-                const emotionValue = btn.dataset.emotion;
-                emotionSelect.value = emotionValue;
-
-                // Add bounce animation
-                btn.style.animation = 'bounce 0.5s ease';
-                setTimeout(() => btn.style.animation = '', 500);
-            });
-
-            // Set initial active emotion
-            const initialEmotion = emotionSelect.value;
-            if (initialEmotion) {
-                const initialBtn = emotionPicker.querySelector(`[data-emotion="${initialEmotion}"]`);
-                if (initialBtn) {
-                    initialBtn.classList.add('active');
-                }
-            }
-
-            // Character counter
-            charCounter.className = 'form-text mt-1';
-            charCounter.style.fontSize = '0.8rem';
-            contentTextarea.parentNode.appendChild(charCounter);
-
-            function updateCharCount() {
-                const current = contentTextarea.value.length;
-                const max = 2000;
-                charCounter.textContent = `${current}/${max} символов`;
-                charCounter.style.color = current > max * 0.9 ? 'var(--color-danger)' : 'var(--color-muted)';
-            }
-
-            contentTextarea.addEventListener('input', updateCharCount);
-            updateCharCount();
-
-            // Auto-save functionality
-            function autoSave() {
-                const data = {
-                    content: contentTextarea.value,
-                    emotion: emotionSelect.value,
-                    activity: document.querySelector('[asp-for="Activity"]').value,
-                    tags: document.querySelector('[asp-for="Tags"]').value,
-                    isPinned: document.querySelector('[asp-for="IsPinned"]').checked,
-                    shareWithPsychologist: document.querySelector('[asp-for="ShareWithPsychologist"]').checked,
-                    timestamp: new Date().toISOString()
-                };
-
-                if (data.content.trim()) {
-                    localStorage.setItem('note-draft', JSON.stringify(data));
-                    showSaveIndicator();
-                }
-            }
-
-            function showSaveIndicator() {
-                const indicator = document.createElement('div');
-                indicator.textContent = '💾 Сохранено';
-                indicator.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--color-success);
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: var(--radius);
-                    font-size: 0.9rem;
-                    z-index: 1000;
-                    animation: fadeInOut 2s ease;
-                `;
-
-                document.body.appendChild(indicator);
-                setTimeout(() => indicator.remove(), 2000);
-            }
-
-            function loadDraft() {
-                const draftData = localStorage.getItem('note-draft');
-                if (!draftData) return;
-
-                try {
-                    const draft = JSON.parse(draftData);
-                    const draftDate = new Date(draft.timestamp);
-                    const hoursDiff = (new Date() - draftDate) / (1000 * 60 * 60);
-
-                    if (hoursDiff < 24) {
-                        contentTextarea.value = draft.content || '';
-                        emotionSelect.value = draft.emotion || 'Neutral';
-                        document.querySelector('[asp-for="Activity"]').value = draft.activity || '';
-                        document.querySelector('[asp-for="Tags"]').value = draft.tags || '';
-                        document.querySelector('[asp-for="IsPinned"]').checked = draft.isPinned || false;
-                        document.querySelector('[asp-for="ShareWithPsychologist"]').checked = draft.shareWithPsychologist || false;
-
-                        // Update emotion picker UI
-                        emotionPicker.querySelectorAll('.emotion-btn').forEach(btn => {
-                            btn.classList.toggle('active', btn.dataset.emotion === draft.emotion);
-                        });
-
-                        updateCharCount();
-                        console.log('Draft loaded');
-                    }
-                } catch (e) {
-                    console.error('Error loading draft:', e);
-                }
-            }
-
-            // Load draft on page load
-            loadDraft();
-
-            // Auto-save on input
-            [contentTextarea, emotionSelect, ...document.querySelectorAll('input, textarea')].forEach(el => {
-                el.addEventListener('input', function() {
-                    clearTimeout(autoSaveTimeout);
-                    autoSaveTimeout = setTimeout(autoSave, 1000);
-                });
-            });
-
-            // Clear draft on successful submit
-            form.addEventListener('submit', function() {
-                localStorage.removeItem('note-draft');
-            });
-        });
-    </script>
-}
+                            <label for="emotion" class="form-label">Эмоция *</label>
+                            <select class="form-select" id="emotion" name="emotion" required>
+                                <option value="">Выберите эмоцию</option>
+                                <option value="VerySad">😢 Очень грустно</option>
+                                <option value="Sad">😔 Грустно</option>
+                                <option value="Neutral">😐 Нейтрально</option>
+                                <option value="Happy">😊 Радостно</option>
+                                <option value="VeryHappy">😄 Очень радостно</option>
+                                <option value="Anxious">😰 Тревожно</option>
+                                <option value="Calm">😌 Спокойно</option>
+                                <option value="Excited">🤩 Взволнованно</option>
+                                <option value="Frustrated">😤 Раздражённо</option>
+                                <option value="Grateful">🙏 Благодарно</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="date" class="form-label">Дата</label>
+                            <input type="date" class="form-control" id="date" name="date" value="@targetDate.ToString("yyyy-MM-dd")">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="tags" class="form-label">Теги</label>
+                            <input type="text" class="form-control" id="tags" name="tags" 
+                                   placeholder="работа, семья, здоровье (через запятую)">
+                            <small class="form-text text-muted">Разделяйте теги запятыми</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="activity" class="form-label">Активность</label>
+                            <input type="text" class="form-control" id="activity" name="activity" 
+                                   placeholder="прогулка, работа, чтение">
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isPinned" name="isPinned">
+                                <label class="form-check-label" for="isPinned">
+                                    📌 Закрепить заметку
+                                </label>
+                                <small class="form-text text-muted d-block">Закрепленные заметки отображаются вверху списка</small>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label asp-for="Activity" class="form-label">Активность</label>
-                                <input asp-for="Activity" class="form-control" placeholder="Работа, учёба, отдых, спорт..." />
+                        
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shareWithPsychologist" name="shareWithPsychologist">
+                                <label class="form-check-label" for="shareWithPsychologist">
+                                    👨‍⚕️ Поделиться с психологом
+                                </label>
+                                <small class="form-text text-muted d-block">Позволяет психологу видеть эту заметку</small>
                             </div>
                         </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Tags" class="form-label">Теги</label>
-                        <input asp-for="Tags" class="form-control" placeholder="тревога, работа, семья (через запятую)" />
-                        <div class="form-text">Теги помогут найти заметки по темам</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input asp-for="IsPinned" class="form-check-input" />
-                            <label asp-for="IsPinned" class="form-check-label">
-                                📌 Закрепить заметку
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input asp-for="ShareWithPsychologist" class="form-check-input" />
-                            <label asp-for="ShareWithPsychologist" class="form-check-label">
-                                👥 Поделиться с психологом
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a href="/notes" class="btn btn-secondary">Отмена</a>
-                        <button type="submit" class="btn btn-primary">Сохранить заметку</button>
+                    
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-primary" onclick="saveNote()">
+                            💾 Сохранить заметку
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="resetForm()">
+                            🔄 Очистить
+                        </button>
+                        <a href="/notes" class="btn btn-outline-danger ms-2">❌ Отмена</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">💡 Советы</h6>
+            </div>
+            <div class="card-body">
+                <div class="tips">
+                    <div class="tip-item mb-3">
+                        <h6 class="text-primary">📝 Содержание</h6>
+                        <p class="small text-muted mb-0">Опишите события дня, свои мысли и чувства. Не бойтесь быть честными.</p>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <h6 class="text-success">😊 Эмоции</h6>
+                        <p class="small text-muted mb-0">Выберите эмоцию, которая лучше всего описывает ваше состояние.</p>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <h6 class="text-info">🏷️ Теги</h6>
+                        <p class="small text-muted mb-0">Используйте теги для категоризации заметок: работа, семья, здоровье.</p>
+                    </div>
+                    <div class="tip-item">
+                        <h6 class="text-warning">📌 Закрепление</h6>
+                        <p class="small text-muted mb-0">Закрепляйте важные заметки, чтобы они всегда были на виду.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">📊 Статистика</h6>
+            </div>
+            <div class="card-body">
+                <div class="stats">
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Заметок сегодня:</span>
+                        <span class="text-primary" id="todayNotes">0</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Закрепленных:</span>
+                        <span class="text-warning" id="pinnedNotes">0</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between">
+                        <span>Для психолога:</span>
+                        <span class="text-info" id="sharedNotes">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.tips {
+    space-y: 15px;
+}
+
+.tip-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tip-item:last-child {
+    border-bottom: none;
+}
+
+.stats .stat-item {
+    padding: 5px 0;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #6b7cff;
+    box-shadow: 0 0 0 0.2rem rgba(107, 124, 255, 0.25);
+}
+</style>
+
+<script>
+function saveNote() {
+    const form = document.getElementById('noteForm');
+    const formData = new FormData(form);
+    
+    // Проверяем обязательные поля
+    if (!formData.get('content') || !formData.get('emotion')) {
+        showToast('Пожалуйста, заполните все обязательные поля', 'error');
+        return;
+    }
+    
+    const data = {
+        content: formData.get('content'),
+        tags: formData.get('tags'),
+        emotion: formData.get('emotion'),
+        activity: formData.get('activity'),
+        date: formData.get('date'),
+        isPinned: formData.get('isPinned') === 'on',
+        shareWithPsychologist: formData.get('shareWithPsychologist') === 'on'
+    };
+    
+    fetch('/notes/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showToast(result.message, 'success');
+            setTimeout(() => {
+                window.location.href = '/notes';
+            }, 1000);
+        } else {
+            showToast('Ошибка при сохранении: ' + result.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Произошла ошибка', 'error');
+    });
+}
+
+function resetForm() {
+    if (confirm('Очистить все поля формы?')) {
+        document.getElementById('noteForm').reset();
+        showToast('Форма очищена', 'info');
+    }
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Загружаем статистику
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/notes/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('todayNotes').textContent = data.todayNotes || 0;
+                document.getElementById('pinnedNotes').textContent = data.pinnedNotes || 0;
+                document.getElementById('sharedNotes').textContent = data.sharedNotes || 0;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
+});
+</script>

@@ -1,0 +1,404 @@
+@{
+    ViewData["Title"] = "Данные клиента";
+    var client = ViewBag.Client as Sofia.Web.Models.User;
+    var clientNotes = ViewBag.ClientNotes as List<Sofia.Web.Models.Note>;
+    var clientGoals = ViewBag.ClientGoals as List<Sofia.Web.Models.Goal>;
+    var clientEmotions = ViewBag.ClientEmotions as List<Sofia.Web.Models.EmotionEntry>;
+    var appointments = ViewBag.Appointments as List<Sofia.Web.Models.PsychologistAppointment>;
+    var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>👤 Данные клиента: @client.Username</h2>
+    <div>
+        <a href="/psychologist/dashboard/@psychologist.Id" class="btn btn-outline-secondary">← Назад к дашборду</a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRecommendationModal">
+            💡 Добавить рекомендацию
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Информация о клиенте -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">👤 Информация о клиенте</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="avatar-circle me-3">
+                        <div class="avatar-initial">@(client.Username?.FirstOrDefault().ToString().ToUpper() ?? "К")</div>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">@client.Username</h6>
+                        <small class="text-muted">@client.Email</small>
+                    </div>
+                </div>
+                
+                <div class="client-stats">
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Заметок:</span>
+                        <span class="text-primary">@clientNotes.Count</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Целей:</span>
+                        <span class="text-success">@clientGoals.Count</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Эмоций:</span>
+                        <span class="text-info">@clientEmotions.Count</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between mb-2">
+                        <span>Сессий:</span>
+                        <span class="text-warning">@appointments.Count</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- История сессий -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">📅 История сессий</h6>
+            </div>
+            <div class="card-body">
+                @if (appointments?.Any() == true)
+                {
+                    @foreach (var appointment in appointments.Take(5))
+                    {
+                        <div class="session-item mb-3 p-2 border rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">@appointment.AppointmentDate.ToString("dd.MM.yyyy HH:mm")</div>
+                                    <small class="text-muted">@GetStatusName(appointment.Status)</small>
+                                </div>
+                                <span class="badge @GetStatusBadgeClass(appointment.Status)">@GetStatusName(appointment.Status)</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(appointment.Notes))
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">@appointment.Notes</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted small">Сессий пока нет</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="col-lg-8">
+        <!-- Эмоциональное состояние -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">😊 Эмоциональное состояние</h5>
+            </div>
+            <div class="card-body">
+                @if (clientEmotions?.Any() == true)
+                {
+                    <div class="row g-3">
+                        @foreach (var emotion in clientEmotions.Take(10))
+                        {
+                            <div class="col-md-6">
+                                <div class="emotion-item p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2" style="font-size: 1.5rem;">@GetEmotionEmoji(emotion.Emotion)</span>
+                                            <strong>@GetEmotionName(emotion.Emotion)</strong>
+                                        </div>
+                                        <small class="text-muted">@emotion.Date.ToString("dd.MM.yyyy")</small>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(emotion.Note))
+                                    {
+                                        <p class="mb-0 text-muted small">@emotion.Note</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center">Клиент пока не записывал эмоции</p>
+                }
+            </div>
+        </div>
+
+        <!-- Цели клиента -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">🎯 Цели клиента</h5>
+            </div>
+            <div class="card-body">
+                @if (clientGoals?.Any() == true)
+                {
+                    <div class="row g-3">
+                        @foreach (var goal in clientGoals.Take(6))
+                        {
+                            <div class="col-md-6">
+                                <div class="goal-item p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">@goal.Title</h6>
+                                        <span class="badge @GetGoalStatusBadgeClass(goal.Status)">@GetGoalStatusName(goal.Status)</span>
+                                    </div>
+                                    <p class="mb-2 text-muted small">@goal.Description</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">@goal.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                        @if (goal.TargetDate.HasValue)
+                                        {
+                                            <small class="text-muted">до @goal.TargetDate.Value.ToString("dd.MM.yyyy")</small>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center">Клиент пока не ставил целей</p>
+                }
+            </div>
+        </div>
+
+        <!-- Заметки клиента -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📝 Заметки клиента</h5>
+            </div>
+            <div class="card-body">
+                @if (clientNotes?.Any() == true)
+                {
+                    @foreach (var note in clientNotes.Take(5))
+                    {
+                        <div class="note-item mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">@GetEmotionEmoji(note.Emotion)</span>
+                                    <strong>@note.Date.ToString("dd.MM.yyyy")</strong>
+                                </div>
+                                <small class="text-muted">@note.CreatedAt.ToString("HH:mm")</small>
+                            </div>
+                            <p class="mb-2">@note.Content</p>
+                            @if (!string.IsNullOrEmpty(note.Tags))
+                            {
+                                <div class="mb-2">
+                                    @foreach (var tag in note.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <span class="badge bg-secondary me-1">#@tag.Trim()</span>
+                                    }
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(note.Activity))
+                            {
+                                <div>
+                                    <span class="badge bg-info">@note.Activity</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center">Клиент пока не делился заметками</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления рекомендации -->
+<div class="modal fade" id="addRecommendationModal" tabindex="-1" aria-labelledby="addRecommendationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRecommendationModalLabel">Добавить рекомендацию для @client.Username</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recommendationForm">
+                    <div class="mb-3">
+                        <label for="recommendationType" class="form-label">Тип рекомендации</label>
+                        <select class="form-select" id="recommendationType" name="recommendationType" required>
+                            <option value="">Выберите тип</option>
+                            <option value="breathing">Дыхательная практика</option>
+                            <option value="meditation">Медитация</option>
+                            <option value="exercise">Физические упражнения</option>
+                            <option value="goal">Обсуждение цели</option>
+                            <option value="emotion">Работа с эмоциями</option>
+                            <option value="note">Ведение дневника</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recommendationText" class="form-label">Текст рекомендации</label>
+                        <textarea class="form-control" id="recommendationText" name="recommendationText" rows="4" required placeholder="Опишите рекомендацию для клиента..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low">Низкий</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addRecommendation()">Добавить рекомендацию</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6b7cff 0%, #9c88ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-initial {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+.emotion-item, .goal-item, .note-item, .session-item {
+    transition: all 0.2s ease;
+}
+
+.emotion-item:hover, .goal-item:hover, .note-item:hover, .session-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.client-stats .stat-item {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.client-stats .stat-item:last-child {
+    border-bottom: none;
+}
+</style>
+
+<script>
+function addRecommendation() {
+    const form = document.getElementById('recommendationForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        clientId: @client.Id,
+        recommendationType: formData.get('recommendationType'),
+        recommendationText: formData.get('recommendationText'),
+        priority: formData.get('priority')
+    };
+    
+    // Здесь можно добавить отправку рекомендации
+    alert('Рекомендация добавлена для клиента @client.Username! (Функция будет реализована в следующей версии)');
+    
+    // Закрываем модальное окно
+    const modal = bootstrap.Modal.getInstance(document.getElementById('addRecommendationModal'));
+    modal.hide();
+    
+    // Очищаем форму
+    form.reset();
+}
+</script>
+
+@functions {
+    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "😢",
+            Sofia.Web.Models.EmotionType.Sad => "😔",
+            Sofia.Web.Models.EmotionType.Neutral => "😐",
+            Sofia.Web.Models.EmotionType.Happy => "😊",
+            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
+            Sofia.Web.Models.EmotionType.Anxious => "😰",
+            Sofia.Web.Models.EmotionType.Calm => "😌",
+            Sofia.Web.Models.EmotionType.Excited => "🤩",
+            Sofia.Web.Models.EmotionType.Frustrated => "😤",
+            Sofia.Web.Models.EmotionType.Grateful => "🙏",
+            _ => "😐"
+        };
+    }
+    
+    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
+    {
+        return emotion switch
+        {
+            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
+            Sofia.Web.Models.EmotionType.Sad => "Грустно",
+            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
+            Sofia.Web.Models.EmotionType.Happy => "Радостно",
+            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
+            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
+            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
+            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
+            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
+            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
+            _ => emotion.ToString()
+        };
+    }
+
+    string GetStatusBadgeClass(Sofia.Web.Models.AppointmentStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.AppointmentStatus.Scheduled => "bg-primary",
+            Sofia.Web.Models.AppointmentStatus.Confirmed => "bg-success",
+            Sofia.Web.Models.AppointmentStatus.Completed => "bg-info",
+            Sofia.Web.Models.AppointmentStatus.Cancelled => "bg-danger",
+            Sofia.Web.Models.AppointmentStatus.NoShow => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+    
+    string GetStatusName(Sofia.Web.Models.AppointmentStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.AppointmentStatus.Scheduled => "Запланировано",
+            Sofia.Web.Models.AppointmentStatus.Confirmed => "Подтверждено",
+            Sofia.Web.Models.AppointmentStatus.Completed => "Завершено",
+            Sofia.Web.Models.AppointmentStatus.Cancelled => "Отменено",
+            Sofia.Web.Models.AppointmentStatus.NoShow => "Не явился",
+            _ => status.ToString()
+        };
+    }
+
+    string GetGoalStatusBadgeClass(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Completed => "bg-success",
+            Sofia.Web.Models.GoalStatus.Active => "bg-primary",
+            Sofia.Web.Models.GoalStatus.Paused => "bg-warning",
+            Sofia.Web.Models.GoalStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetGoalStatusName(Sofia.Web.Models.GoalStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.GoalStatus.Completed => "Завершена",
+            Sofia.Web.Models.GoalStatus.Active => "Активна",
+            Sofia.Web.Models.GoalStatus.Paused => "Приостановлена",
+            Sofia.Web.Models.GoalStatus.Cancelled => "Отменена",
+            _ => status.ToString()
+        };
+    }
+}
+

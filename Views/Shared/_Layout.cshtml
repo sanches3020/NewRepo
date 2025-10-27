@@ -92,18 +92,24 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item d-none d-md-block"><a class="nav-link" href="/home">Главная</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/notes">Заметки</a></li>
-                        <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/calendar">Календарь</a></li>
-                        <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/stats">Статистика</a></li>
-                        <li class="nav-item d-none d-md-block"><a class="nav-link" href="/practices">Практики</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/goals">Цели</a></li>
-                        <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/psychologist">Психолог</a></li>
-                        <li class="nav-item d-none d-xl-block"><a class="nav-link" href="/home/companion">Компаньон</a></li>
-                        <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/notifications">Уведомления</a></li>
-                        <li class="nav-item d-none d-md-block"><a class="nav-link" href="/settings">Настройки</a></li>
-                    </ul>
+            <ul class="navbar-nav flex-grow-1">
+                @if (Context.Session.GetString("UserRole") == "psychologist")
+                {
+                    <li class="nav-item"><a class="nav-link" href="/psychologist">Дашборд</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/settings">Настройки</a></li>
+                }
+                else
+                {
+                    <li class="nav-item d-none d-md-block"><a class="nav-link" href="/home">Главная</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/notes">Заметки</a></li>
+                    <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/calendar">Календарь</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/goals">Цели</a></li>
+                    <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/stats">Статистика</a></li>
+                    <li class="nav-item d-none d-md-block"><a class="nav-link" href="/practices">Практики</a></li>
+                    <li class="nav-item d-none d-lg-block"><a class="nav-link" href="/psychologist">Психолог</a></li>
+                    <li class="nav-item d-none d-md-block"><a class="nav-link" href="/settings">Настройки</a></li>
+                }
+            </ul>
                     <!-- Mobile Bottom Navigation -->
                     <nav class="mobile-nav d-md-none">
                         <a href="/notes" class="mobile-nav-item" title="Заметки">
@@ -154,6 +160,285 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #6b7cff 0%, #9c88ff 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .main-content {
+            min-height: calc(100vh - 200px);
+            padding: 2rem 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #6b7cff;
+            box-shadow: 0 0 0 0.2rem rgba(107, 124, 255, 0.25);
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .row {
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+
+        .row > * {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        /* Мобильная навигация */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+            z-index: 1000;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #6c757d;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-nav-item:hover {
+            color: #6b7cff;
+            transform: translateY(-2px);
+        }
+
+        .mobile-nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Адаптивность */
+        @@media (max-width: 768px) {
+            .main-content {
+                padding: 1rem 0;
+                margin-bottom: 80px; /* Отступ для мобильной навигации */
+            }
+
+            .container-fluid {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+
+            .card {
+                margin-bottom: 1rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .d-flex.gap-2 {
+                flex-direction: column;
+            }
+
+            .d-flex.gap-2 .btn {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .h2 {
+                font-size: 1.5rem;
+            }
+
+            .h3 {
+                font-size: 1.25rem;
+            }
+
+            .h4 {
+                font-size: 1.1rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Улучшения для модальных окон */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            padding: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+
+        /* Улучшения для таблиц */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+            background-color: #f8f9fa;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        /* Улучшения для списков */
+        .list-group-item {
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .list-group-item:first-child {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .list-group-item:last-child {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* Улучшения для бейджей */
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+
+        /* Анимации */
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Улучшения для форм */
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-check-label {
+            font-weight: 500;
+        }
+
+        /* Улучшения для алертов */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            padding: 1rem 1.25rem;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>
