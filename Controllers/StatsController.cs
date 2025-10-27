@@ -18,40 +18,48 @@ public class StatsController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index(int? days)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var userIdInt = int.Parse(userId);
         var daysBack = days ?? 30;
         var startDate = DateTime.Now.AddDays(-daysBack);
 
         // Общая статистика
-        var totalNotes = await _context.Notes.CountAsync();
-        var recentNotes = await _context.Notes.CountAsync(n => n.CreatedAt >= startDate);
-        var totalGoals = await _context.Goals.CountAsync();
-        var activeGoals = await _context.Goals.CountAsync(g => g.Status == GoalStatus.Active);
-        var completedGoals = await _context.Goals.CountAsync(g => g.Status == GoalStatus.Completed);
+        var totalNotes = await _context.Notes.CountAsync(n => n.UserId == userIdInt);
+        var recentNotes = await _context.Notes.CountAsync(n => n.UserId == userIdInt && n.Date >= startDate);
+        var totalGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt);
+        var activeGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt && g.Status == GoalStatus.Active);
+        var completedGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt && g.Status == GoalStatus.Completed);
+        var totalEmotions = await _context.EmotionEntries.CountAsync(e => e.UserId == userIdInt);
 
         // Статистика эмоций
-        var emotionStats = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate)
-            .GroupBy(n => n.Emotion)
+        var emotionStats = await _context.EmotionEntries
+            .Where(e => e.UserId == userIdInt && e.Date >= startDate)
+            .GroupBy(e => e.Emotion)
             .Select(g => new { Emotion = g.Key, Count = g.Count() })
             .ToListAsync();
 
         // Статистика по дням недели
         var weeklyStats = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate)
-            .GroupBy(n => n.CreatedAt.DayOfWeek)
+            .Where(n => n.UserId == userIdInt && n.Date >= startDate)
+            .GroupBy(n => n.Date.DayOfWeek)
             .Select(g => new { DayOfWeek = g.Key, Count = g.Count() })
             .ToListAsync();
 
         // Статистика по часам
         var hourlyStats = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate)
+            .Where(n => n.UserId == userIdInt && n.CreatedAt >= startDate)
             .GroupBy(n => n.CreatedAt.Hour)
             .Select(g => new { Hour = g.Key, Count = g.Count() })
             .ToListAsync();
 
         // Топ тегов
         var notesWithTags = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate && !string.IsNullOrEmpty(n.Tags))
+            .Where(n => n.UserId == userIdInt && n.Date >= startDate && !string.IsNullOrEmpty(n.Tags))
             .Select(n => n.Tags)
             .ToListAsync();
 
@@ -65,7 +73,7 @@ public class StatsController : Controller
 
         // Топ активностей
         var activityStats = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate && !string.IsNullOrEmpty(n.Activity))
+            .Where(n => n.UserId == userIdInt && n.Date >= startDate && !string.IsNullOrEmpty(n.Activity))
             .GroupBy(n => n.Activity)
             .Select(g => new { Activity = g.Key, Count = g.Count() })
             .OrderByDescending(g => g.Count)
@@ -78,12 +86,12 @@ public class StatsController : Controller
             .ToListAsync();
 
         // Тренды настроения (последние 7 дней)
-        var moodTrends = await _context.Notes
-            .Where(n => n.CreatedAt >= DateTime.Now.AddDays(-7))
-            .GroupBy(n => n.CreatedAt.Date)
+        var moodTrends = await _context.EmotionEntries
+            .Where(e => e.UserId == userIdInt && e.Date >= DateTime.Now.AddDays(-7))
+            .GroupBy(e => e.Date.Date)
             .Select(g => new { 
                 Date = g.Key, 
-                AverageMood = g.Average(n => (int)n.Emotion),
+                AverageMood = g.Average(e => (int)e.Emotion),
                 Count = g.Count()
             })
             .OrderBy(g => g.Date)
@@ -95,6 +103,7 @@ public class StatsController : Controller
         ViewBag.TotalGoals = totalGoals;
         ViewBag.ActiveGoals = activeGoals;
         ViewBag.CompletedGoals = completedGoals;
+        ViewBag.TotalEmotions = totalEmotions;
         ViewBag.EmotionStats = emotionStats;
         ViewBag.WeeklyStats = weeklyStats;
         ViewBag.HourlyStats = hourlyStats;
@@ -109,15 +118,23 @@ public class StatsController : Controller
     [HttpGet("export")]
     public async Task<IActionResult> Export(int? days)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Json(new { success = false, message = "Пользователь не авторизован" });
+        }
+
+        var userIdInt = int.Parse(userId);
         var daysBack = days ?? 30;
         var startDate = DateTime.Now.AddDays(-daysBack);
 
         var notes = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate)
-            .OrderByDescending(n => n.CreatedAt)
+            .Where(n => n.UserId == userIdInt && n.Date >= startDate)
+            .OrderByDescending(n => n.Date)
             .ToListAsync();
 
         var goals = await _context.Goals
+            .Where(g => g.UserId == userIdInt)
             .OrderByDescending(g => g.CreatedAt)
             .ToListAsync();
 
@@ -126,7 +143,7 @@ public class StatsController : Controller
         
         foreach (var note in notes)
         {
-            csvContent += $"{note.CreatedAt:yyyy-MM-dd},{note.CreatedAt:HH:mm},{note.Emotion},\"{note.Content.Replace("\"", "\"\"")}\",{note.Tags ?? ""},{note.Activity ?? ""},{note.IsPinned},{note.ShareWithPsychologist}\n";
+            csvContent += $"{note.Date:yyyy-MM-dd},{note.CreatedAt:HH:mm},{note.Emotion},\"{note.Content.Replace("\"", "\"\"")}\",{note.Tags ?? ""},{note.Activity ?? ""},{note.IsPinned},{note.ShareWithPsychologist}\n";
         }
 
         var fileName = $"sofia_export_{DateTime.Now:yyyy-MM-dd}.csv";
@@ -138,15 +155,22 @@ public class StatsController : Controller
     [HttpGet("insights")]
     public async Task<IActionResult> Insights()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var userIdInt = int.Parse(userId);
         var last30Days = DateTime.Now.AddDays(-30);
         
         // Анализ паттернов
         var insights = new List<string>();
         
         // Анализ эмоций
-        var emotionAnalysis = await _context.Notes
-            .Where(n => n.CreatedAt >= last30Days)
-            .GroupBy(n => n.Emotion)
+        var emotionAnalysis = await _context.EmotionEntries
+            .Where(e => e.UserId == userIdInt && e.Date >= last30Days)
+            .GroupBy(e => e.Emotion)
             .Select(g => new { Emotion = g.Key, Count = g.Count() })
             .OrderByDescending(g => g.Count)
             .ToListAsync();
@@ -166,7 +190,7 @@ public class StatsController : Controller
 
         // Анализ активности
         var activityAnalysis = await _context.Notes
-            .Where(n => n.CreatedAt >= last30Days && !string.IsNullOrEmpty(n.Activity))
+            .Where(n => n.UserId == userIdInt && n.Date >= last30Days && !string.IsNullOrEmpty(n.Activity))
             .GroupBy(n => n.Activity)
             .Select(g => new { Activity = g.Key, Count = g.Count() })
             .OrderByDescending(g => g.Count)
@@ -179,7 +203,7 @@ public class StatsController : Controller
 
         // Анализ целей
         var goalProgress = await _context.Goals
-            .Where(g => g.Status == GoalStatus.Active)
+            .Where(g => g.UserId == userIdInt && g.Status == GoalStatus.Active)
             .AverageAsync(g => g.Progress);
 
         if (goalProgress > 0)
@@ -194,18 +218,25 @@ public class StatsController : Controller
     [HttpGet("report")]
     public async Task<IActionResult> GenerateReport(int? days, string format)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var userIdInt = int.Parse(userId);
         var daysBack = days ?? 30;
         var startDate = DateTime.Now.AddDays(-daysBack);
         var endDate = DateTime.Now;
 
         // Собираем данные для отчета
         var notes = await _context.Notes
-            .Where(n => n.CreatedAt >= startDate && n.CreatedAt <= endDate)
-            .OrderByDescending(n => n.CreatedAt)
+            .Where(n => n.UserId == userIdInt && n.Date >= startDate && n.Date <= endDate)
+            .OrderByDescending(n => n.Date)
             .ToListAsync();
 
         var goals = await _context.Goals
-            .Where(g => g.CreatedAt >= startDate || g.Status == GoalStatus.Active)
+            .Where(g => g.UserId == userIdInt && (g.Date >= startDate || g.Status == GoalStatus.Active))
             .ToListAsync();
 
         var practices = await _context.Practices
@@ -213,11 +244,12 @@ public class StatsController : Controller
             .ToListAsync();
 
         // Анализ эмоций
-        var emotionStats = notes
-            .GroupBy(n => n.Emotion)
+        var emotionStats = await _context.EmotionEntries
+            .Where(e => e.UserId == userIdInt && e.Date >= startDate && e.Date <= endDate)
+            .GroupBy(e => e.Emotion)
             .Select(g => new { Emotion = g.Key, Count = g.Count() })
             .OrderByDescending(g => g.Count)
-            .ToList();
+            .ToListAsync();
 
         // Анализ активности
         var activityStats = notes
@@ -244,19 +276,20 @@ public class StatsController : Controller
             Total = goals.Count,
             Active = goals.Count(g => g.Status == GoalStatus.Active),
             Completed = goals.Count(g => g.Status == GoalStatus.Completed),
-            AverageProgress = goals.Where(g => g.Status == GoalStatus.Active).Average(g => g.Progress)
+            AverageProgress = goals.Where(g => g.Status == GoalStatus.Active).Any() ? goals.Where(g => g.Status == GoalStatus.Active).Average(g => g.Progress) : 0
         };
 
         // Тренды настроения
-        var moodTrends = notes
-            .GroupBy(n => n.CreatedAt.Date)
+        var moodTrends = await _context.EmotionEntries
+            .Where(e => e.UserId == userIdInt && e.Date >= startDate && e.Date <= endDate)
+            .GroupBy(e => e.Date.Date)
             .Select(g => new { 
                 Date = g.Key, 
-                AverageMood = g.Average(n => (int)n.Emotion),
+                AverageMood = g.Average(e => (int)e.Emotion),
                 Count = g.Count()
             })
             .OrderBy(g => g.Date)
-            .ToList();
+            .ToListAsync();
 
         var reportData = new
         {
@@ -267,7 +300,7 @@ public class StatsController : Controller
                 TotalGoals = goals.Count,
                 ActiveGoals = goalStats.Active,
                 CompletedGoals = goalStats.Completed,
-                AverageMood = notes.Any() ? notes.Average(n => (int)n.Emotion) : 0,
+                AverageMood = moodTrends.Any() ? moodTrends.Average(m => m.AverageMood) : 0,
                 MostFrequentEmotion = emotionStats.FirstOrDefault()?.Emotion,
                 MostFrequentActivity = activityStats.FirstOrDefault()?.Activity
             },

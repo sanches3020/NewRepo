@@ -8,8 +8,8 @@
     <div class="d-flex gap-2">
         <a href="/notes/create" class="btn btn-primary btn-sm">+ Новая заметка</a>
         <a href="/calendar" class="btn btn-outline-info btn-sm">📅 Календарь</a>
+        </div>
     </div>
-</div>
 
 @if (notes?.Any() == true)
 {
@@ -23,12 +23,12 @@
                             <div class="d-flex align-items-center">
                                 <span class="me-2" style="font-size: 20px;">@GetEmotionEmoji(note.Emotion)</span>
                                 <span class="badge bg-primary">@note.Date.ToString("dd.MM.yyyy")</span>
-                                @if (note.IsPinned)
-                                {
+                    @if (note.IsPinned)
+                    {
                                     <span class="badge bg-warning ms-1">📌</span>
                                 }
-                                @if (note.ShareWithPsychologist)
-                                {
+                            @if (note.ShareWithPsychologist)
+                            {
                                     <span class="badge bg-info ms-1">👨‍⚕️</span>
                                 }
                             </div>
@@ -44,11 +44,11 @@
                                 </ul>
                             </div>
                         </div>
-                        
+
                         <div class="note-content">
                             <p class="card-text">@note.Content</p>
                         </div>
-                        
+
                         @if (!string.IsNullOrEmpty(note.Tags))
                         {
                             <div class="note-tags mb-2">
@@ -58,7 +58,7 @@
                                 }
                             </div>
                         }
-                        
+
                         @if (!string.IsNullOrEmpty(note.Activity))
                         {
                             <div class="note-activity">
@@ -189,11 +189,11 @@ function showToast(message, type) {
     
     document.body.appendChild(toast);
     
-    setTimeout(() => {
+                setTimeout(() => {
         toast.remove();
     }, 3000);
 }
-</script>
+    </script>
 
 @functions {
     string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
