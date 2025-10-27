@@ -19,6 +19,8 @@ public class Goal
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
+    public DateTime Date { get; set; } = DateTime.Today;
+    
     public DateTime? TargetDate { get; set; }
     
     public int Progress { get; set; } = 0;

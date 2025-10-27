@@ -1,0 +1,393 @@
+@{
+    ViewData["Title"] = "Управление расписанием";
+    var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
+    var schedules = ViewBag.Schedules as List<Sofia.Web.Models.PsychologistSchedule>;
+    var existingSlots = ViewBag.ExistingSlots as List<Sofia.Web.Models.PsychologistTimeSlot>;
+    var startDate = (DateTime)ViewBag.StartDate;
+    var endDate = (DateTime)ViewBag.EndDate;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📅 Управление расписанием</h2>
+    <div>
+        <a href="/psychologist/dashboard/@psychologist.Id" class="btn btn-outline-secondary">← Назад к дашборду</a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+            ➕ Добавить время
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Текущее расписание -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Текущее расписание</h5>
+            </div>
+            <div class="card-body">
+                @if (schedules?.Any() == true)
+                {
+                    <div class="schedule-list">
+                        @foreach (var schedule in schedules)
+                        {
+                            <div class="schedule-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                                <div>
+                                    <div class="fw-bold">@GetDayName(schedule.DayOfWeek)</div>
+                                    <div class="text-muted">@schedule.StartTime.ToString(@"hh\:mm") - @schedule.EndTime.ToString(@"hh\:mm")</div>
+                                </div>
+                                <div>
+                                    <span class="badge @(schedule.IsAvailable ? "bg-success" : "bg-secondary")">
+                                        @(schedule.IsAvailable ? "Активно" : "Неактивно")
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" 
+                                            onclick="removeSchedule(@schedule.Id)">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">📅</div>
+                        <h5 class="mt-3">Расписание не настроено</h5>
+                        <p class="mb-0">Добавьте время работы, чтобы клиенты могли записываться</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Управление слотами -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">⏰ Управление слотами</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="text-muted">Создайте слоты для записи на основе вашего расписания</p>
+                    <button type="button" class="btn btn-success" onclick="generateSlots()">
+                        🔄 Создать слоты на 2 недели
+                    </button>
+                </div>
+                
+                <div class="slots-stats">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3 border rounded">
+                                <div class="h4 text-primary">@existingSlots.Count</div>
+                                <div class="small text-muted">Всего слотов</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3 border rounded">
+                                <div class="h4 text-success">@existingSlots.Count(s => s.IsAvailable && !s.IsBooked)</div>
+                                <div class="small text-muted">Свободных</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3 border rounded">
+                                <div class="h4 text-danger">@existingSlots.Count(s => s.IsBooked)</div>
+                                <div class="small text-muted">Забронированных</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3 border rounded">
+                                <div class="h4 text-warning">@existingSlots.Count(s => !s.IsAvailable)</div>
+                                <div class="small text-muted">Недоступных</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Календарь слотов -->
+<div class="row g-4 mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Слоты на ближайшие дни</h5>
+            </div>
+            <div class="card-body">
+                @if (existingSlots?.Any() == true)
+                {
+                    <div class="slots-calendar">
+                        @for (var date = startDate; date <= endDate; date = date.AddDays(1))
+                        {
+                            var daySlots = existingSlots.Where(s => s.Date.Date == date.Date).OrderBy(s => s.StartTime).ToList();
+                            if (daySlots.Any())
+                            {
+                                <div class="day-slots mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">@date.ToString("dd.MM.yyyy (dddd)")</h6>
+                                        <span class="badge bg-info">@daySlots.Count слотов</span>
+                                    </div>
+                                    <div class="row g-2">
+                                        @foreach (var slot in daySlots)
+                                        {
+                                            <div class="col-md-3 col-sm-4 col-6">
+                                                <div class="slot-item p-2 border rounded text-center @GetSlotClass(slot)">
+                                                    <div class="small fw-bold">@slot.StartTime.ToString(@"hh\:mm")</div>
+                                                    <div class="small">@GetSlotStatus(slot)</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <div style="font-size: 48px;">⏰</div>
+                        <h5 class="mt-3">Слоты не созданы</h5>
+                        <p class="mb-0">Нажмите "Создать слоты", чтобы сгенерировать доступное время</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления расписания -->
+<div class="modal fade" id="addScheduleModal" tabindex="-1" aria-labelledby="addScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addScheduleModalLabel">Добавить время работы</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <div class="mb-3">
+                        <label for="dayOfWeek" class="form-label">День недели</label>
+                        <select class="form-select" id="dayOfWeek" name="dayOfWeek" required>
+                            <option value="">Выберите день</option>
+                            <option value="1">Понедельник</option>
+                            <option value="2">Вторник</option>
+                            <option value="3">Среда</option>
+                            <option value="4">Четверг</option>
+                            <option value="5">Пятница</option>
+                            <option value="6">Суббота</option>
+                            <option value="0">Воскресенье</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label for="startTime" class="form-label">Время начала</label>
+                            <input type="time" class="form-control" id="startTime" name="startTime" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="endTime" class="form-label">Время окончания</label>
+                            <input type="time" class="form-control" id="endTime" name="endTime" required>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-primary" onclick="addSchedule()">Добавить расписание</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.schedule-item {
+    transition: all 0.2s ease;
+}
+
+.schedule-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.stat-card {
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.slot-item {
+    transition: all 0.2s ease;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.slot-item:hover {
+    transform: translateY(-1px);
+}
+
+.slot-available {
+    background-color: #d1edff;
+    border-color: #0d6efd;
+}
+
+.slot-booked {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+.slot-unavailable {
+    background-color: #f8f9fa;
+    border-color: #6c757d;
+}
+
+.day-slots {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn {
+    border-radius: 8px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #6b7cff;
+    box-shadow: 0 0 0 0.2rem rgba(107, 124, 255, 0.25);
+}
+</style>
+
+<script>
+function addSchedule() {
+    const form = document.getElementById('scheduleForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        dayOfWeek: parseInt(formData.get('dayOfWeek')),
+        startTime: formData.get('startTime'),
+        endTime: formData.get('endTime')
+    };
+    
+    fetch('/psychologist/schedule/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert('Ошибка: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при добавлении расписания');
+    });
+}
+
+function removeSchedule(scheduleId) {
+    if (confirm('Вы уверены, что хотите удалить это расписание?')) {
+        fetch('/psychologist/schedule/remove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ scheduleId: scheduleId })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert('Ошибка: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при удалении расписания');
+        });
+    }
+}
+
+function generateSlots() {
+    if (confirm('Создать слоты для записи на ближайшие 2 недели? Это действие нельзя отменить.')) {
+        fetch('/psychologist/schedule/generate-slots', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert('Ошибка: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при создании слотов');
+        });
+    }
+}
+</script>
+
+@functions {
+    string GetDayName(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            DayOfWeek.Monday => "Понедельник",
+            DayOfWeek.Tuesday => "Вторник",
+            DayOfWeek.Wednesday => "Среда",
+            DayOfWeek.Thursday => "Четверг",
+            DayOfWeek.Friday => "Пятница",
+            DayOfWeek.Saturday => "Суббота",
+            DayOfWeek.Sunday => "Воскресенье",
+            _ => dayOfWeek.ToString()
+        };
+    }
+
+    string GetSlotClass(Sofia.Web.Models.PsychologistTimeSlot slot)
+    {
+        if (slot.IsBooked)
+            return "slot-booked";
+        if (!slot.IsAvailable)
+            return "slot-unavailable";
+        return "slot-available";
+    }
+
+    string GetSlotStatus(Sofia.Web.Models.PsychologistTimeSlot slot)
+    {
+        if (slot.IsBooked)
+            return "Занято";
+        if (!slot.IsAvailable)
+            return "Недоступно";
+        return "Свободно";
+    }
+}
+

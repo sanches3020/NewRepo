@@ -1,5 +1,10 @@
 @{
     ViewData["Title"] = "Профиль пользователя";
+    var user = ViewBag.User as Sofia.Web.Models.User;
+    var totalNotes = ViewBag.TotalNotes as int? ?? 0;
+    var totalGoals = ViewBag.TotalGoals as int? ?? 0;
+    var completedGoals = ViewBag.CompletedGoals as int? ?? 0;
+    var totalEmotions = ViewBag.TotalEmotions as int? ?? 0;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -19,15 +24,15 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="name" class="form-label">Имя</label>
-                            <input type="text" class="form-control" id="name" name="name" value="Пользователь" placeholder="Введите ваше имя">
+                            <input type="text" class="form-control" id="name" name="name" value="@(user?.FullName ?? user?.Username ?? "")" placeholder="Введите ваше имя">
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="user@example.com" placeholder="your@email.com">
+                            <input type="email" class="form-control" id="email" name="email" value="@(user?.Email ?? "")" placeholder="your@email.com">
                         </div>
                         <div class="col-12">
                             <label for="bio" class="form-label">О себе</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Расскажите немного о себе...">Люблю вести дневник эмоций и работать над личным развитием. Использую Sofia для отслеживания настроения и достижения целей.</textarea>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Расскажите немного о себе...">@(user?.Bio ?? "")</textarea>
                         </div>
                         <div class="col-md-6">
                             <label for="timezone" class="form-label">Часовой пояс</label>
@@ -79,7 +84,7 @@
                     <div class="col-md-4">
                         <div class="avatar-preview text-center">
                             <div class="avatar-circle mb-3">
-                                <div class="avatar-initial">П</div>
+                                <div class="avatar-initial">@(string.IsNullOrEmpty(user?.FullName) ? user?.Username?.FirstOrDefault().ToString().ToUpper() ?? "П" : user.FullName.FirstOrDefault().ToString().ToUpper())</div>
                             </div>
                             <p class="text-muted small">Текущий аватар</p>
                         </div>
@@ -143,7 +148,7 @@
                     <div class="stat-item">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span>Дата регистрации</span>
-                            <span class="text-muted">15.01.2024</span>
+                            <span class="text-muted">@(user?.CreatedAt.ToString("dd.MM.yyyy") ?? "Неизвестно")</span>
                         </div>
                     </div>
                     <div class="stat-item">
@@ -155,19 +160,25 @@
                     <div class="stat-item">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span>Всего заметок</span>
-                            <span class="text-primary">127</span>
+                            <span class="text-primary">@totalNotes</span>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span>Активных целей</span>
-                            <span class="text-success">5</span>
+                            <span class="text-success">@(totalGoals - completedGoals)</span>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span>Завершённых целей</span>
-                            <span class="text-info">12</span>
+                            <span class="text-info">@completedGoals</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Записей эмоций</span>
+                            <span class="text-warning">@totalEmotions</span>
                         </div>
                     </div>
                 </div>

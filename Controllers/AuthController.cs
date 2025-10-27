@@ -50,7 +50,9 @@ public class AuthController : Controller
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword, string role = "user")
+    public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword, string role = "user", 
+        string? specialization = null, string? description = null, string? education = null, string? experience = null, 
+        string? languages = null, string? methods = null, decimal? pricePerHour = null, string? contactPhone = null)
     {
         if (password != confirmPassword)
         {
@@ -89,6 +91,14 @@ public class AuthController : Controller
             {
                 Name = username,
                 UserId = user.Id,
+                Specialization = specialization ?? "",
+                Description = description ?? "",
+                Education = education ?? "",
+                Experience = experience ?? "",
+                Languages = languages,
+                Methods = methods,
+                PricePerHour = pricePerHour ?? 3000,
+                ContactPhone = contactPhone,
                 IsActive = true,
                 CreatedAt = DateTime.Now
             };

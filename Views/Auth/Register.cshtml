@@ -40,10 +40,61 @@
                     </div>
                     <div class="mb-3">
                         <label for="role" class="form-label">Тип аккаунта *</label>
-                        <select class="form-select" id="role" name="role">
+                        <select class="form-select" id="role" name="role" onchange="togglePsychologistFields()">
                             <option value="user" selected>👤 Пользователь - веду дневник и работаю над собой</option>
                             <option value="psychologist">👨‍⚕️ Психолог - помогаю другим в их пути</option>
                         </select>
+                    </div>
+                    
+                    <!-- Psychologist-specific fields -->
+                    <div id="psychologistFields" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6 class="mb-2">👨‍⚕️ Информация для психологов</h6>
+                            <p class="mb-0 small">Заполните дополнительные поля для создания профиля психолога</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="specialization" class="form-label">Специализация *</label>
+                            <input type="text" class="form-control" id="specialization" name="specialization" placeholder="КПТ, семейная терапия, работа с тревогой">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание *</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Расскажите о своем подходе и опыте работы"></textarea>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="education" class="form-label">Образование *</label>
+                                <input type="text" class="form-control" id="education" name="education" placeholder="МГУ, факультет психологии">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="experience" class="form-label">Опыт работы *</label>
+                                <input type="text" class="form-control" id="experience" name="experience" placeholder="5 лет практики">
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="languages" class="form-label">Языки</label>
+                                <input type="text" class="form-control" id="languages" name="languages" placeholder="Русский, английский">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="methods" class="form-label">Методы работы</label>
+                                <input type="text" class="form-control" id="methods" name="methods" placeholder="КПТ, гештальт-терапия">
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="pricePerHour" class="form-label">Цена за час (₽) *</label>
+                                <input type="number" class="form-control" id="pricePerHour" name="pricePerHour" placeholder="3000" min="1000" max="10000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactPhone" class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="contactPhone" name="contactPhone" placeholder="+7 (999) 123-45-67">
+                            </div>
+                        </div>
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">🚀 Создать аккаунт</button>
@@ -60,177 +111,31 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
+    <script src="~\wwwroot\js\register.js"></script>
     <script>
-        // Enhanced registration form with real-time validation
-        document.addEventListener('DOMContentLoaded', function() {
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirmPassword');
-            const username = document.getElementById('username');
-            const email = document.getElementById('email');
-            const fullName = document.getElementById('fullName');
-            const form = document.querySelector('form');
-            const submitBtn = form.querySelector('button[type="submit"]');
-
-            // Real-time validation functions
-            function validateUsername() {
-                const value = username.value.trim();
-                if (value.length < 3) {
-                    username.setCustomValidity('Имя пользователя должно содержать минимум 3 символа');
-                    showFieldError(username, 'Минимум 3 символа');
-                } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
-                    username.setCustomValidity('Имя пользователя может содержать только буквы, цифры и подчёркивание');
-                    showFieldError(username, 'Только буквы, цифры и _');
-                } else {
-                    username.setCustomValidity('');
-                    hideFieldError(username);
-                }
+        function togglePsychologistFields() {
+            const role = document.getElementById('role').value;
+            const psychologistFields = document.getElementById('psychologistFields');
+            
+            if (role === 'psychologist') {
+                psychologistFields.style.display = 'block';
+                // Делаем поля обязательными
+                document.getElementById('specialization').required = true;
+                document.getElementById('description').required = true;
+                document.getElementById('education').required = true;
+                document.getElementById('experience').required = true;
+                document.getElementById('pricePerHour').required = true;
+            } else {
+                psychologistFields.style.display = 'none';
+                // Убираем обязательность
+                document.getElementById('specialization').required = false;
+                document.getElementById('description').required = false;
+                document.getElementById('education').required = false;
+                document.getElementById('experience').required = false;
+                document.getElementById('pricePerHour').required = false;
             }
-
-            function validateEmail() {
-                const value = email.value.trim();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(value)) {
-                    email.setCustomValidity('Введите корректный email адрес');
-                    showFieldError(email, 'Некорректный email');
-                } else {
-                    email.setCustomValidity('');
-                    hideFieldError(email);
-                }
-            }
-
-            function validatePassword() {
-                const value = password.value;
-                if (value.length < 6) {
-                    password.setCustomValidity('Пароль должен содержать минимум 6 символов');
-                    showFieldError(password, 'Минимум 6 символов');
-                } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-                    password.setCustomValidity('Пароль должен содержать буквы разного регистра и цифры');
-                    showFieldError(password, 'Буквы, цифры, регистр');
-                } else {
-                    password.setCustomValidity('');
-                    hideFieldError(password);
-                }
-                validateConfirmPassword();
-            }
-
-            function validateConfirmPassword() {
-                if (password.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity('Пароли не совпадают');
-                    showFieldError(confirmPassword, 'Пароли не совпадают');
-                } else {
-                    confirmPassword.setCustomValidity('');
-                    hideFieldError(confirmPassword);
-                }
-            }
-
-            function showFieldError(field, message) {
-                let errorDiv = field.parentNode.querySelector('.field-error');
-                if (!errorDiv) {
-                    errorDiv = document.createElement('div');
-                    errorDiv.className = 'field-error text-danger small mt-1';
-                    field.parentNode.appendChild(errorDiv);
-                }
-                errorDiv.textContent = message;
-                field.classList.add('is-invalid');
-                field.classList.remove('is-valid');
-            }
-
-            function hideFieldError(field) {
-                const errorDiv = field.parentNode.querySelector('.field-error');
-                if (errorDiv) {
-                    errorDiv.remove();
-                }
-                field.classList.remove('is-invalid');
-                field.classList.add('is-valid');
-            }
-
-            // Event listeners
-            username.addEventListener('input', validateUsername);
-            username.addEventListener('blur', validateUsername);
-
-            email.addEventListener('input', validateEmail);
-            email.addEventListener('blur', validateEmail);
-
-            password.addEventListener('input', validatePassword);
-            password.addEventListener('blur', validatePassword);
-
-            confirmPassword.addEventListener('input', validateConfirmPassword);
-            confirmPassword.addEventListener('blur', validateConfirmPassword);
-
-            fullName.addEventListener('input', function() {
-                if (this.value.trim()) {
-                    this.classList.add('is-valid');
-                } else {
-                    this.classList.remove('is-valid', 'is-invalid');
-                }
-            });
-
-            // Form submission with loading state
-            form.addEventListener('submit', function(e) {
-                if (!form.checkValidity()) {
-                    e.preventDefault();
-                    // Trigger validation on all fields
-                    [username, email, password, confirmPassword].forEach(field => {
-                        const event = new Event('blur');
-                        field.dispatchEvent(event);
-                    });
-                    return false;
-                }
-
-                // Show loading state
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Создание аккаунта...';
-
-                // Re-enable after 10 seconds as fallback
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '🚀 Создать аккаунт';
-                }, 10000);
-            });
-
-            // Password strength indicator
-            password.addEventListener('input', function() {
-                const strength = calculatePasswordStrength(this.value);
-                updatePasswordStrengthIndicator(strength);
-            });
-
-            function calculatePasswordStrength(password) {
-                let strength = 0;
-                if (password.length >= 6) strength++;
-                if (password.length >= 8) strength++;
-                if (/[a-z]/.test(password)) strength++;
-                if (/[A-Z]/.test(password)) strength++;
-                if (/\d/.test(password)) strength++;
-                if (/[^a-zA-Z\d]/.test(password)) strength++;
-                return strength;
-            }
-
-            function updatePasswordStrengthIndicator(strength) {
-                let indicator = password.parentNode.querySelector('.password-strength');
-                if (!indicator) {
-                    indicator = document.createElement('div');
-                    indicator.className = 'password-strength mt-1';
-                    password.parentNode.appendChild(indicator);
-                }
-
-                const labels = ['Очень слабый', 'Слабый', 'Средний', 'Хороший', 'Отличный'];
-                const colors = ['#dc3545', '#fd7e14', '#ffc107', '#20c997', '#28a745'];
-
-                if (strength === 0) {
-                    indicator.style.display = 'none';
-                } else {
-                    indicator.style.display = 'block';
-                    indicator.innerHTML = `
-                        <small class="text-muted">Надёжность пароля:
-                            <span style="color: ${colors[strength - 1]}; font-weight: bold;">
-                                ${labels[strength - 1]}
-                            </span>
-                        </small>
-                    `;
-                }
-            }
-        });
+        }
     </script>
 }
+

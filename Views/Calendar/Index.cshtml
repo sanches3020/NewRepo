@@ -4,6 +4,7 @@
     var previousMonth = (DateTime)ViewBag.PreviousMonth;
     var nextMonth = (DateTime)ViewBag.NextMonth;
     var calendarData = ViewBag.CalendarData as Dictionary<DateTime, List<Sofia.Web.Models.Note>>;
+    var emotionData = ViewBag.EmotionData as Dictionary<DateTime, List<Sofia.Web.Models.EmotionEntry>>;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -58,29 +59,30 @@
                     {
                         var date = startDate.AddDays(week * 7 + day);
                         var dayNotes = calendarData?.ContainsKey(date) == true ? calendarData[date] : new List<Sofia.Web.Models.Note>();
+                        var dayEmotions = emotionData?.ContainsKey(date) == true ? emotionData[date] : new List<Sofia.Web.Models.EmotionEntry>();
                         var isCurrentMonth = date.Month == currentMonth.Month;
                         var isToday = date.Date == DateTime.Today;
-                        var dominantEmotion = GetDominantEmotion(dayNotes);
+                        var dominantEmotion = GetDominantEmotion(dayEmotions);
 
                         <div class="calendar-day @(isCurrentMonth ? "" : "other-month") @(isToday ? "today" : "")"
                               data-date="@date.ToString("yyyy-MM-dd")"
                               style="background-color: @GetEmotionColor(dominantEmotion)"
-                              onclick="openDayDetails('@date.ToString("yyyy-MM-dd")', @dayNotes.Count)">
+                              onclick="openDayDetails('@date.ToString("yyyy-MM-dd")', @(dayNotes.Count + dayEmotions.Count))">
                             <div class="calendar-day-number">@date.Day</div>
-                            @if (dayNotes.Any())
+                            @if (dayEmotions.Any())
                             {
                                 <div class="calendar-day-emotions">
-                                    @foreach (var emotion in dayNotes.Take(3).Select(n => n.Emotion).Distinct())
+                                    @foreach (var emotion in dayEmotions.Take(3))
                                     {
-                                        <span class="emotion-dot" title="@emotion.ToString()">@GetEmotionEmoji(emotion)</span>
+                                        <span class="emotion-dot" title="@GetEmotionName(emotion.Emotion)">@GetEmotionEmoji(emotion.Emotion)</span>
                                     }
-                                    @if (dayNotes.Count > 3)
+                                    @if (dayEmotions.Count > 3)
                                     {
-                                        <span class="emotion-count">+@(dayNotes.Count - 3)</span>
+                                        <span class="emotion-count">+@(dayEmotions.Count - 3)</span>
                                     }
                                 </div>
                             }
-                            @if (isToday && !dayNotes.Any())
+                            @if (isToday && !dayEmotions.Any() && !dayNotes.Any())
                             {
                                 <div class="calendar-day-hint">💭</div>
                             }
@@ -225,6 +227,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info">
+                    <small>💡 Вы можете записать до 5 эмоций в день. Каждая эмоция может иметь свою заметку.</small>
+                </div>
                 <div class="row g-2">
                     @foreach (var emotion in Enum.GetValues<Sofia.Web.Models.EmotionType>())
                     {
@@ -240,13 +245,13 @@
                     }
                 </div>
                 <div class="mt-3">
-                    <label for="emotionNote" class="form-label">Добавить заметку (необязательно)</label>
+                    <label for="emotionNote" class="form-label">Добавить заметку к эмоции (необязательно)</label>
                     <textarea class="form-control" id="emotionNote" rows="3" placeholder="Опишите, что вы чувствуете..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" id="saveEmotion">Сохранить</button>
+                <button type="button" class="btn btn-primary" id="saveEmotion">Сохранить эмоцию</button>
             </div>
         </div>
     </div>
@@ -310,6 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 emotionModal.hide();
+                // Очищаем форму
+                document.getElementById('emotionNote').value = '';
+                document.querySelectorAll('.emotion-btn').forEach(b => {
+                    b.classList.remove('btn-primary');
+                    b.classList.add('btn-outline-secondary');
+                });
+                selectedEmotion = null;
                 location.reload(); // Перезагружаем страницу для обновления календаря
             } else {
                 alert('Ошибка при сохранении: ' + data.message);
@@ -347,6 +359,13 @@ function openDayDetails(date, noteCount) {
     dayDetailsModal.show();
 }
 
+// Function to open emotion modal
+function openEmotionModal(date) {
+    selectedDate = date;
+    const emotionModal = new bootstrap.Modal(document.getElementById('emotionModal'));
+    emotionModal.show();
+}
+
 // Quick emotion selection from calendar
 function quickAddEmotion(date, emotion) {
     fetch('/calendar/save-emotion', {
@@ -376,12 +395,12 @@ function quickAddEmotion(date, emotion) {
 </script>
 
 @functions {
-    Sofia.Web.Models.EmotionType GetDominantEmotion(List<Sofia.Web.Models.Note> notes)
+    Sofia.Web.Models.EmotionType GetDominantEmotion(List<Sofia.Web.Models.EmotionEntry> emotions)
     {
-        if (!notes.Any()) return Sofia.Web.Models.EmotionType.Neutral;
+        if (!emotions.Any()) return Sofia.Web.Models.EmotionType.Neutral;
         
-        return notes
-            .GroupBy(n => n.Emotion)
+        return emotions
+            .GroupBy(e => e.Emotion)
             .OrderByDescending(g => g.Count())
             .First().Key;
     }

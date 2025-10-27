@@ -18,46 +18,107 @@ public class SettingsController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var userIdInt = int.Parse(userId);
+
         // Получаем статистику пользователя
-        var totalNotes = await _context.Notes.CountAsync();
-        var totalGoals = await _context.Goals.CountAsync();
-        var completedGoals = await _context.Goals.CountAsync(g => g.Status == GoalStatus.Completed);
-        var sharedNotes = await _context.Notes.CountAsync(n => n.ShareWithPsychologist);
-        var pinnedNotes = await _context.Notes.CountAsync(n => n.IsPinned);
+        var totalNotes = await _context.Notes.CountAsync(n => n.UserId == userIdInt);
+        var totalGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt);
+        var completedGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt && g.Status == GoalStatus.Completed);
+        var sharedNotes = await _context.Notes.CountAsync(n => n.UserId == userIdInt && n.ShareWithPsychologist);
+        var pinnedNotes = await _context.Notes.CountAsync(n => n.UserId == userIdInt && n.IsPinned);
+        var totalEmotions = await _context.EmotionEntries.CountAsync(e => e.UserId == userIdInt);
 
         // Получаем последние активности
         var recentNotes = await _context.Notes
+            .Where(n => n.UserId == userIdInt)
             .OrderByDescending(n => n.CreatedAt)
             .Take(5)
             .ToListAsync();
 
         var recentGoals = await _context.Goals
+            .Where(g => g.UserId == userIdInt)
             .OrderByDescending(g => g.CreatedAt)
             .Take(3)
             .ToListAsync();
+
+        // Получаем данные пользователя
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userIdInt);
 
         ViewBag.TotalNotes = totalNotes;
         ViewBag.TotalGoals = totalGoals;
         ViewBag.CompletedGoals = completedGoals;
         ViewBag.SharedNotes = sharedNotes;
         ViewBag.PinnedNotes = pinnedNotes;
+        ViewBag.TotalEmotions = totalEmotions;
         ViewBag.RecentNotes = recentNotes;
         ViewBag.RecentGoals = recentGoals;
+        ViewBag.User = user;
 
         return View();
     }
 
     [HttpGet("profile")]
-    public IActionResult Profile()
+    public async Task<IActionResult> Profile()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var userIdInt = int.Parse(userId);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userIdInt);
+        
+        if (user == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        // Получаем статистику пользователя
+        var totalNotes = await _context.Notes.CountAsync(n => n.UserId == userIdInt);
+        var totalGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt);
+        var completedGoals = await _context.Goals.CountAsync(g => g.UserId == userIdInt && g.Status == GoalStatus.Completed);
+        var totalEmotions = await _context.EmotionEntries.CountAsync(e => e.UserId == userIdInt);
+
+        ViewBag.User = user;
+        ViewBag.TotalNotes = totalNotes;
+        ViewBag.TotalGoals = totalGoals;
+        ViewBag.CompletedGoals = completedGoals;
+        ViewBag.TotalEmotions = totalEmotions;
+
         return View();
     }
 
     [HttpPost("profile")]
-    public IActionResult UpdateProfile(string name, string email, string bio, string timezone)
+    public async Task<IActionResult> UpdateProfile(string name, string email, string bio, string timezone)
     {
-        // В реальном приложении здесь была бы логика обновления профиля
-        // Пока что просто возвращаем успех
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Json(new { success = false, message = "Пользователь не авторизован" });
+        }
+
+        var userIdInt = int.Parse(userId);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userIdInt);
+        
+        if (user == null)
+        {
+            return Json(new { success = false, message = "Пользователь не найден" });
+        }
+
+        // Обновляем данные пользователя
+        user.FullName = name;
+        user.Email = email;
+        user.Bio = bio;
+
+        await _context.SaveChangesAsync();
+
         return Json(new { 
             success = true, 
             message = "Профиль успешно обновлен!" 
@@ -71,9 +132,16 @@ public class SettingsController : Controller
     }
 
     [HttpPost("preferences")]
-    public IActionResult UpdatePreferences(string theme, bool notifications, bool emailUpdates, string language)
+    public IActionResult UpdatePreferences(string language, string timezone, bool notifications, bool emailUpdates, bool soundEffects, bool animations)
     {
-        // В реальном приложении здесь была бы логика сохранения предпочтений
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Json(new { success = false, message = "Пользователь не авторизован" });
+        }
+
+        // В реальном приложении здесь была бы логика сохранения предпочтений в базе данных
+        // Пока что просто возвращаем успех
         return Json(new { 
             success = true, 
             message = "Настройки успешно сохранены!" 
