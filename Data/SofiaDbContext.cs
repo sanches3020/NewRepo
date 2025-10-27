@@ -16,8 +16,11 @@ public class SofiaDbContext : DbContext
     public DbSet<Psychologist> Psychologists { get; set; }
     public DbSet<PsychologistReview> PsychologistReviews { get; set; }
     public DbSet<PsychologistAppointment> PsychologistAppointments { get; set; }
+    public DbSet<PsychologistSchedule> PsychologistSchedules { get; set; }
+    public DbSet<PsychologistTimeSlot> PsychologistTimeSlots { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationSettings> NotificationSettings { get; set; }
+    public DbSet<EmotionEntry> EmotionEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,6 +50,30 @@ public class SofiaDbContext : DbContext
             .WithMany(u => u.Appointments)
             .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<EmotionEntry>()
+            .HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PsychologistSchedule>()
+            .HasOne(s => s.Psychologist)
+            .WithMany(p => p.Schedules)
+            .HasForeignKey(s => s.PsychologistId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PsychologistTimeSlot>()
+            .HasOne(t => t.Psychologist)
+            .WithMany(p => p.TimeSlots)
+            .HasForeignKey(t => t.PsychologistId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PsychologistTimeSlot>()
+            .HasOne(t => t.BookedByUser)
+            .WithMany()
+            .HasForeignKey(t => t.BookedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Seed practices
         modelBuilder.Entity<Practice>().HasData(

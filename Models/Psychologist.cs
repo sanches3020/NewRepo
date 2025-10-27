@@ -47,6 +47,8 @@ public class Psychologist
     // Navigation properties
     public virtual ICollection<PsychologistReview> Reviews { get; set; } = new List<PsychologistReview>();
     public virtual ICollection<PsychologistAppointment> Appointments { get; set; } = new List<PsychologistAppointment>();
+    public virtual ICollection<PsychologistSchedule> Schedules { get; set; } = new List<PsychologistSchedule>();
+    public virtual ICollection<PsychologistTimeSlot> TimeSlots { get; set; } = new List<PsychologistTimeSlot>();
 }
 
 public class PsychologistReview

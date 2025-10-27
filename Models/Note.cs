@@ -18,6 +18,8 @@ public class Note
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
+    public DateTime Date { get; set; } = DateTime.Today;
+    
     public bool IsPinned { get; set; }
     
     public bool ShareWithPsychologist { get; set; }
