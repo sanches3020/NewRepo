@@ -18,6 +18,12 @@ public class PracticesController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index(string? category, int? duration)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         var query = _context.Practices.Where(p => p.IsActive);
 
         if (!string.IsNullOrEmpty(category) && Enum.TryParse<PracticeCategory>(category, out var cat))
@@ -31,32 +37,44 @@ public class PracticesController : Controller
         }
 
         var practices = await query.OrderBy(p => p.Category).ThenBy(p => p.Name).ToListAsync();
-        
+
         ViewBag.Categories = Enum.GetValues<PracticeCategory>();
         ViewBag.SelectedCategory = category;
         ViewBag.SelectedDuration = duration;
-        
+
         return View(practices);
     }
 
     [HttpGet("details/{id}")]
     public async Task<IActionResult> Details(int id)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         var practice = await _context.Practices.FindAsync(id);
         if (practice == null) return NotFound();
-        
+
         return View(practice);
     }
 
     [HttpPost("start/{id}")]
     public async Task<IActionResult> Start(int id)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         var practice = await _context.Practices.FindAsync(id);
         if (practice == null) return NotFound();
-        
+
         // Here you could log the practice session
         TempData["SuccessMessage"] = $"Практика '{practice.Name}' начата!";
-        
+
         return RedirectToAction(nameof(Details), new { id });
     }
 }

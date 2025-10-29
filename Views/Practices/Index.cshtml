@@ -21,7 +21,7 @@
         <form method="get" class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Категория</label>
-                <select name="category" class="form-select">
+                <select name="category" class="form-select" onchange="this.form.submit()">
                     <option value="">Все категории</option>
                     @foreach (var cat in ViewBag.Categories)
                     {
@@ -33,7 +33,7 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Максимальная длительность</label>
-                <select name="duration" class="form-select">
+                <select name="duration" class="form-select" onchange="this.form.submit()">
                     <option value="">Любая</option>
                     <option value="5" selected="@(ViewBag.SelectedDuration == 5)">До 5 минут</option>
                     <option value="10" selected="@(ViewBag.SelectedDuration == 10)">До 10 минут</option>

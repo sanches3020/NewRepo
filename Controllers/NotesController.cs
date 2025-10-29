@@ -197,8 +197,9 @@ public class NotesController : Controller
         var sharedNotes = await _context.Notes
             .CountAsync(n => n.UserId == userIdInt && n.ShareWithPsychologist);
 
-        return Json(new { 
-            success = true, 
+        return Json(new
+        {
+            success = true,
             todayNotes = todayNotes,
             pinnedNotes = pinnedNotes,
             sharedNotes = sharedNotes

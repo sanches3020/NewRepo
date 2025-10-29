@@ -21,26 +21,7 @@
             </div>
         }
 
-        <div class="hero-stats row g-3 justify-content-center">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number">10+</div>
-                    <div class="stat-label">Разделов</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number">10+</div>
-                    <div class="stat-label">Типов эмоций</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Бесплатно</div>
-                </div>
-            </div>
-        </div>
+@* Убрали маркетинговый блок *@
     </div>
 </div>
 
@@ -52,7 +33,11 @@
                 <div class="feature-icon">📝</div>
                 <h4>Заметки и эмоции</h4>
                 <p>Ведите дневник эмоций, записывайте мысли и отслеживайте настроение каждый день.</p>
-                <a href="/notes" class="btn btn-outline-primary">Начать запись</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/notes" class="btn btn-outline-primary">Начать запись</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы начать</a>
+                }
             </div>
         </div>
         <div class="col-lg-4">
@@ -60,7 +45,11 @@
                 <div class="feature-icon">📅</div>
                 <h4>Эмоциональный календарь</h4>
                 <p>Визуализируйте свои эмоции на календаре с цветовой кодировкой и статистикой.</p>
-                <a href="/calendar" class="btn btn-outline-primary">Открыть календарь</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/calendar" class="btn btn-outline-primary">Открыть календарь</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы открыть</a>
+                }
             </div>
         </div>
         <div class="col-lg-4">
@@ -68,7 +57,11 @@
                 <div class="feature-icon">📊</div>
                 <h4>Статистика и аналитика</h4>
                 <p>Получайте подробную статистику эмоций, активности и прогресса по целям.</p>
-                <a href="/stats" class="btn btn-outline-primary">Посмотреть статистику</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/stats" class="btn btn-outline-primary">Посмотреть статистику</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы посмотреть</a>
+                }
             </div>
         </div>
     </div>
@@ -79,7 +72,11 @@
                 <div class="feature-icon">🎯</div>
                 <h4>Цели и достижения</h4>
                 <p>Ставьте цели, отслеживайте прогресс и отмечайте достижения в разных сферах жизни.</p>
-                <a href="/goals" class="btn btn-outline-primary">Создать цель</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/goals" class="btn btn-outline-primary">Создать цель</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы создать</a>
+                }
             </div>
         </div>
         <div class="col-lg-4">
@@ -87,7 +84,11 @@
                 <div class="feature-icon">🧘</div>
                 <h4>Практики медитации</h4>
                 <p>Изучайте техники релаксации, медитации и работы с эмоциями.</p>
-                <a href="/practices" class="btn btn-outline-primary">Выбрать практику</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/practices" class="btn btn-outline-primary">Выбрать практику</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы выбрать</a>
+                }
             </div>
         </div>
         <div class="col-lg-4">
@@ -106,7 +107,11 @@
                 <div class="feature-icon">👥</div>
                 <h4>Психологи и специалисты</h4>
                 <p>Найдите подходящего психолога, запишитесь на консультацию и получите профессиональную помощь.</p>
-                <a href="/psychologist" class="btn btn-outline-primary">Найти психолога</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/psychologist" class="btn btn-outline-primary">Найти психолога</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы продолжить</a>
+                }
             </div>
         </div>
         <div class="col-lg-4">
@@ -114,7 +119,11 @@
                 <div class="feature-icon">🔔</div>
                 <h4>Уведомления и напоминания</h4>
                 <p>Получайте умные напоминания о записях, целях и практиках в удобное время.</p>
-                <a href="/notifications" class="btn btn-outline-primary">Настроить уведомления</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/notifications" class="btn btn-outline-primary">Настроить уведомления</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы настроить</a>
+                }
             </div>
         </div>
         <div class="col-lg-4">
@@ -122,7 +131,11 @@
                 <div class="feature-icon">⚙️</div>
                 <h4>Настройки и профиль</h4>
                 <p>Персонализируйте приложение, экспортируйте данные и управляйте аккаунтом.</p>
-                <a href="/settings" class="btn btn-outline-primary">Открыть настройки</a>
+                @if (Context.Session.GetString("UserId") != null) {
+                    <a href="/settings" class="btn btn-outline-primary">Открыть настройки</a>
+                } else {
+                    <a href="/auth/login" class="btn btn-outline-primary">Войти, чтобы открыть</a>
+                }
             </div>
         </div>
     </div>
@@ -223,8 +236,12 @@
         <h2 class="mb-4">Готовы начать путь к лучшему самочувствию?</h2>
         <p class="lead mb-4">Присоединяйтесь к тысячам пользователей, которые уже улучшили свою жизнь с помощью Sofia</p>
         <div class="d-flex gap-3 justify-content-center">
-            <a href="/notes/create" class="btn btn-primary btn-lg">📝 Создать первую заметку</a>
-            <a href="/goals/create" class="btn btn-outline-primary btn-lg">🎯 Поставить цель</a>
+            @if (Context.Session.GetString("UserId") != null) {
+                <a href="/notes/create" class="btn btn-primary btn-lg">📝 Создать первую заметку</a>
+                <a href="/goals/create" class="btn btn-outline-primary btn-lg">🎯 Поставить цель</a>
+            } else {
+                <a href="/auth/login" class="btn btn-primary btn-lg">Войти, чтобы начать</a>
+            }
         </div>
     </div>
 </div>
