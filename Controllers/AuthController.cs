@@ -4,6 +4,7 @@ using Sofia.Web.Data;
 using Sofia.Web.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sofia.Web.Controllers;
 
@@ -26,6 +27,15 @@ public class AuthController : Controller
     [HttpPost("login")]
     public async Task<IActionResult> Login(string username, string password)
     {
+        username = (username ?? string.Empty).Trim();
+        password = (password ?? string.Empty);
+
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            ModelState.AddModelError("", "Введите имя пользователя и пароль");
+            return View();
+        }
+
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
@@ -54,6 +64,28 @@ public class AuthController : Controller
         string? specialization = null, string? description = null, string? education = null, string? experience = null, 
         string? languages = null, string? methods = null, decimal? pricePerHour = null, string? contactPhone = null)
     {
+        username = (username ?? string.Empty).Trim();
+        email = (email ?? string.Empty).Trim();
+        role = (role ?? "user").Trim();
+
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
+        {
+            ModelState.AddModelError("", "Имя пользователя должно содержать минимум 3 символа");
+            return View();
+        }
+
+        if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
+        {
+            ModelState.AddModelError("", "Введите корректный email");
+            return View();
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+        {
+            ModelState.AddModelError("", "Пароль должен содержать минимум 8 символов");
+            return View();
+        }
+
         if (password != confirmPassword)
         {
             ModelState.AddModelError("", "Пароли не совпадают");

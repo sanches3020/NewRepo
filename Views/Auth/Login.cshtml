@@ -6,6 +6,15 @@
     <div class="auth-split">
         <div class="auth-art"></div>
         <div class="auth-pane">
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+            {
+                <div class="alert alert-danger mb-3">
+                    @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@err.ErrorMessage</div>
+                    }
+                </div>
+            }
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="auth-title mb-0">Вход</h3>
                 <div class="small">Нет аккаунта? <a asp-action="Register" class="text-primary">Зарегистрироваться</a></div>
