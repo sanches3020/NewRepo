@@ -240,12 +240,14 @@
 </div>
 
 <script>
+// Make selection vars globally accessible for modal helpers
+window.selectedDate = null;
+window.selectedEmotion = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     const calendarDays = document.querySelectorAll('.calendar-day');
-    const emotionModal = new bootstrap.Modal(document.getElementById('emotionModal'));
-    const dayDetailsModal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
-    let selectedDate = null;
-    let selectedEmotion = null;
+    const emotionModalInstance = new bootstrap.Modal(document.getElementById('emotionModal'));
+    const dayDetailsModalInstance = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
 
     // Calendar day click handler
     calendarDays.forEach(day => {
@@ -268,13 +270,13 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('btn-outline-secondary');
             this.classList.add('btn-primary');
 
-            selectedEmotion = this.dataset.emotion;
+            window.selectedEmotion = this.dataset.emotion;
         });
     });
 
     // Сохранение эмоции
     document.getElementById('saveEmotion').addEventListener('click', function() {
-        if (!selectedEmotion) {
+        if (!window.selectedEmotion) {
             alert('Пожалуйста, выберите эмоцию');
             return;
         }
@@ -288,22 +290,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                date: selectedDate,
-                emotion: selectedEmotion,
+                date: window.selectedDate,
+                emotion: window.selectedEmotion,
                 note: note
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                emotionModal.hide();
+                emotionModalInstance.hide();
                 // Очистка и корректное закрытие backdrop
                 document.getElementById('emotionNote').value = '';
                 document.querySelectorAll('.emotion-btn').forEach(b => {
                     b.classList.remove('btn-primary');
                     b.classList.add('btn-outline-secondary');
                 });
-                selectedEmotion = null;
+                window.selectedEmotion = null;
                 // Удаляем возможные зависшие слои модалки
                 document.body.classList.remove('modal-open');
                 document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
@@ -317,6 +319,16 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             alert('Произошла ошибка при сохранении');
         });
+    });
+
+    // Cleanup backdrops on modal hidden
+    document.getElementById('emotionModal').addEventListener('hidden.bs.modal', function () {
+        document.body.classList.remove('modal-open');
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    });
+    document.getElementById('dayDetailsModal').addEventListener('hidden.bs.modal', function () {
+        document.body.classList.remove('modal-open');
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     });
 });
 
@@ -347,7 +359,7 @@ function openDayDetails(date, noteCount) {
 
 // Function to open emotion modal
 function openEmotionModal(date) {
-    selectedDate = date;
+    window.selectedDate = date;
     const emotionModal = new bootstrap.Modal(document.getElementById('emotionModal'));
     emotionModal.show();
 }

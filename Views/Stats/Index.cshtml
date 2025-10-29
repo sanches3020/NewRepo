@@ -33,7 +33,7 @@
                 <li><a class="dropdown-item" href="/stats/export?days=@daysBack">📊 CSV экспорт</a></li>
             </ul>
         </div>
-        <a href="/stats/insights" class="btn btn-outline-info btn-sm">💡 Инсайты</a>
+        <button class="btn btn-outline-info btn-sm" onclick="openInsightsModal()">💡 Инсайты</button>
     </div>
 </div>
 
@@ -296,6 +296,21 @@
     </div>
 }
 
+<!-- Insights Modal -->
+<div class="modal fade" id="insightsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">💡 Инсайты</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="insightsContent">
+                <div class="text-muted">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -538,6 +553,17 @@ function initializeMoodChart() {
         }
     });
 }
+
+function openInsightsModal() {
+    const modal = new bootstrap.Modal(document.getElementById('insightsModal'));
+    const container = document.getElementById('insightsContent');
+    container.innerHTML = '<div class="text-muted">Загрузка...</div>';
+    fetch('/stats/insights')
+        .then(r => r.text())
+        .then(html => { container.innerHTML = html; })
+        .catch(() => { container.innerHTML = '<div class="text-danger">Не удалось загрузить инсайты</div>'; });
+    modal.show();
+}
 </script>
 
 <style>
@@ -546,5 +572,7 @@ function initializeMoodChart() {
 .card { transition: transform 0.2s ease; }
 .card:hover { transform: none; }
 </style>
+
+<div class="page-bottom-spacer"></div>
 
 
