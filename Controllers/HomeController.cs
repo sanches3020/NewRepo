@@ -13,13 +13,9 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    [HttpGet]
     public IActionResult Index()
     {
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId))
-        {
-            return RedirectToAction("Login", "Auth");
-        }
         return View();
     }
 

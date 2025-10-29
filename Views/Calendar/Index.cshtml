@@ -113,25 +113,7 @@
     </div>
 </div>
 
-<!-- Legend -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h6 class="mb-0">🎨 Легенда эмоций</h6>
-    </div>
-    <div class="card-body">
-        <div class="row g-2">
-            @foreach (var emotion in Enum.GetValues<Sofia.Web.Models.EmotionType>())
-            {
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="d-flex align-items-center">
-                        <div class="emotion-legend-color me-2" style="background-color: @GetEmotionColor(emotion)"></div>
-                        <span class="small">@GetEmotionEmoji(emotion) @GetEmotionName(emotion)</span>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
+@* Убрали легенду эмоций *@
 
 <style>
 .calendar-grid {
@@ -315,14 +297,18 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 emotionModal.hide();
-                // Очищаем форму
+                // Очистка и корректное закрытие backdrop
                 document.getElementById('emotionNote').value = '';
                 document.querySelectorAll('.emotion-btn').forEach(b => {
                     b.classList.remove('btn-primary');
                     b.classList.add('btn-outline-secondary');
                 });
                 selectedEmotion = null;
-                location.reload(); // Перезагружаем страницу для обновления календаря
+                // Удаляем возможные зависшие слои модалки
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                // Перезагружаем страницу
+                window.location.href = window.location.pathname + window.location.search;
             } else {
                 alert('Ошибка при сохранении: ' + data.message);
             }

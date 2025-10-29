@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Мои записи";
+    var appointments = ViewBag.Appointments as List<Sofia.Web.Models.PsychologistAppointment>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📅 Мои записи</h2>
+    <a href="/psychologist" class="btn btn-outline-secondary btn-sm">← К списку психологов</a>
+    </div>
+
+@if (appointments == null || !appointments.Any())
+{
+    <div class="text-center py-5">
+        <div class="mb-3" style="font-size: 48px;">📭</div>
+        <h4 class="text-muted">У вас пока нет записей</h4>
+        <p class="text-muted">Выберите психолога и запишитесь на удобное время</p>
+        <a href="/psychologist" class="btn btn-primary">Найти психолога</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var a in appointments)
+        {
+            var isPast = a.AppointmentDate <= DateTime.Now;
+            <div class="col-12">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="h5 mb-1">@a.Psychologist?.Name</div>
+                                <div class="text-muted mb-2">@a.AppointmentDate.ToString("dd.MM.yyyy HH:mm")</div>
+                                @if (!string.IsNullOrWhiteSpace(a.Notes))
+                                {
+                                    <div class="small text-muted">Заметки: @a.Notes</div>
+                                }
+                            </div>
+                            <div class="text-end">
+                                <span class="badge @GetStatusBadge(a.Status)">@GetStatusText(a.Status)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent d-flex justify-content-between">
+                        <div class="text-muted small">Создано: @a.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                        <div class="d-flex gap-2">
+                            @if (!isPast && a.Status == Sofia.Web.Models.AppointmentStatus.Scheduled)
+                            {
+                                <button class="btn btn-outline-danger btn-sm" onclick="cancelAppointment(@a.Id)">Отменить</button>
+                            }
+                            <a href="/psychologist/profile/@a.PsychologistId" class="btn btn-outline-primary btn-sm">Профиль</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<script>
+function cancelAppointment(id) {
+    if (!confirm('Отменить запись?')) return;
+    fetch(`/psychologist/appointments/cancel/${id}`, {
+        method: 'POST'
+    }).then(r => r.json()).then(res => {
+        if (res.success) {
+            location.reload();
+        } else {
+            alert(res.message || 'Не удалось отменить запись');
+        }
+    }).catch(() => alert('Ошибка сети'));
+}
+</script>
+
+@functions {
+    string GetStatusText(Sofia.Web.Models.AppointmentStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.AppointmentStatus.Scheduled => "Запланирована",
+            Sofia.Web.Models.AppointmentStatus.Completed => "Завершена",
+            Sofia.Web.Models.AppointmentStatus.Cancelled => "Отменена",
+            _ => status.ToString()
+        };
+    }
+
+    string GetStatusBadge(Sofia.Web.Models.AppointmentStatus status)
+    {
+        return status switch
+        {
+            Sofia.Web.Models.AppointmentStatus.Scheduled => "bg-primary",
+            Sofia.Web.Models.AppointmentStatus.Completed => "bg-success",
+            Sofia.Web.Models.AppointmentStatus.Cancelled => "bg-secondary",
+            _ => "bg-light text-dark"
+        };
+    }
+}
+
+

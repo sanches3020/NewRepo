@@ -6,76 +6,8 @@
     <title>@ViewData["Title"] - Sofia.Web</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="importmap"></script>
-    <script>
-        // Enhanced theme system with smooth transitions
-        (function() {
-            const THEME_KEY = 'sofia.theme';
-            const root = document.documentElement;
-
-            function applyTheme(theme) {
-                // Add transition for smooth theme change
-                root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
-
-                if (theme === 'dark') {
-                    root.classList.add('theme-dark');
-                } else {
-                    root.classList.remove('theme-dark');
-                }
-
-                // Update theme toggle button text
-                const toggleBtn = document.querySelector('[data-theme-toggle]');
-                if (toggleBtn) {
-                    const icon = toggleBtn.querySelector('.theme-text');
-                    if (icon) {
-                        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
-                    }
-                }
-
-                // Remove transition after animation
-                setTimeout(() => {
-                    root.style.transition = '';
-                }, 300);
-            }
-
-            // Load saved theme
-            const saved = localStorage.getItem(THEME_KEY);
-            if (saved) {
-                applyTheme(saved);
-            } else {
-                // Default to system preference
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                applyTheme(prefersDark ? 'dark' : 'light');
-            }
-
-            // Theme toggle handler
-            document.addEventListener('click', function(e) {
-                const toggleBtn = e.target.closest('[data-theme-toggle]');
-                if (!toggleBtn) return;
-
-                const isDark = root.classList.contains('theme-dark');
-                const next = isDark ? 'light' : 'dark';
-
-                applyTheme(next);
-                localStorage.setItem(THEME_KEY, next);
-
-                // Add a subtle animation feedback
-                toggleBtn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    toggleBtn.style.transform = '';
-                }, 150);
-            });
-
-            // Listen for system theme changes
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-                // Only apply if user hasn't manually set a preference
-                if (!localStorage.getItem(THEME_KEY)) {
-                    applyTheme(e.matches ? 'dark' : 'light');
-                }
-            });
-        })();
-    </script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Sofia.Web.styles.css" asp-append-version="true" />
@@ -126,9 +58,6 @@
                         </a>
                     </nav>
                     <div class="ms-auto d-flex align-items-center gap-2">
-                        <button class="btn btn-outline-secondary btn-sm theme-toggle" data-theme-toggle title="Переключить тему">
-                            <span class="theme-text">🌙</span>
-                        </button>
                         @if (Context.Session.GetString("UserId") != null)
                         {
                             <span class="text-muted me-2">Привет, @Context.Session.GetString("Username")!</span>
@@ -163,7 +92,7 @@
     
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Comfortaa', var(--font-sans);
             background-color: #f8f9fa;
             line-height: 1.6;
         }

@@ -233,6 +233,34 @@ public class PsychologistController : Controller
         return View();
     }
 
+    [HttpPost("appointments/cancel/{id}")]
+    public async Task<IActionResult> CancelAppointment(int id)
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Json(new { success = false, message = "Необходимо войти в систему" });
+        }
+
+        var appointment = await _context.PsychologistAppointments
+            .FirstOrDefaultAsync(a => a.Id == id && a.UserId == int.Parse(userId));
+
+        if (appointment == null)
+        {
+            return Json(new { success = false, message = "Запись не найдена" });
+        }
+
+        if (appointment.Status != AppointmentStatus.Scheduled)
+        {
+            return Json(new { success = false, message = "Невозможно отменить" });
+        }
+
+        appointment.Status = AppointmentStatus.Cancelled;
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true });
+    }
+
     [HttpPost("review")]
     public async Task<IActionResult> AddReview(int psychologistId, int rating, string comment)
     {
