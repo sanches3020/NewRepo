@@ -50,6 +50,18 @@ public class AuthController : Controller
         HttpContext.Session.SetString("UserRole", user.Role);
         HttpContext.Session.SetString("Username", user.Username);
 
+        // Если это психолог, сохраняем ID психолога и перенаправляем на дашборд
+        if (user.Role == "psychologist")
+        {
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.UserId == user.Id);
+            if (psychologist != null)
+            {
+                HttpContext.Session.SetString("PsychologistId", psychologist.Id.ToString());
+                return RedirectToAction("Dashboard", "Psychologist", new { id = psychologist.Id });
+            }
+        }
+
         return RedirectToAction("Index", "Home");
     }
 
@@ -136,12 +148,26 @@ public class AuthController : Controller
             };
             _context.Psychologists.Add(psychologist);
             await _context.SaveChangesAsync();
+            
+            // Сохраняем ID психолога в сессию
+            HttpContext.Session.SetString("PsychologistId", psychologist.Id.ToString());
         }
 
         // Автоматический вход после регистрации
         HttpContext.Session.SetString("UserId", user.Id.ToString());
         HttpContext.Session.SetString("UserRole", user.Role);
         HttpContext.Session.SetString("Username", user.Username);
+
+        // Если это психолог, перенаправляем на дашборд
+        if (user.Role == "psychologist")
+        {
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.UserId == user.Id);
+            if (psychologist != null)
+            {
+                return RedirectToAction("Dashboard", "Psychologist", new { id = psychologist.Id });
+            }
+        }
 
         return RedirectToAction("Index", "Home");
     }

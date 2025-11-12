@@ -45,6 +45,37 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Timer Section -->
+                <div class="mt-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h5 class="mb-0">⏱️ Таймер практики</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="timer-display mb-4">
+                                <div class="timer-circle mx-auto">
+                                    <div class="timer-text" id="timerDisplay">@Model.DurationMinutes:00</div>
+                                    <div class="timer-label">Осталось времени</div>
+                                </div>
+                            </div>
+                            <div class="timer-controls d-flex justify-content-center gap-2 flex-wrap">
+                                <button type="button" class="btn btn-success btn-lg" id="startBtn" onclick="startTimer()">
+                                    ▶️ Старт
+                                </button>
+                                <button type="button" class="btn btn-warning btn-lg" id="pauseBtn" onclick="pauseTimer()" disabled>
+                                    ⏸️ Пауза
+                                </button>
+                                <button type="button" class="btn btn-danger btn-lg" id="stopBtn" onclick="stopTimer()" disabled>
+                                    ⏹️ Стоп
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-lg" id="resetBtn" onclick="resetTimer()" disabled>
+                                    🔄 Сброс
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="card-footer">
@@ -108,3 +139,230 @@
         };
     }
 }
+
+<style>
+    .timer-display {
+        padding: 20px 0;
+    }
+    
+    .timer-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        position: relative;
+    }
+    
+    .timer-text {
+        font-size: 3rem;
+        font-weight: bold;
+        color: white;
+        font-family: 'Courier New', monospace;
+        line-height: 1;
+    }
+    
+    .timer-label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-top: 10px;
+    }
+    
+    .timer-controls button {
+        min-width: 120px;
+    }
+    
+    .timer-controls button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    @@media (max-width: 768px) {
+        .timer-circle {
+            width: 150px;
+            height: 150px;
+        }
+        
+        .timer-text {
+            font-size: 2rem;
+        }
+        
+        .timer-controls {
+            flex-direction: column;
+        }
+        
+        .timer-controls button {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    let timerInterval = null;
+    let totalSeconds = @Model.DurationMinutes * 60;
+    let remainingSeconds = totalSeconds;
+    let isRunning = false;
+    let isPaused = false;
+    
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    function updateDisplay() {
+        document.getElementById('timerDisplay').textContent = formatTime(remainingSeconds);
+        
+        // Изменяем цвет при приближении к концу
+        const timerCircle = document.querySelector('.timer-circle');
+        if (remainingSeconds <= 60) {
+            timerCircle.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        } else if (remainingSeconds <= totalSeconds * 0.3) {
+            timerCircle.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        } else {
+            timerCircle.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }
+    }
+    
+    function startTimer() {
+        if (isPaused) {
+            // Продолжаем с паузы
+            isPaused = false;
+        } else {
+            // Начинаем заново
+            remainingSeconds = totalSeconds;
+        }
+        
+        isRunning = true;
+        
+        // Обновляем кнопки
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('pauseBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('resetBtn').disabled = false;
+        
+        // Запускаем таймер
+        timerInterval = setInterval(function() {
+            remainingSeconds--;
+            updateDisplay();
+            
+            if (remainingSeconds <= 0) {
+                stopTimer();
+                // Уведомление о завершении
+                showNotification('⏰ Время практики истекло!', 'success');
+                // Можно добавить звуковой сигнал
+                playCompletionSound();
+            }
+        }, 1000);
+        
+        updateDisplay();
+    }
+    
+    function pauseTimer() {
+        if (isRunning && !isPaused) {
+            clearInterval(timerInterval);
+            isPaused = true;
+            isRunning = false;
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        }
+    }
+    
+    function stopTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        remainingSeconds = totalSeconds;
+        updateDisplay();
+        
+        // Обновляем кнопки
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('resetBtn').disabled = false;
+    }
+    
+    function resetTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        remainingSeconds = totalSeconds;
+        updateDisplay();
+        
+        // Обновляем кнопки
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('resetBtn').disabled = true;
+    }
+    
+    function showNotification(message, type) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        
+        const colors = {
+            success: '#10b981',
+            error: '#ef4444',
+            info: '#3b82f6',
+            warning: '#f59e0b'
+        };
+        
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${colors[type] || colors.info};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    function playCompletionSound() {
+        // Создаем простой звуковой сигнал
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    }
+    
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDisplay();
+    });
+    
+    // Очистка при уходе со страницы
+    window.addEventListener('beforeunload', function() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+    });
+</script>

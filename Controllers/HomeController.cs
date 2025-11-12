@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Sofia.Web.Models;
+using Sofia.Web.Data;
 
 namespace Sofia.Web.Controllers;
 
@@ -14,8 +16,24 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+        
+        // Если это психолог, перенаправляем на дашборд
+        if (!string.IsNullOrEmpty(userId) && userRole == "psychologist")
+        {
+            using var scope = HttpContext.RequestServices.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<Sofia.Web.Data.SofiaDbContext>();
+            var psychologist = await context.Psychologists
+                .FirstOrDefaultAsync(p => p.UserId == int.Parse(userId));
+            if (psychologist != null)
+            {
+                return RedirectToAction("Dashboard", "Psychologist", new { id = psychologist.Id });
+            }
+        }
+        
         return View();
     }
 

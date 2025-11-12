@@ -19,6 +19,7 @@ public class SofiaDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationSettings> NotificationSettings { get; set; }
     public DbSet<EmotionEntry> EmotionEntries { get; set; }
+    public DbSet<UserStatistics> UserStatistics { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +65,12 @@ public class SofiaDbContext : DbContext
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<UserStatistics>()
+            .HasOne(s => s.User)
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<PsychologistSchedule>()
             .HasOne(s => s.Psychologist)
             .WithMany(p => p.Schedules)
@@ -80,6 +87,12 @@ public class SofiaDbContext : DbContext
             .HasOne(t => t.BookedByUser)
             .WithMany()
             .HasForeignKey(t => t.BookedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<PsychologistReview>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.SetNull);
 
         // Seed: Practices
@@ -99,13 +112,11 @@ public class SofiaDbContext : DbContext
         );
 
         // Seed: Psychologists
+        // Note: Пароли для психологов должны быть установлены через регистрацию:
+        // psychologist1 / psychologist1
+        // psychologist2 / psychologist2  
+        // psychologist3 / psychologist3
         var createdDate = new DateTime(2024, 01, 01);
-
-        modelBuilder.Entity<Psychologist>().HasData(
-            new Psychologist { Id = 1, Name = "Анна Петрова", Specialization = "КПТ, тревожные расстройства", Description = "Опытный психолог с 8-летним стажем", Education = "МГУ", Experience = "8 лет", Languages = "Русский, английский", Methods = "КПТ, осознанность", PricePerHour = 3000, ContactPhone = "+7 (495) 123-45-67", ContactEmail = "anna.petrova@psychology.ru", IsActive = true, CreatedAt = createdDate },
-            new Psychologist { Id = 2, Name = "Михаил Соколов", Specialization = "Семейная терапия", Description = "12 лет опыта", Education = "СПбГУ", Experience = "12 лет", Languages = "Русский, французский", Methods = "Системный подход", PricePerHour = 4000, ContactPhone = "+7 (812) 234-56-78", ContactEmail = "mikhail.sokolov@family-psych.ru", IsActive = true, CreatedAt = createdDate },
-            new Psychologist { Id = 3, Name = "Елена Волкова", Specialization = "EMDR терапия", Description = "10 лет опыта", Education = "МГПУ", Experience = "10 лет", Languages = "Русский, немецкий", Methods = "EMDR, соматика", PricePerHour = 5000, ContactPhone = "+7 (495) 345-67-89", ContactEmail = "elena.volkova@trauma-therapy.ru", IsActive = true, CreatedAt = createdDate }
-        );
 
         // Seed: Reviews
         modelBuilder.Entity<PsychologistReview>().HasData(

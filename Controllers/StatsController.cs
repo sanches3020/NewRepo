@@ -164,54 +164,147 @@ public class StatsController : Controller
         var userIdInt = int.Parse(userId);
         var last30Days = DateTime.Now.AddDays(-30);
         
-        // Анализ паттернов
-        var insights = new List<string>();
+        // Структура для инсайтов по типам
+        var insights = new List<dynamic>();
         
-        // Анализ эмоций
-        var emotionAnalysis = await _context.EmotionEntries
+        // 📈 Тренд - анализ по дням недели
+        var weeklyEmotions = await _context.EmotionEntries
             .Where(e => e.UserId == userIdInt && e.Date >= last30Days)
-            .GroupBy(e => e.Emotion)
-            .Select(g => new { Emotion = g.Key, Count = g.Count() })
-            .OrderByDescending(g => g.Count)
             .ToListAsync();
-
-        if (emotionAnalysis.Any())
+        
+        if (weeklyEmotions.Any())
         {
-            var mostFrequent = emotionAnalysis.First();
-            var leastFrequent = emotionAnalysis.Last();
+            var mondayEmotions = weeklyEmotions
+                .Where(e => e.Date.DayOfWeek == DayOfWeek.Monday)
+                .GroupBy(e => e.Emotion)
+                .Select(g => new { Emotion = g.Key, Count = g.Count() })
+                .OrderByDescending(g => g.Count)
+                .FirstOrDefault();
             
-            insights.Add($"За последние 30 дней вы чаще всего чувствовали {GetEmotionName(mostFrequent.Emotion)} ({mostFrequent.Count} раз).");
-            
-            if (mostFrequent.Count > 5)
+            if (mondayEmotions != null && mondayEmotions.Count > 2)
             {
-                insights.Add($"Эмоция {GetEmotionName(mostFrequent.Emotion)} преобладает в ваших записях. Возможно, стоит обратить на это внимание.");
+                insights.Add(new {
+                    Type = "📈 Тренд",
+                    Text = $"Вы чаще отмечаете {GetEmotionName(mondayEmotions.Emotion).ToLower()} по понедельникам"
+                });
             }
         }
-
-        // Анализ активности
-        var activityAnalysis = await _context.Notes
-            .Where(n => n.UserId == userIdInt && n.Date >= last30Days && !string.IsNullOrEmpty(n.Activity))
-            .GroupBy(n => n.Activity)
-            .Select(g => new { Activity = g.Key, Count = g.Count() })
-            .OrderByDescending(g => g.Count)
-            .FirstOrDefaultAsync();
-
-        if (activityAnalysis != null)
+        
+        // 🔁 Повторение - анализ регулярности заметок
+        var notesByDate = await _context.Notes
+            .Where(n => n.UserId == userIdInt && n.Date >= last30Days)
+            .OrderBy(n => n.Date)
+            .Select(n => n.Date.Date)
+            .Distinct()
+            .ToListAsync();
+        
+        if (notesByDate.Count >= 3)
         {
-            insights.Add($"Ваша самая частая активность: {activityAnalysis.Activity} ({activityAnalysis.Count} раз).");
+            var intervals = new List<int>();
+            for (int i = 1; i < notesByDate.Count; i++)
+            {
+                var days = (notesByDate[i] - notesByDate[i-1]).Days;
+                intervals.Add(days);
+            }
+            
+            if (intervals.Any())
+            {
+                var avgInterval = (int)intervals.Average();
+                if (avgInterval > 0 && avgInterval <= 3)
+                {
+                    insights.Add(new {
+                        Type = "🔁 Повторение",
+                        Text = $"Вы создаете заметки стабильно каждые {avgInterval} {(avgInterval == 1 ? "день" : avgInterval < 5 ? "дня" : "дней")}"
+                    });
+                }
+            }
         }
-
-        // Анализ целей
-        var goalProgress = await _context.Goals
-            .Where(g => g.UserId == userIdInt && g.Status == GoalStatus.Active)
-            .AverageAsync(g => g.Progress);
-
-        if (goalProgress > 0)
+        
+        // ⏰ Влияние времени - анализ по часам
+        var hourlyEmotions = await _context.Notes
+            .Where(n => n.UserId == userIdInt && n.CreatedAt >= last30Days)
+            .ToListAsync();
+        
+        if (hourlyEmotions.Any())
         {
-            insights.Add($"Средний прогресс по активным целям: {goalProgress:F0}%. Продолжайте в том же духе!");
+            var eveningNotes = hourlyEmotions
+                .Where(n => n.CreatedAt.Hour >= 18 && n.CreatedAt.Hour < 22)
+                .ToList();
+            
+            var morningNotes = hourlyEmotions
+                .Where(n => n.CreatedAt.Hour >= 6 && n.CreatedAt.Hour < 12)
+                .ToList();
+            
+            if (eveningNotes.Count > morningNotes.Count * 1.5 && eveningNotes.Count > 5)
+            {
+                var avgMood = eveningNotes
+                    .Select(n => (int)n.Emotion)
+                    .DefaultIfEmpty(0)
+                    .Average();
+                
+                if (avgMood >= 3) // Радостно или выше
+                {
+                    insights.Add(new {
+                        Type = "⏰ Влияние времени",
+                        Text = "Лучшее настроение — в вечернее время"
+                    });
+                }
+            }
+        }
+        
+        // 🎯 Цель и поведение - связь целей с эмоциями
+        var goals = await _context.Goals
+            .Where(g => g.UserId == userIdInt && g.CreatedAt >= last30Days)
+            .OrderByDescending(g => g.CreatedAt)
+            .ToListAsync();
+        
+        if (goals.Any())
+        {
+            var recentGoal = goals.First();
+            var goalDate = recentGoal.CreatedAt.Date;
+            var afterGoalEmotions = await _context.EmotionEntries
+                .Where(e => e.UserId == userIdInt && e.Date >= goalDate && e.Emotion == EmotionType.Calm)
+                .CountAsync();
+            
+            var beforeGoalEmotions = await _context.EmotionEntries
+                .Where(e => e.UserId == userIdInt && e.Date < goalDate && e.Date >= goalDate.AddDays(-7) && e.Emotion == EmotionType.Calm)
+                .CountAsync();
+            
+            if (afterGoalEmotions > beforeGoalEmotions && afterGoalEmotions > 2)
+            {
+                insights.Add(new {
+                    Type = "🎯 Цель и поведение",
+                    Text = $"После постановки цели \"{recentGoal.Title}\" вы стали чаще отмечать спокойствие"
+                });
+            }
+        }
+        
+        // ⚠️ Отклонения - резкие изменения
+        var last5Days = DateTime.Now.AddDays(-5);
+        var recentNotes = await _context.Notes
+            .Where(n => n.UserId == userIdInt && n.Date >= last5Days)
+            .CountAsync();
+        
+        var previous5Days = await _context.Notes
+            .Where(n => n.UserId == userIdInt && n.Date >= last5Days.AddDays(-5) && n.Date < last5Days)
+            .CountAsync();
+        
+        if (previous5Days > 0 && recentNotes < previous5Days * 0.5)
+        {
+            insights.Add(new {
+                Type = "⚠️ Отклонения",
+                Text = "Резкое снижение активности за последние 5 дней"
+            });
         }
 
         ViewBag.Insights = insights;
+        
+        // Если запрос через AJAX, возвращаем JSON
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Query["format"] == "json")
+        {
+            return Json(new { insights = insights.Select(i => new { type = i.Type, text = i.Text }).ToList() });
+        }
+        
         return View();
     }
 

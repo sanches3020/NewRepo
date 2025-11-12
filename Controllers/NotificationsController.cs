@@ -79,6 +79,13 @@ public class NotificationsController : Controller
     [HttpGet("settings")]
     public async Task<IActionResult> Settings()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        // Получаем или создаем настройки для пользователя
         var settings = await _context.NotificationSettings.FirstOrDefaultAsync();
         if (settings == null)
         {

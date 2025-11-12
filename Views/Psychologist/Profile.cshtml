@@ -62,22 +62,34 @@
         <!-- Reviews -->
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">⭐ Отзывы (@reviews?.Count)</h5>
+                <h5 class="mb-0">⭐ Отзывы (@reviews?.Count(r => r.IsApproved && r.IsVisible))</h5>
             </div>
             <div class="card-body">
-                @if (reviews?.Any() == true)
+                @if (reviews?.Any(r => r.IsApproved && r.IsVisible) == true)
                 {
-                    @foreach (var review in reviews)
+                    @foreach (var review in reviews.Where(r => r.IsApproved && r.IsVisible))
                     {
                         <div class="review-item mb-3 p-3 border rounded">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="rating">
-                                    @for (int i = 1; i <= 5; i++)
+                                <div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="rating me-2">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <span class="star @(i <= review.Rating ? "filled" : "")">⭐</span>
+                                            }
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(review.Title))
+                                        {
+                                            <strong>@review.Title</strong>
+                                        }
+                                    </div>
+                                    @if (review.User != null)
                                     {
-                                        <span class="star @(i <= review.Rating ? "filled" : "")">⭐</span>
+                                        <small class="text-muted">От: @review.User.Username</small>
                                     }
+                                    <small class="text-muted ms-2">@review.CreatedAt.ToString("dd.MM.yyyy")</small>
                                 </div>
-                                <small class="text-muted">@review.CreatedAt.ToString("dd.MM.yyyy")</small>
                             </div>
                             @if (!string.IsNullOrEmpty(review.Comment))
                             {
@@ -91,6 +103,36 @@
                     <div class="text-center text-muted py-3">
                         <div style="font-size: 24px;">⭐</div>
                         <p class="mb-0">Пока нет отзывов</p>
+                    </div>
+                }
+                
+                <!-- Форма для оставления отзыва -->
+                @if (Context.Session.GetString("UserId") != null && Context.Session.GetString("UserRole") != "psychologist")
+                {
+                    <div class="mt-4 pt-4 border-top">
+                        <h6>Оставить отзыв</h6>
+                        <form id="reviewForm">
+                            <div class="mb-3">
+                                <label for="reviewTitle" class="form-label">Заголовок (необязательно)</label>
+                                <input type="text" class="form-control" id="reviewTitle" placeholder="Краткое описание">
+                            </div>
+                            <div class="mb-3">
+                                <label for="reviewRating" class="form-label">Оценка</label>
+                                <select class="form-select" id="reviewRating" required>
+                                    <option value="">Выберите оценку</option>
+                                    <option value="5">5 - Отлично</option>
+                                    <option value="4">4 - Хорошо</option>
+                                    <option value="3">3 - Удовлетворительно</option>
+                                    <option value="2">2 - Плохо</option>
+                                    <option value="1">1 - Очень плохо</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reviewComment" class="form-label">Комментарий</label>
+                                <textarea class="form-control" id="reviewComment" rows="4" placeholder="Поделитесь своим опытом..." required></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="submitReview(@psychologist?.Id)">Отправить отзыв</button>
+                        </form>
                     </div>
                 }
             </div>
@@ -389,6 +431,44 @@ function selectTimeSlot(date, time) {
     // Сохраняем выбранное время
     selectedSlot = date + 'T' + time;
     document.getElementById('selectedDateTime').value = selectedSlot;
+}
+
+function submitReview(psychologistId) {
+    const title = document.getElementById('reviewTitle').value;
+    const rating = parseInt(document.getElementById('reviewRating').value);
+    const comment = document.getElementById('reviewComment').value;
+    
+    if (!rating || !comment) {
+        alert('Пожалуйста, заполните все обязательные поля');
+        return;
+    }
+    
+    fetch('/psychologist/review', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            psychologistId: psychologistId,
+            rating: rating,
+            title: title || null,
+            comment: comment
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            document.getElementById('reviewForm').reset();
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showToast('Ошибка: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Произошла ошибка при отправке отзыва', 'error');
+    });
 }
 
 // Обновляем функцию записи

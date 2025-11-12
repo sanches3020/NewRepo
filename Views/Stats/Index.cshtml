@@ -296,6 +296,17 @@
     </div>
 }
 
+<!-- Key Insights Section -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">💡 Ключевые наблюдения (автоматически сгенерированные)</h5>
+        <a href="/stats/insights" class="btn btn-sm btn-outline-primary">Все инсайты →</a>
+    </div>
+    <div class="card-body">
+        <div id="insightsPreview" class="text-muted">Загрузка инсайтов...</div>
+    </div>
+</div>
+
 <!-- Insights Modal -->
 <div class="modal fade" id="insightsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -564,6 +575,35 @@ function openInsightsModal() {
         .catch(() => { container.innerHTML = '<div class="text-danger">Не удалось загрузить инсайты</div>'; });
     modal.show();
 }
+
+// Загружаем превью инсайтов
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/stats/insights?format=json', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('insightsPreview');
+            if (data && data.insights && data.insights.length > 0) {
+                let html = '<div class="table-responsive"><table class="table table-sm table-hover"><thead><tr><th style="width: 200px;">Тип инсайта</th><th>Пример</th></tr></thead><tbody>';
+                data.insights.slice(0, 3).forEach(insight => {
+                    html += `<tr><td><strong>${insight.type}</strong></td><td>${insight.text}</td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                if (data.insights.length > 3) {
+                    html += `<div class="text-center mt-2"><small class="text-muted">И еще ${data.insights.length - 3} инсайтов...</small></div>`;
+                }
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="text-center text-muted py-3"><small>Недостаточно данных для анализа. Создайте больше заметок и целей.</small></div>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('insightsPreview').innerHTML = '<div class="text-muted">Инсайты будут доступны после накопления данных</div>';
+        });
+});
 </script>
 
 <style>

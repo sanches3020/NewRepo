@@ -1,0 +1,251 @@
+@{
+    ViewData["Title"] = "Управление отзывами";
+    var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
+    var reviews = ViewBag.Reviews as List<Sofia.Web.Models.PsychologistReview>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>⭐ Управление отзывами</h2>
+    <div class="d-flex gap-2">
+        <a href="/psychologist/dashboard/@psychologist?.Id" class="btn btn-outline-secondary btn-sm">← Дашборд</a>
+    </div>
+</div>
+
+<!-- Статистика отзывов -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-primary mb-2">@reviews?.Count</div>
+                <div class="text-muted">Всего отзывов</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-success mb-2">@reviews?.Count(r => r.IsApproved && r.IsVisible)</div>
+                <div class="text-muted">Одобренных</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-warning mb-2">@reviews?.Count(r => !r.IsApproved)</div>
+                <div class="text-muted">На модерации</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-info mb-2">@(reviews?.Any() == true ? reviews.Where(r => r.IsApproved).Average(r => r.Rating).ToString("F1") : "0")</div>
+                <div class="text-muted">Средний рейтинг</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список отзывов -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">📋 Все отзывы</h5>
+    </div>
+    <div class="card-body">
+        @if (reviews?.Any() == true)
+        {
+            @foreach (var review in reviews)
+            {
+                <div class="review-item mb-3 p-3 border rounded @(review.IsApproved ? "approved" : "pending")">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rating me-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="star @(i <= review.Rating ? "filled" : "")">⭐</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(review.Title))
+                                {
+                                    <strong class="me-2">@review.Title</strong>
+                                }
+                                <span class="badge @(review.IsApproved ? "bg-success" : "bg-warning")">
+                                    @(review.IsApproved ? "Одобрен" : "На модерации")
+                                </span>
+                            </div>
+                            @if (review.User != null)
+                            {
+                                <small class="text-muted">От: @review.User.Username</small>
+                            }
+                            <small class="text-muted ms-2">@review.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                ⋮
+                            </button>
+                            <ul class="dropdown-menu">
+                                @if (!review.IsApproved)
+                                {
+                                    <li><a class="dropdown-item" href="#" onclick="approveReview(@review.Id)">✅ Одобрить</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" href="#" onclick="rejectReview(@review.Id)">❌ Скрыть</a></li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteReview(@review.Id)">🗑️ Удалить</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(review.Comment))
+                    {
+                        <p class="mb-0">@review.Comment</p>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div style="font-size: 64px;">⭐</div>
+                <h4 class="text-muted mt-3">Пока нет отзывов</h4>
+                <p class="text-muted">Отзывы от клиентов появятся здесь после записи на консультацию</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="page-bottom-spacer" style="height: 100px;"></div>
+
+<style>
+.review-item {
+    transition: all 0.2s ease;
+}
+
+.review-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6b7cff !important;
+}
+
+.review-item.approved {
+    border-left: 4px solid #10b981;
+}
+
+.review-item.pending {
+    border-left: 4px solid #f59e0b;
+    background-color: #fffbeb;
+}
+
+.star.filled {
+    color: #fbbf24;
+}
+
+.rating {
+    display: inline-flex;
+    gap: 2px;
+}
+</style>
+
+<script>
+function approveReview(id) {
+    fetch(`/psychologist/review/${id}/approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Ошибка: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Произошла ошибка', 'error');
+    });
+}
+
+function rejectReview(id) {
+    fetch(`/psychologist/review/${id}/reject`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Ошибка: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Произошла ошибка', 'error');
+    });
+}
+
+function deleteReview(id) {
+    if (confirm('Вы уверены, что хотите удалить этот отзыв?')) {
+        fetch(`/psychologist/review/${id}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('Ошибка: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Произошла ошибка', 'error');
+        });
+    }
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>
+

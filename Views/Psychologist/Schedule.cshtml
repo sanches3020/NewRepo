@@ -10,7 +10,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>📅 Управление расписанием</h2>
     <div>
-        <a href="/psychologist/dashboard/@psychologist.Id" class="btn btn-outline-secondary">← Назад к дашборду</a>
+        <a href="/psychologist/dashboard/@(psychologist?.Id ?? 0)" class="btn btn-outline-secondary">← Назад к дашборду</a>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
             ➕ Добавить время
         </button>
@@ -69,34 +69,39 @@
             <div class="card-body">
                 <div class="mb-3">
                     <p class="text-muted">Создайте слоты для записи на основе вашего расписания</p>
-                    <button type="button" class="btn btn-success" onclick="generateSlots()">
-                        🔄 Создать слоты на 2 недели
-                    </button>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success" onclick="generateSlots()">
+                            🔄 Создать слоты на 2 недели
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTimeSlotModal">
+                            ➕ Добавить конкретное время
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="slots-stats">
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="stat-card text-center p-3 border rounded">
-                                <div class="h4 text-primary">@existingSlots.Count</div>
+                                <div class="h4 text-primary">@(existingSlots?.Count ?? 0)</div>
                                 <div class="small text-muted">Всего слотов</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stat-card text-center p-3 border rounded">
-                                <div class="h4 text-success">@existingSlots.Count(s => s.IsAvailable && !s.IsBooked)</div>
+                                <div class="h4 text-success">@(existingSlots?.Count(s => s.IsAvailable && !s.IsBooked) ?? 0)</div>
                                 <div class="small text-muted">Свободных</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stat-card text-center p-3 border rounded">
-                                <div class="h4 text-danger">@existingSlots.Count(s => s.IsBooked)</div>
+                                <div class="h4 text-danger">@(existingSlots?.Count(s => s.IsBooked) ?? 0)</div>
                                 <div class="small text-muted">Забронированных</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stat-card text-center p-3 border rounded">
-                                <div class="h4 text-warning">@existingSlots.Count(s => !s.IsAvailable)</div>
+                                <div class="h4 text-warning">@(existingSlots?.Count(s => !s.IsAvailable) ?? 0)</div>
                                 <div class="small text-muted">Недоступных</div>
                             </div>
                         </div>
@@ -192,6 +197,43 @@
                     </div>
                     <div class="mt-3">
                         <button type="button" class="btn btn-primary" onclick="addSchedule()">Добавить расписание</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления конкретного слота (дата и время) -->
+<div class="modal fade" id="addTimeSlotModal" tabindex="-1" aria-labelledby="addTimeSlotModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTimeSlotModalLabel">Добавить свободное время</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="timeSlotForm">
+                    <div class="mb-3">
+                        <label for="slotDate" class="form-label">Дата</label>
+                        <input type="date" class="form-control" id="slotDate" name="slotDate" required min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label for="slotStartTime" class="form-label">Время начала</label>
+                            <input type="time" class="form-control" id="slotStartTime" name="slotStartTime" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="slotEndTime" class="form-label">Время окончания</label>
+                            <input type="time" class="form-control" id="slotEndTime" name="slotEndTime" required>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>💡 Слоты будут созданы по часам от времени начала до времени окончания (каждый час)</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" onclick="addTimeSlot()">Добавить время</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
                     </div>
                 </form>
             </div>
@@ -354,7 +396,60 @@ function generateSlots() {
         });
     }
 }
+
+function addTimeSlot() {
+    const form = document.getElementById('timeSlotForm');
+    const formData = new FormData(form);
+    
+    const slotDate = formData.get('slotDate');
+    const slotStartTime = formData.get('slotStartTime');
+    const slotEndTime = formData.get('slotEndTime');
+    
+    if (!slotDate || !slotStartTime || !slotEndTime) {
+        alert('Пожалуйста, заполните все поля');
+        return;
+    }
+    
+    // Создаем слоты по часам от startTime до endTime
+    const start = new Date(slotDate + 'T' + slotStartTime);
+    const end = new Date(slotDate + 'T' + slotEndTime);
+    
+    if (end <= start) {
+        alert('Время окончания должно быть позже времени начала');
+        return;
+    }
+    
+    // Отправляем запрос на создание слотов
+    fetch('/psychologist/schedule/add-time-slot', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            date: slotDate,
+            startTime: slotStartTime,
+            endTime: slotEndTime
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('addTimeSlotModal')).hide();
+            form.reset();
+            location.reload();
+        } else {
+            alert('Ошибка: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при добавлении времени');
+    });
+}
 </script>
+
+<div class="page-bottom-spacer" style="height: 100px;"></div>
 
 @functions {
     string GetDayName(DayOfWeek dayOfWeek)

@@ -10,6 +10,8 @@
     <div class="d-flex gap-2">
         <a href="/psychologist/schedule" class="btn btn-outline-primary btn-sm">📅 Расписание</a>
         <a href="/psychologist/clients" class="btn btn-outline-info btn-sm">👥 Клиенты</a>
+        <a href="/psychologist/reviews" class="btn btn-outline-warning btn-sm">⭐ Отзывы</a>
+        <a href="/settings" class="btn btn-outline-secondary btn-sm">⚙️ Настройки</a>
     </div>
 </div>
 
@@ -246,68 +248,6 @@
     </div>
 </div>
 
-<!-- Данные клиентов -->
-<div class="row g-4 mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">👥 Данные клиентов</h5>
-            </div>
-            <div class="card-body">
-                @if (clientData?.Any() == true)
-                {
-                    <div class="row g-3">
-                        @foreach (var client in clientData)
-                        {
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">@client.User.Username</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-2">
-                                            <small class="text-muted">Заметок: @client.Notes.Count</small>
-                                        </div>
-                                        <div class="mb-2">
-                                            <small class="text-muted">Целей: @client.Goals.Count</small>
-                                        </div>
-                                        <div class="mb-2">
-                                            <small class="text-muted">Эмоций: @client.Emotions.Count</small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <small class="text-muted">Сессий: @client.RecentAppointments.Count</small>
-                                        </div>
-                                        
-                                        @if (client.Notes.Any())
-                                        {
-                                            <div class="mb-2">
-                                                <strong>Последние заметки:</strong>
-                                                @foreach (var note in client.Notes.Take(2))
-                                                {
-                                                    <div class="small text-muted mb-1">
-                                                        @(note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content)
-                                                    </div>
-                                                }
-                                            </div>
-                                        }
-                                        
-                                        <a href="/psychologist/client/@client.User.Id" class="btn btn-outline-primary btn-sm">
-                                            Подробнее
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted text-center">У вас пока нет клиентов.</p>
-                }
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
 .appointment-item {
@@ -367,6 +307,8 @@
     transform: translateY(-2px);
 }
 </style>
+
+<div class="page-bottom-spacer" style="height: 100px;"></div>
 
 <script>
 function updateStatus(appointmentId, status) {

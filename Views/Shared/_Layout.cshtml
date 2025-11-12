@@ -27,7 +27,15 @@
             <ul class="navbar-nav flex-grow-1">
                 @if (Context.Session.GetString("UserRole") == "psychologist")
                 {
-                    <li class="nav-item"><a class="nav-link" href="/psychologist">Дашборд</a></li>
+                    var psychologistId = Context.Session.GetString("PsychologistId");
+                    if (!string.IsNullOrEmpty(psychologistId))
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/psychologist/dashboard/@psychologistId">Дашборд</a></li>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/psychologist">Дашборд</a></li>
+                    }
                     <li class="nav-item"><a class="nav-link" href="/settings">Настройки</a></li>
                 }
                 else

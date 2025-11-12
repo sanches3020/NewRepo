@@ -2,7 +2,21 @@
     ViewData["Title"] = "Добро пожаловать в Sofia";
 }
 
-<div id="homeCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+<!-- Onboarding Modal Trigger -->
+@if (Context.Session.GetString("UserId") != null && Context.Session.GetString("OnboardingCompleted") != "true")
+{
+    <div class="onboarding-welcome mb-4">
+        <div class="alert alert-info d-inline-flex align-items-center gap-3">
+            <span>🎉</span>
+            <div>
+                <strong>Добро пожаловать!</strong> Давайте настроим ваше пространство для максимальной пользы.
+                <button class="btn btn-primary btn-sm ms-3" onclick="startOnboarding()">Начать настройку</button>
+            </div>
+        </div>
+    </div>
+}
+
+<div id="homeCarousel" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="5000">
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
         <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
@@ -25,12 +39,30 @@
         </div>
         <div class="carousel-item" style="height: 320px; background:#f5f3ff; border-radius: 16px; display:flex; align-items:center;">
             <div class="container">
-                <div class="text-muted">Добавьте свои фото позднее — слайд 2</div>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-6 mb-2">📊 Аналитика</h1>
+                        <p class="lead mb-3">Отслеживайте свои эмоции и прогресс с помощью подробной статистики</p>
+                        <div class="d-flex gap-2">
+                            <a href="/calendar" class="btn btn-primary btn-sm">Календарь</a>
+                            <a href="/stats" class="btn btn-outline-primary btn-sm">Статистика</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="carousel-item" style="height: 320px; background:#fff7ed; border-radius: 16px; display:flex; align-items:center;">
             <div class="container">
-                <div class="text-muted">Добавьте свои фото позднее — слайд 3</div>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-6 mb-2">🎯 Цели</h1>
+                        <p class="lead mb-3">Ставьте цели и отслеживайте свой прогресс к лучшему самочувствию</p>
+                        <div class="d-flex gap-2">
+                            <a href="/goals" class="btn btn-primary btn-sm">Мои цели</a>
+                            <a href="/goals/create" class="btn btn-outline-primary btn-sm">Создать цель</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -42,22 +74,6 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Next</span>
     </button>
-
-        <!-- Onboarding Modal Trigger -->
-        @if (Context.Session.GetString("UserId") != null && Context.Session.GetString("OnboardingCompleted") != "true")
-        {
-            <div class="onboarding-welcome mb-4">
-                <div class="alert alert-info d-inline-flex align-items-center gap-3">
-                    <span>🎉</span>
-                    <div>
-                        <strong>Добро пожаловать!</strong> Давайте настроим ваше пространство для максимальной пользы.
-                        <button class="btn btn-primary btn-sm ms-3" onclick="startOnboarding()">Начать настройку</button>
-                    </div>
-                </div>
-            </div>
-        }
-
-    </div>
 </div>
 
 <div class="container">
@@ -283,6 +299,56 @@
 
 @section Scripts {
     <script>
+        // Инициализация карусели
+        document.addEventListener('DOMContentLoaded', function() {
+            const carouselElement = document.querySelector('#homeCarousel');
+            if (carouselElement) {
+                // Инициализируем карусель Bootstrap
+                const carousel = new bootstrap.Carousel(carouselElement, {
+                    interval: 5000,
+                    wrap: true,
+                    keyboard: true,
+                    pause: 'hover'
+                });
+                
+                // Функция для остановки автоматического переключения
+                function stopCarousel() {
+                    carousel.pause();
+                    carouselElement.setAttribute('data-bs-ride', 'false');
+                }
+                
+                // Обработчики для кнопок навигации
+                const prevButton = document.querySelector('[data-bs-slide="prev"]');
+                const nextButton = document.querySelector('[data-bs-slide="next"]');
+                
+                if (prevButton) {
+                    prevButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        carousel.prev();
+                        stopCarousel();
+                    });
+                }
+                
+                if (nextButton) {
+                    nextButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        carousel.next();
+                        stopCarousel();
+                    });
+                }
+                
+                // Обработчики для индикаторов
+                const indicators = document.querySelectorAll('[data-bs-slide-to]');
+                indicators.forEach(function(indicator, index) {
+                    indicator.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        carousel.to(index);
+                        stopCarousel();
+                    });
+                });
+            }
+        });
+        
         // Onboarding system
         let currentOnboardingStep = 0;
         const onboardingSteps = [

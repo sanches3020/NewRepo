@@ -57,16 +57,28 @@ public class PsychologistReview
     
     public int PsychologistId { get; set; }
     
+    public int? UserId { get; set; }
+    
     [Range(1, 5)]
     public int Rating { get; set; }
     
     [StringLength(1000)]
     public string? Comment { get; set; }
     
+    [StringLength(500)]
+    public string? Title { get; set; }
+    
+    public bool IsVisible { get; set; } = true;
+    
+    public bool IsApproved { get; set; } = false;
+    
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    
+    public DateTime? UpdatedAt { get; set; }
     
     // Navigation properties
     public virtual Psychologist Psychologist { get; set; } = null!;
+    public virtual User? User { get; set; }
 }
 
 public class PsychologistAppointment

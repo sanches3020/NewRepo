@@ -9,9 +9,9 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>👤 Данные клиента: @client.Username</h2>
+    <h2>👤 Данные клиента: @(client?.Username ?? "Неизвестный")</h2>
     <div>
-        <a href="/psychologist/dashboard/@psychologist.Id" class="btn btn-outline-secondary">← Назад к дашборду</a>
+        <a href="/psychologist/dashboard/@(psychologist?.Id ?? 0)" class="btn btn-outline-secondary">← Назад к дашборду</a>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRecommendationModal">
             💡 Добавить рекомендацию
         </button>
@@ -28,30 +28,30 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
                     <div class="avatar-circle me-3">
-                        <div class="avatar-initial">@(client.Username?.FirstOrDefault().ToString().ToUpper() ?? "К")</div>
+                        <div class="avatar-initial">@(client?.Username?.FirstOrDefault().ToString().ToUpper() ?? "К")</div>
                     </div>
                     <div>
-                        <h6 class="mb-0">@client.Username</h6>
-                        <small class="text-muted">@client.Email</small>
+                        <h6 class="mb-0">@(client?.Username ?? "Неизвестный")</h6>
+                        <small class="text-muted">@(client?.Email ?? "")</small>
                     </div>
                 </div>
                 
                 <div class="client-stats">
                     <div class="stat-item d-flex justify-content-between mb-2">
                         <span>Заметок:</span>
-                        <span class="text-primary">@clientNotes.Count</span>
+                        <span class="text-primary">@(clientNotes?.Count ?? 0)</span>
                     </div>
                     <div class="stat-item d-flex justify-content-between mb-2">
                         <span>Целей:</span>
-                        <span class="text-success">@clientGoals.Count</span>
+                        <span class="text-success">@(clientGoals?.Count ?? 0)</span>
                     </div>
                     <div class="stat-item d-flex justify-content-between mb-2">
                         <span>Эмоций:</span>
-                        <span class="text-info">@clientEmotions.Count</span>
+                        <span class="text-info">@(clientEmotions?.Count ?? 0)</span>
                     </div>
                     <div class="stat-item d-flex justify-content-between mb-2">
                         <span>Сессий:</span>
-                        <span class="text-warning">@appointments.Count</span>
+                        <span class="text-warning">@(appointments?.Count ?? 0)</span>
                     </div>
                 </div>
             </div>
@@ -218,7 +218,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addRecommendationModalLabel">Добавить рекомендацию для @client.Username</h5>
+                <h5 class="modal-title" id="addRecommendationModalLabel">Добавить рекомендацию для @(client?.Username ?? "клиента")</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -296,14 +296,14 @@ function addRecommendation() {
     const formData = new FormData(form);
     
     const data = {
-        clientId: @client.Id,
+        clientId: @(client?.Id ?? 0),
         recommendationType: formData.get('recommendationType'),
         recommendationText: formData.get('recommendationText'),
         priority: formData.get('priority')
     };
     
     // Здесь можно добавить отправку рекомендации
-    alert('Рекомендация добавлена для клиента @client.Username! (Функция будет реализована в следующей версии)');
+    alert('Рекомендация добавлена для клиента @(client?.Username ?? "клиента")! (Функция будет реализована в следующей версии)');
     
     // Закрываем модальное окно
     const modal = bootstrap.Modal.getInstance(document.getElementById('addRecommendationModal'));

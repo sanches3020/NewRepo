@@ -1,48 +1,101 @@
 @{
-    ViewData["Title"] = "Инсайты и рекомендации";
-    var insights = ViewBag.Insights as List<string>;
+    ViewData["Title"] = "Ключевые наблюдения";
+    var insights = ViewBag.Insights as List<dynamic>;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>💡 Инсайты и рекомендации</h2>
+    <h2>💡 Ключевые наблюдения</h2>
     <div class="d-flex gap-2">
         <a href="/stats" class="btn btn-outline-secondary">← Статистика</a>
         <a href="/calendar" class="btn btn-outline-info">📅 Календарь</a>
     </div>
 </div>
 
-@if (insights?.Any() == true)
-{
-    <div class="row g-4">
-        @foreach (var insight in insights)
-        {
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="me-3" style="font-size: 24px;">💡</div>
-                            <div>
-                                <p class="mb-0">@insight</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">📊 Ключевые наблюдения (автоматически сгенерированные)</h5>
     </div>
-}
-else
-{
-    <div class="text-center py-5">
-        <div class="mb-3" style="font-size: 48px;">🔍</div>
-        <h4 class="text-muted">Недостаточно данных для анализа</h4>
-        <p class="text-muted">Создайте больше заметок и целей, чтобы получить персональные инсайты</p>
-        <div class="d-flex gap-2 justify-content-center">
-            <a href="/notes/create" class="btn btn-primary">Создать заметку</a>
-            <a href="/goals/create" class="btn btn-outline-primary">Создать цель</a>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 200px;">Тип инсайта</th>
+                        <th>Пример</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (insights?.Any() == true)
+                    {
+                        @foreach (var insight in insights)
+                        {
+                            <tr>
+                                <td><strong>@insight.Type</strong></td>
+                                <td>@insight.Text</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-4">
+                                <div style="font-size: 48px;">🔍</div>
+                                <p class="mb-0">Недостаточно данных для анализа</p>
+                                <p class="small">Создайте больше заметок и целей, чтобы получить персональные инсайты</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-}
+</div>
+
+<!-- Примеры типов инсайтов -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">ℹ️ Типы инсайтов</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="insight-type-card">
+                    <div class="insight-type-icon">📈</div>
+                    <h6>Тренд</h6>
+                    <p class="small text-muted mb-0">Выявление закономерностей в эмоциях по дням недели или периодам</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="insight-type-card">
+                    <div class="insight-type-icon">🔁</div>
+                    <h6>Повторение</h6>
+                    <p class="small text-muted mb-0">Анализ регулярности выполнения практик и активности</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="insight-type-card">
+                    <div class="insight-type-icon">⏰</div>
+                    <h6>Влияние времени</h6>
+                    <p class="small text-muted mb-0">Связь настроения и активности с временем суток</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="insight-type-card">
+                    <div class="insight-type-icon">🎯</div>
+                    <h6>Цель и поведение</h6>
+                    <p class="small text-muted mb-0">Влияние постановки целей на эмоциональное состояние</p>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="insight-type-card">
+                    <div class="insight-type-icon">⚠️</div>
+                    <h6>Отклонения</h6>
+                    <p class="small text-muted mb-0">Обнаружение резких изменений в активности или настроении</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Recommendations -->
 <div class="card mt-4">
@@ -137,11 +190,33 @@ else
     margin-bottom: 1rem;
 }
 
+.insight-type-card {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    height: 100%;
+}
+
+.insight-type-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.insight-type-card h6 {
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
 .card {
     transition: transform 0.2s ease;
 }
 
 .card:hover {
     transform: translateY(-2px);
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
 }
 </style>

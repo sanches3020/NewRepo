@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Клиенты";
+    var clientData = ViewBag.ClientData as List<Sofia.Web.Controllers.ClientDataViewModel>;
+    var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>👥 Клиенты</h2>
+    <div class="d-flex gap-2">
+        <a href="/psychologist/dashboard/@psychologist?.Id" class="btn btn-outline-secondary btn-sm">← Дашборд</a>
+        <a href="/psychologist/schedule" class="btn btn-outline-primary btn-sm">📅 Расписание</a>
+    </div>
+</div>
+
+<!-- Статистика по клиентам -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-primary mb-2">@clientData?.Count</div>
+                <div class="text-muted">Всего клиентов</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-success mb-2">@(clientData?.Sum(c => c.RecentAppointments.Count) ?? 0)</div>
+                <div class="text-muted">Всего сессий</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-info mb-2">@(clientData?.Sum(c => c.Notes.Count) ?? 0)</div>
+                <div class="text-muted">Заметок от клиентов</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="h3 text-warning mb-2">@(clientData?.Sum(c => c.Goals.Count) ?? 0)</div>
+                <div class="text-muted">Активных целей</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список клиентов -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">📋 Список клиентов</h5>
+    </div>
+    <div class="card-body">
+        @if (clientData?.Any() == true)
+        {
+            <div class="row g-3">
+                @foreach (var client in clientData)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 client-card">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">@client.User.Username</h6>
+                                    <span class="badge bg-primary">@client.RecentAppointments.Count сессий</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="client-stats mb-3">
+                                    <div class="stat-item d-flex justify-content-between mb-2">
+                                        <span class="text-muted">📝 Заметок:</span>
+                                        <span class="text-primary fw-bold">@client.Notes.Count</span>
+                                    </div>
+                                    <div class="stat-item d-flex justify-content-between mb-2">
+                                        <span class="text-muted">🎯 Целей:</span>
+                                        <span class="text-success fw-bold">@client.Goals.Count</span>
+                                    </div>
+                                    <div class="stat-item d-flex justify-content-between mb-2">
+                                        <span class="text-muted">😊 Эмоций:</span>
+                                        <span class="text-info fw-bold">@client.Emotions.Count</span>
+                                    </div>
+                                    <div class="stat-item d-flex justify-content-between">
+                                        <span class="text-muted">📅 Сессий:</span>
+                                        <span class="text-warning fw-bold">@client.RecentAppointments.Count</span>
+                                    </div>
+                                </div>
+                                
+                                @if (client.Notes.Any())
+                                {
+                                    <div class="mb-3">
+                                        <strong class="small">Последние заметки:</strong>
+                                        @foreach (var note in client.Notes.Take(2))
+                                        {
+                                            <div class="small text-muted mb-1 mt-1">
+                                                @(note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content)
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                
+                                <div class="d-grid">
+                                    <a href="/psychologist/client/@client.User.Id" class="btn btn-outline-primary btn-sm">
+                                        Подробнее →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div style="font-size: 64px;">👥</div>
+                <h4 class="text-muted mt-3">У вас пока нет клиентов</h4>
+                <p class="text-muted">Клиенты появятся здесь после записи на консультацию</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="page-bottom-spacer" style="height: 100px;"></div>
+
+<style>
+.client-card {
+    transition: all 0.2s ease;
+}
+
+.client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.client-stats .stat-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.client-stats .stat-item:last-child {
+    border-bottom: none;
+}
+</style>
+
