@@ -153,6 +153,101 @@ public class AuthController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    [HttpGet("forgot-password")]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(string emailOrUsername)
+    {
+        emailOrUsername = (emailOrUsername ?? string.Empty).Trim();
+
+        if (string.IsNullOrWhiteSpace(emailOrUsername))
+        {
+            ModelState.AddModelError("", "Введите email или имя пользователя");
+            return View();
+        }
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => (u.Email == emailOrUsername || u.Username == emailOrUsername) && u.IsActive);
+
+        if (user == null)
+        {
+            // Не показываем, что пользователь не найден (защита от перебора)
+            ViewBag.Message = "Если аккаунт с таким email или именем пользователя существует, инструкции по восстановлению пароля будут отправлены.";
+            return View();
+        }
+
+        // В реальном приложении здесь бы отправлялся email с токеном сброса
+        // Для простоты, передаем идентификатор пользователя через сессию
+        HttpContext.Session.SetString("ResetPasswordUserId", user.Id.ToString());
+        HttpContext.Session.SetString("ResetPasswordEmail", user.Email);
+
+        return RedirectToAction("ResetPassword");
+    }
+
+    [HttpGet("reset-password")]
+    public IActionResult ResetPassword()
+    {
+        var userId = HttpContext.Session.GetString("ResetPasswordUserId");
+        if (string.IsNullOrEmpty(userId))
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+
+        var email = HttpContext.Session.GetString("ResetPasswordEmail");
+        ViewBag.Email = email;
+        return View();
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(string password, string confirmPassword)
+    {
+        var userIdStr = HttpContext.Session.GetString("ResetPasswordUserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+        {
+            ModelState.AddModelError("", "Сессия истекла. Пожалуйста, начните процесс восстановления пароля заново.");
+            return RedirectToAction("ForgotPassword");
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+        {
+            ModelState.AddModelError("", "Пароль должен содержать минимум 8 символов");
+            var email = HttpContext.Session.GetString("ResetPasswordEmail");
+            ViewBag.Email = email;
+            return View();
+        }
+
+        if (password != confirmPassword)
+        {
+            ModelState.AddModelError("", "Пароли не совпадают");
+            var email = HttpContext.Session.GetString("ResetPasswordEmail");
+            ViewBag.Email = email;
+            return View();
+        }
+
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || !user.IsActive)
+        {
+            ModelState.AddModelError("", "Пользователь не найден");
+            HttpContext.Session.Remove("ResetPasswordUserId");
+            HttpContext.Session.Remove("ResetPasswordEmail");
+            return RedirectToAction("ForgotPassword");
+        }
+
+        user.Password = HashPassword(password);
+        await _context.SaveChangesAsync();
+
+        // Очищаем сессию восстановления
+        HttpContext.Session.Remove("ResetPasswordUserId");
+        HttpContext.Session.Remove("ResetPasswordEmail");
+
+        ViewBag.Success = true;
+        return View();
+    }
+
     private string HashPassword(string password)
     {
         using var sha256 = SHA256.Create();

@@ -10,7 +10,7 @@
 
     function validateUsername() {
         const value = username.value.trim();
-    const usernameRegex = /^(?!.*__)[A-Za-z][A-Za-z0-9_]{1, 18}[A-Za-z0-9]$/;
+    const usernameRegex = /^(?!.*__)[A-Za-z][A-Za-z0-9_]{1,18}[A-Za-z0-9]$/;
 
     if (value.length < 3) {
         username.setCustomValidity('Имя пользователя должно содержать минимум 3 символа');
@@ -42,7 +42,7 @@
 
     function validatePassword() {
         const value = password.value;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{6, 32}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_\-+=<>?{ }[\]~]{6,32}$/;
 
     if (value.length < 6) {
         password.setCustomValidity('Пароль должен содержать минимум 6 символов');
