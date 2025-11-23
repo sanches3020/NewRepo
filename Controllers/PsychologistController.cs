@@ -179,7 +179,7 @@ public class PsychologistController : Controller
     }
 
     [HttpPost("book")]
-    public async Task<IActionResult> BookAppointment(int psychologistId, DateTime appointmentDate, string notes)
+    public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentRequest? request)
     {
         var userId = HttpContext.Session.GetString("UserId");
         if (string.IsNullOrEmpty(userId))
@@ -187,13 +187,28 @@ public class PsychologistController : Controller
             return Json(new { success = false, message = "Необходимо войти в систему" });
         }
 
+        if (request == null)
+        {
+            return Json(new { success = false, message = "Неверные данные запроса" });
+        }
+
         var userIdInt = int.Parse(userId);
+
+        // Парсим дату
+        if (!DateTime.TryParse(request.AppointmentDate, out var appointmentDate))
+        {
+            return Json(new { success = false, message = "Неверный формат даты" });
+        }
+
+        // Нормализуем дату (убираем время, оставляем только дату)
+        var appointmentDateOnly = appointmentDate.Date;
+        var appointmentTime = appointmentDate.TimeOfDay;
 
         // Проверяем, доступен ли слот
         var timeSlot = await _context.PsychologistTimeSlots
-            .FirstOrDefaultAsync(t => t.PsychologistId == psychologistId && 
-                                    t.Date.Date == appointmentDate.Date &&
-                                    t.StartTime == appointmentDate.TimeOfDay &&
+            .FirstOrDefaultAsync(t => t.PsychologistId == request.PsychologistId && 
+                                    t.Date.Date == appointmentDateOnly &&
+                                    t.StartTime == appointmentTime &&
                                     t.IsAvailable && !t.IsBooked);
 
         if (timeSlot == null)
@@ -208,10 +223,10 @@ public class PsychologistController : Controller
         // Создаем запись на консультацию
         var appointment = new PsychologistAppointment
         {
-            PsychologistId = psychologistId,
+            PsychologistId = request.PsychologistId,
             UserId = userIdInt,
-            AppointmentDate = appointmentDate,
-            Notes = notes,
+            AppointmentDate = appointmentDateOnly.Add(appointmentTime),
+            Notes = request.Notes ?? string.Empty,
             Status = AppointmentStatus.Scheduled,
             CreatedAt = DateTime.Now
         };
@@ -453,7 +468,7 @@ public class PsychologistController : Controller
     {
         var userId = HttpContext.Session.GetString("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
-        
+
         if (string.IsNullOrEmpty(userId) || userRole != "psychologist")
         {
             return RedirectToAction("Login", "Auth");
@@ -467,24 +482,32 @@ public class PsychologistController : Controller
             return NotFound();
         }
 
-        // Получаем расписание психолога
+        // Получаем расписание психолога (без сортировки в SQL)
         var schedules = await _context.PsychologistSchedules
             .Where(s => s.PsychologistId == psychologist.Id)
-            .OrderBy(s => s.DayOfWeek)
-            .ThenBy(s => s.StartTime)
             .ToListAsync();
 
-        // Получаем существующие слоты на ближайшие 2 недели
+        // Сортируем уже в памяти
+        schedules = schedules
+            .OrderBy(s => s.DayOfWeek)
+            .ThenBy(s => s.StartTime)
+            .ToList();
+
+        // Получаем существующие слоты на ближайшие 2 недели (без сортировки в SQL)
         var startDate = DateTime.Today;
         var endDate = startDate.AddDays(14);
-        
+
         var existingSlots = await _context.PsychologistTimeSlots
-            .Where(t => t.PsychologistId == psychologist.Id && 
-                       t.Date >= startDate && 
+            .Where(t => t.PsychologistId == psychologist.Id &&
+                       t.Date >= startDate &&
                        t.Date <= endDate)
+            .ToListAsync();
+
+        // Сортируем уже в памяти
+        existingSlots = existingSlots
             .OrderBy(t => t.Date)
             .ThenBy(t => t.StartTime)
-            .ToListAsync();
+            .ToList();
 
         ViewBag.Psychologist = psychologist;
         ViewBag.Schedules = schedules;
@@ -494,6 +517,7 @@ public class PsychologistController : Controller
 
         return View();
     }
+
 
     [HttpPost("schedule/add")]
     public async Task<IActionResult> AddSchedule(int dayOfWeek, TimeSpan startTime, TimeSpan endTime)
@@ -683,7 +707,7 @@ public class PsychologistController : Controller
         var newSlots = new List<PsychologistTimeSlot>();
 
         // Генерируем слоты
-        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
         {
             var daySchedule = schedules.FirstOrDefault(s => s.DayOfWeek == date.DayOfWeek);
             if (daySchedule != null)
@@ -908,8 +932,8 @@ public class PsychologistController : Controller
         // Получаем существующие слоты
         var existingSlots = await _context.PsychologistTimeSlots
             .Where(t => t.PsychologistId == psychologistId && 
-                       t.Date >= startDate && 
-                       t.Date <= endDate)
+                       t.Date.Date >= startDate.Date && 
+                       t.Date.Date <= endDate.Date)
             .ToListAsync();
 
         // Получаем расписание психолога
@@ -917,50 +941,86 @@ public class PsychologistController : Controller
             .Where(s => s.PsychologistId == psychologistId && s.IsAvailable)
             .ToListAsync();
 
-        var slots = new List<PsychologistTimeSlot>();
+        var newSlotsToAdd = new List<PsychologistTimeSlot>();
 
-        // Генерируем слоты на основе расписания
-        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        // Генерируем слоты на основе расписания, но ограничиваем количество (3-7 слотов)
+        var availableSlotsCount = existingSlots.Count(s => s.IsAvailable && !s.IsBooked);
+        var maxSlotsToGenerate = Math.Max(0, 7 - availableSlotsCount); // Максимум 7 слотов всего
+        
+        if (maxSlotsToGenerate > 0)
         {
-            var daySchedule = schedules.FirstOrDefault(s => s.DayOfWeek == date.DayOfWeek);
-            if (daySchedule != null)
+            var possibleDates = new List<DateTime>();
+            for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
             {
-                var currentTime = daySchedule.StartTime;
-                while (currentTime < daySchedule.EndTime)
+                var daySchedule = schedules.FirstOrDefault(s => s.DayOfWeek == date.DayOfWeek);
+                if (daySchedule != null)
                 {
-                    var slotDateTime = date.Add(currentTime);
-                    
-                    // Проверяем, не существует ли уже такой слот
-                    var existingSlot = existingSlots.FirstOrDefault(s => 
-                        s.Date.Date == date && s.StartTime == currentTime);
-
-                    if (existingSlot == null)
+                    possibleDates.Add(date);
+                }
+            }
+            
+            // Случайно выбираем даты для создания слотов
+            var random = new Random();
+            var selectedDates = possibleDates.OrderBy(x => random.Next()).Take(maxSlotsToGenerate).ToList();
+            
+            foreach (var date in selectedDates)
+            {
+                var daySchedule = schedules.FirstOrDefault(s => s.DayOfWeek == date.DayOfWeek);
+                if (daySchedule != null)
+                {
+                    // Выбираем случайное время в пределах расписания
+                    var hoursAvailable = daySchedule.EndTime.Hours - daySchedule.StartTime.Hours;
+                    if (hoursAvailable > 0)
                     {
-                        // Создаем новый слот
-                        var newSlot = new PsychologistTimeSlot
+                        var randomHour = random.Next(daySchedule.StartTime.Hours, daySchedule.EndTime.Hours);
+                        var startTime = new TimeSpan(randomHour, 0, 0);
+                        
+                        // Проверяем, не существует ли уже такой слот
+                        var existingSlot = existingSlots.FirstOrDefault(s => 
+                            s.Date.Date == date && s.StartTime == startTime);
+
+                        if (existingSlot == null)
                         {
-                            PsychologistId = psychologistId,
-                            Date = date,
-                            StartTime = currentTime,
-                            EndTime = currentTime.Add(TimeSpan.FromHours(1)),
-                            IsAvailable = true,
-                            IsBooked = false,
-                            CreatedAt = DateTime.Now
-                        };
-                        slots.Add(newSlot);
+                            // Создаем новый слот
+                            var newSlot = new PsychologistTimeSlot
+                            {
+                                PsychologistId = psychologistId,
+                                Date = date,
+                                StartTime = startTime,
+                                EndTime = startTime.Add(TimeSpan.FromHours(1)),
+                                IsAvailable = true,
+                                IsBooked = false,
+                                CreatedAt = DateTime.Now
+                            };
+                            newSlotsToAdd.Add(newSlot);
+                            existingSlots.Add(newSlot); // Добавляем в список, чтобы не создавать дубликаты
+                        }
                     }
-                    else
-                    {
-                        slots.Add(existingSlot);
-                    }
-
-                    currentTime = currentTime.Add(TimeSpan.FromHours(1));
                 }
             }
         }
 
-        return slots.OrderBy(s => s.Date).ThenBy(s => s.StartTime).ToList();
+        // Сохраняем новые слоты в базу данных
+        if (newSlotsToAdd.Any())
+        {
+            _context.PsychologistTimeSlots.AddRange(newSlotsToAdd);
+            await _context.SaveChangesAsync();
+        }
+
+        // Возвращаем все слоты (существующие + новые)
+        return existingSlots
+            .Where(s => s.IsAvailable && !s.IsBooked)
+            .OrderBy(s => s.Date)
+            .ThenBy(s => s.StartTime)
+            .ToList();
     }
+}
+
+public class BookAppointmentRequest
+{
+    public int PsychologistId { get; set; }
+    public string AppointmentDate { get; set; } = string.Empty;
+    public string? Notes { get; set; }
 }
 
 public class UpdateStatusRequest

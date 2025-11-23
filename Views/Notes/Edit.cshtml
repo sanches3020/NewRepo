@@ -10,13 +10,13 @@
                 <h4 class="mb-0">✏️ Редактировать заметку</h4>
             </div>
             <div class="card-body">
-                <form method="post">
-                    <input asp-for="Id" type="hidden" />
+                <form id="noteForm">
+                    <input asp-for="Id" type="hidden" id="noteId" />
                     <input asp-for="CreatedAt" type="hidden" />
                     
                     <div class="mb-3">
                         <label asp-for="Content" class="form-label">Текст заметки *</label>
-                        <textarea asp-for="Content" class="form-control" rows="6" placeholder="Опишите свои мысли, чувства, события дня..."></textarea>
+                        <textarea asp-for="Content" class="form-control" id="content" name="content" rows="6" placeholder="Опишите свои мысли, чувства, события дня..." required></textarea>
                         <span asp-validation-for="Content" class="text-danger"></span>
                     </div>
 
@@ -24,37 +24,45 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label asp-for="Emotion" class="form-label">Эмоция</label>
-                                <select asp-for="Emotion" class="form-select">
-                                    <option value="@Sofia.Web.Models.EmotionType.Neutral">😐 Нейтрально</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.VeryHappy">😄 Очень радостно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Happy">😊 Радостно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Calm">😌 Спокойно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Grateful">🙏 Благодарно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Excited">🤩 Взволнованно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Sad">😔 Грустно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.VerySad">😢 Очень грустно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Anxious">😰 Тревожно</option>
-                                    <option value="@Sofia.Web.Models.EmotionType.Frustrated">😤 Раздражённо</option>
+                                <select class="form-select" id="emotion" name="emotion">
+                                    @{
+                                        var currentEmotion = Model.Emotion.ToString();
+                                    }
+                                    <option value="VerySad" selected="@(currentEmotion == "VerySad")">😢 Очень грустно</option>
+                                    <option value="Sad" selected="@(currentEmotion == "Sad")">😔 Грустно</option>
+                                    <option value="Neutral" selected="@(currentEmotion == "Neutral")">😐 Нейтрально</option>
+                                    <option value="Happy" selected="@(currentEmotion == "Happy")">😊 Радостно</option>
+                                    <option value="VeryHappy" selected="@(currentEmotion == "VeryHappy")">😄 Очень радостно</option>
+                                    <option value="Anxious" selected="@(currentEmotion == "Anxious")">😰 Тревожно</option>
+                                    <option value="Calm" selected="@(currentEmotion == "Calm")">😌 Спокойно</option>
+                                    <option value="Excited" selected="@(currentEmotion == "Excited")">🤩 Взволнованно</option>
+                                    <option value="Frustrated" selected="@(currentEmotion == "Frustrated")">😤 Раздражённо</option>
+                                    <option value="Grateful" selected="@(currentEmotion == "Grateful")">🙏 Благодарно</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label asp-for="Activity" class="form-label">Активность</label>
-                                <input asp-for="Activity" class="form-control" placeholder="Работа, учёба, отдых, спорт..." />
+                                <input asp-for="Activity" class="form-control" id="activity" name="activity" placeholder="Работа, учёба, отдых, спорт..." />
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Tags" class="form-label">Теги</label>
-                        <input asp-for="Tags" class="form-control" placeholder="тревога, работа, семья (через запятую)" />
+                        <input asp-for="Tags" class="form-control" id="tags" name="tags" placeholder="тревога, работа, семья (через запятую)" />
                         <div class="form-text">Теги помогут найти заметки по темам</div>
                     </div>
 
                     <div class="mb-3">
+                        <label asp-for="Date" class="form-label">Дата</label>
+                        <input asp-for="Date" type="date" class="form-control" id="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+                    </div>
+
+                    <div class="mb-3">
                         <div class="form-check">
-                            <input asp-for="IsPinned" class="form-check-input" />
+                            <input asp-for="IsPinned" class="form-check-input" id="isPinned" name="isPinned" />
                             <label asp-for="IsPinned" class="form-check-label">
                                 📌 Закрепить заметку
                             </label>
@@ -63,7 +71,7 @@
 
                     <div class="mb-3">
                         <div class="form-check">
-                            <input asp-for="ShareWithPsychologist" class="form-check-input" />
+                            <input asp-for="ShareWithPsychologist" class="form-check-input" id="shareWithPsychologist" name="shareWithPsychologist" />
                             <label asp-for="ShareWithPsychologist" class="form-check-label">
                                 👥 Поделиться с психологом
                             </label>
@@ -72,10 +80,55 @@
 
                     <div class="d-flex justify-content-between">
                         <a href="/notes" class="btn btn-secondary">Отмена</a>
-                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        <button type="button" class="btn btn-primary" onclick="saveNote()">Сохранить изменения</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function saveNote() {
+    const form = document.getElementById('noteForm');
+    const formData = new FormData(form);
+    const noteId = document.getElementById('noteId').value;
+    
+    // Проверяем обязательные поля
+    if (!formData.get('content') || !formData.get('emotion')) {
+        alert('Пожалуйста, заполните все обязательные поля');
+        return;
+    }
+    
+    const data = {
+        content: formData.get('content'),
+        tags: formData.get('tags'),
+        emotion: formData.get('emotion'),
+        activity: formData.get('activity'),
+        date: formData.get('date'),
+        isPinned: formData.get('isPinned') === 'on',
+        shareWithPsychologist: formData.get('shareWithPsychologist') === 'on'
+    };
+    
+    fetch('/notes/edit/' + noteId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            window.location.href = '/notes';
+        } else {
+            alert('Ошибка при сохранении: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+</script>

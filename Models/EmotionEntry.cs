@@ -1,15 +1,19 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sofia.Web.Models
 {
     public class EmotionEntry
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
         public int UserId { get; set; }
 
+        [ForeignKey("UserId")]
         public User User { get; set; } = null!;
 
         [Required]
@@ -20,6 +24,7 @@ namespace Sofia.Web.Models
 
         public string? Note { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        [Required]
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -41,8 +41,36 @@
     }
 
     function validatePassword() {
-        const value = password.value;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_\-+=<>?{ }[\]~]{6,32}$/;
+    const value = password.value;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+=<>?{ }
+
+        \[\]
+
+        ~]{6, 32}$/;
+
+        if (/\s/.test(value)) {
+            password.setCustomValidity('Пароль не должен содержать пробелов');
+        showFieldError(password, 'Без пробелов');
+        return;
+    }
+
+        if (value.length < 6) {
+            password.setCustomValidity('Пароль должен содержать минимум 6 символов');
+        showFieldError(password, 'Минимум 6 символов');
+    } else if (value.length > 32) {
+            password.setCustomValidity('Пароль не должен превышать 32 символа');
+        showFieldError(password, 'Максимум 32 символа');
+    } else if (!passwordRegex.test(value)) {
+            password.setCustomValidity('Пароль должен содержать заглавную, строчную буквы и цифру');
+        showFieldError(password, 'Нужны буквы (верх/низ) + цифра');
+    } else {
+            password.setCustomValidity('');
+        hideFieldError(password);
+    }
+
+        validateConfirmPassword();
+}
+
 
     if (value.length < 6) {
         password.setCustomValidity('Пароль должен содержать минимум 6 символов');

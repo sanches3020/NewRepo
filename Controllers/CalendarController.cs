@@ -31,24 +31,35 @@ public class CalendarController : Controller
             targetDate = new DateTime(year.Value, month.Value, 1);
         }
 
-        var startDate = targetDate.AddDays(-(int)targetDate.DayOfWeek);
+        // Исправляем расчет начальной даты для календаря
+        var firstDayOfMonth = new DateTime(targetDate.Year, targetDate.Month, 1);
+        var startDate = firstDayOfMonth.AddDays(-(int)firstDayOfMonth.DayOfWeek);
+        if (firstDayOfMonth.DayOfWeek == DayOfWeek.Sunday)
+        {
+            startDate = startDate.AddDays(-6);
+        }
+        else
+        {
+            startDate = startDate.AddDays(1);
+        }
         var endDate = startDate.AddDays(41); // 6 weeks
 
         var notes = await _context.Notes
-            .Where(n => n.UserId == userIdInt && n.Date >= startDate && n.Date < endDate)
+            .Where(n => n.UserId == userIdInt && n.Date.Date >= startDate.Date && n.Date.Date < endDate.Date)
             .ToListAsync();
 
         var emotions = await _context.EmotionEntries
-            .Where(e => e.UserId == userIdInt && e.Date >= startDate && e.Date < endDate)
+            .Where(e => e.UserId == userIdInt && e.Date.Date >= startDate.Date && e.Date.Date < endDate.Date)
             .ToListAsync();
 
         var calendarData = new Dictionary<DateTime, List<Note>>();
         var emotionData = new Dictionary<DateTime, List<EmotionEntry>>();
         
-        for (var date = startDate; date < endDate; date = date.AddDays(1))
+        for (var date = startDate.Date; date < endDate.Date; date = date.AddDays(1))
         {
-            calendarData[date] = notes.Where(n => n.Date.Date == date.Date).ToList();
-            emotionData[date] = emotions.Where(e => e.Date.Date == date.Date).ToList();
+            var dateKey = date.Date;
+            calendarData[dateKey] = notes.Where(n => n.Date.Date == dateKey).ToList();
+            emotionData[dateKey] = emotions.Where(e => e.Date.Date == dateKey).ToList();
         }
 
         ViewBag.CurrentMonth = targetDate;
@@ -61,7 +72,7 @@ public class CalendarController : Controller
     }
 
     [HttpPost("save-emotion")]
-    public async Task<IActionResult> SaveEmotion([FromBody] SaveEmotionRequest request)
+    public async Task<IActionResult> SaveEmotion([FromBody] SaveEmotionRequest? request)
     {
         var userId = HttpContext.Session.GetString("UserId");
         if (string.IsNullOrEmpty(userId))
@@ -69,8 +80,24 @@ public class CalendarController : Controller
             return Json(new { success = false, message = "Пользователь не авторизован" });
         }
 
+        if (request == null || string.IsNullOrEmpty(request.Date))
+        {
+            return Json(new { success = false, message = "Дата не указана" });
+        }
+
+        if (!DateTime.TryParse(request.Date, out var date))
+        {
+            return Json(new { success = false, message = "Неверный формат даты" });
+        }
+        date = date.Date; // Нормализуем дату, убирая время
+
+        // Парсим EmotionType из строки
+        if (!Enum.TryParse<EmotionType>(request.Emotion, true, out var emotionType))
+        {
+            return Json(new { success = false, message = "Неверный тип эмоции: " + request.Emotion });
+        }
+
         var userIdInt = int.Parse(userId);
-        var date = DateTime.Parse(request.Date);
 
         // Проверяем, сколько эмоций уже записано на этот день
         var existingEmotions = await _context.EmotionEntries
@@ -85,7 +112,7 @@ public class CalendarController : Controller
         {
             UserId = userIdInt,
             Date = date,
-            Emotion = request.Emotion,
+            Emotion = emotionType,
             Note = request.Note,
             CreatedAt = DateTime.Now
         };
@@ -95,6 +122,7 @@ public class CalendarController : Controller
 
         return Json(new { success = true, message = "Эмоция сохранена!" });
     }
+
 
     [HttpGet("day-details")]
     public async Task<IActionResult> DayDetails(string date)
@@ -106,20 +134,24 @@ public class CalendarController : Controller
         }
 
         var userIdInt = int.Parse(userId);
-        var targetDate = DateTime.Parse(date);
+        if (!DateTime.TryParse(date, out var targetDate))
+        {
+            return Json(new { success = false, message = "Неверный формат даты" });
+        }
+        targetDate = targetDate.Date;
 
         var notes = await _context.Notes
-            .Where(n => n.UserId == userIdInt && n.Date.Date == targetDate.Date)
+            .Where(n => n.UserId == userIdInt && n.Date.Date == targetDate)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
 
         var emotions = await _context.EmotionEntries
-            .Where(e => e.UserId == userIdInt && e.Date.Date == targetDate.Date)
+            .Where(e => e.UserId == userIdInt && e.Date.Date == targetDate)
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
 
         var goals = await _context.Goals
-            .Where(g => g.UserId == userIdInt && g.Date.Date == targetDate.Date)
+            .Where(g => g.UserId == userIdInt && g.Date.Date == targetDate)
             .ToListAsync();
 
         ViewBag.Date = targetDate;
@@ -149,9 +181,3 @@ public class CalendarController : Controller
     }
 }
 
-public class SaveEmotionRequest
-{
-    public string Date { get; set; } = string.Empty;
-    public EmotionType Emotion { get; set; }
-    public string? Note { get; set; }
-}

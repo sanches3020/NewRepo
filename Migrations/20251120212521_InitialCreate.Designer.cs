@@ -11,7 +11,7 @@ using Sofia.Web.Data;
 namespace Sofia.Web.Migrations
 {
     [DbContext(typeof(SofiaDbContext))]
-    [Migration("20251029060952_InitialCreate")]
+    [Migration("20251120212521_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -98,36 +98,36 @@ namespace Sofia.Web.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 29, 9, 9, 52, 384, DateTimeKind.Local).AddTicks(9534),
-                            Date = new DateTime(2025, 10, 29, 0, 0, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Date = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Выполнять хотя бы одну практику в день",
                             IsFromPsychologist = false,
                             Progress = 30,
-                            Status = 1,
+                            Status = 0,
                             Title = "Ежедневные практики",
                             Type = "Wellness"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 29, 9, 9, 52, 386, DateTimeKind.Local).AddTicks(2405),
-                            Date = new DateTime(2025, 10, 29, 0, 0, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Date = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Записывать мысли и эмоции каждый день",
                             IsFromPsychologist = false,
                             Progress = 60,
-                            Status = 1,
+                            Status = 0,
                             Title = "Ведение дневника",
                             Type = "Personal"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 10, 29, 9, 9, 52, 386, DateTimeKind.Local).AddTicks(2408),
-                            Date = new DateTime(2025, 10, 29, 0, 0, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Date = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Применять техники КПТ при тревоге",
                             IsFromPsychologist = true,
                             Progress = 25,
-                            Status = 1,
+                            Status = 0,
                             Title = "Работа с тревогой",
                             Type = "Therapy"
                         });
@@ -140,6 +140,7 @@ namespace Sofia.Web.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Activity")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Content")
@@ -163,9 +164,13 @@ namespace Sofia.Web.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Tags")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("UserId")
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -311,7 +316,7 @@ namespace Sofia.Web.Migrations
                             Description = "Техника успокоения через дыхание",
                             DurationMinutes = 5,
                             Instructions = "Вдох на 4 счета, задержка на 7, выдох на 8",
-                            IsActive = true,
+                            IsActive = false,
                             Name = "Дыхание 4-7-8"
                         },
                         new
@@ -321,7 +326,7 @@ namespace Sofia.Web.Migrations
                             Description = "Постепенное расслабление мышц",
                             DurationMinutes = 15,
                             Instructions = "Напрягайте и расслабляйте каждую группу мышц",
-                            IsActive = true,
+                            IsActive = false,
                             Name = "Прогрессивная релаксация"
                         },
                         new
@@ -331,7 +336,7 @@ namespace Sofia.Web.Migrations
                             Description = "Создание мысленного убежища",
                             DurationMinutes = 10,
                             Instructions = "Представьте место, где чувствуете себя в безопасности",
-                            IsActive = true,
+                            IsActive = false,
                             Name = "Визуализация безопасного места"
                         },
                         new
@@ -341,7 +346,7 @@ namespace Sofia.Web.Migrations
                             Description = "Анализ и изменение негативных мыслей",
                             DurationMinutes = 20,
                             Instructions = "Запишите мысль, оцените её реалистичность, найдите альтернативу",
-                            IsActive = true,
+                            IsActive = false,
                             Name = "КПТ: Работа с мыслями"
                         },
                         new
@@ -351,7 +356,7 @@ namespace Sofia.Web.Migrations
                             Description = "Фокус на настоящем моменте",
                             DurationMinutes = 10,
                             Instructions = "Следите за дыханием, возвращайте внимание к настоящему",
-                            IsActive = true,
+                            IsActive = false,
                             Name = "Медитация осознанности"
                         });
                 });
@@ -422,50 +427,23 @@ namespace Sofia.Web.Migrations
                         new
                         {
                             Id = 1,
-                            ContactEmail = "anna.petrova@psychology.ru",
-                            ContactPhone = "+7 (495) 123-45-67",
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Опытный психолог с 8-летним стажем",
-                            Education = "МГУ",
-                            Experience = "8 лет",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Languages = "Русский, английский",
-                            Methods = "КПТ, осознанность",
-                            Name = "Анна Петрова",
-                            PricePerHour = 3000m,
-                            Specialization = "КПТ, тревожные расстройства"
+                            Name = "Ирина Смирнова"
                         },
                         new
                         {
                             Id = 2,
-                            ContactEmail = "mikhail.sokolov@family-psych.ru",
-                            ContactPhone = "+7 (812) 234-56-78",
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "12 лет опыта",
-                            Education = "СПбГУ",
-                            Experience = "12 лет",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Languages = "Русский, французский",
-                            Methods = "Системный подход",
-                            Name = "Михаил Соколов",
-                            PricePerHour = 4000m,
-                            Specialization = "Семейная терапия"
+                            Name = "Алексей Иванов"
                         },
                         new
                         {
                             Id = 3,
-                            ContactEmail = "elena.volkova@trauma-therapy.ru",
-                            ContactPhone = "+7 (495) 345-67-89",
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "10 лет опыта",
-                            Education = "МГПУ",
-                            Experience = "10 лет",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Languages = "Русский, немецкий",
-                            Methods = "EMDR, соматика",
-                            Name = "Елена Волкова",
-                            PricePerHour = 5000m,
-                            Specialization = "EMDR терапия"
+                            Name = "Мария Коваль"
                         });
                 });
 
@@ -516,15 +494,33 @@ namespace Sofia.Web.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("PsychologistId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Rating")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PsychologistId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("PsychologistReviews");
 
@@ -533,7 +529,9 @@ namespace Sofia.Web.Migrations
                         {
                             Id = 1,
                             Comment = "Отличный специалист!",
-                            CreatedAt = new DateTime(2024, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsVisible = true,
                             PsychologistId = 1,
                             Rating = 5
                         },
@@ -541,7 +539,9 @@ namespace Sofia.Web.Migrations
                         {
                             Id = 2,
                             Comment = "Профессиональный подход",
-                            CreatedAt = new DateTime(2024, 1, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsVisible = true,
                             PsychologistId = 1,
                             Rating = 4
                         },
@@ -549,7 +549,9 @@ namespace Sofia.Web.Migrations
                         {
                             Id = 3,
                             Comment = "Помог решить семейные проблемы",
-                            CreatedAt = new DateTime(2024, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsVisible = true,
                             PsychologistId = 2,
                             Rating = 5
                         },
@@ -557,7 +559,9 @@ namespace Sofia.Web.Migrations
                         {
                             Id = 4,
                             Comment = "EMDR терапия действительно работает",
-                            CreatedAt = new DateTime(2024, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsVisible = true,
                             PsychologistId = 3,
                             Rating = 5
                         });
@@ -681,6 +685,82 @@ namespace Sofia.Web.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Sofia.Web.Models.UserStatistics", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ActiveGoalsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AppointmentsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("AverageEmotionScore")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("AverageGoalProgress")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("CompletedAppointmentsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CompletedGoalsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CurrentStreak")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DominantEmotion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EmotionsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GoalsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LongestStreak")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("NotesCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PinnedNotesCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PracticesCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SharedNotesCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalActivityDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalPracticeMinutes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserStatistics");
+                });
+
             modelBuilder.Entity("Sofia.Web.Models.EmotionEntry", b =>
                 {
                     b.HasOne("Sofia.Web.Models.User", "User")
@@ -707,7 +787,8 @@ namespace Sofia.Web.Migrations
                     b.HasOne("Sofia.Web.Models.User", "User")
                         .WithMany("Notes")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -748,7 +829,14 @@ namespace Sofia.Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Sofia.Web.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Psychologist");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sofia.Web.Models.PsychologistSchedule", b =>
@@ -778,6 +866,17 @@ namespace Sofia.Web.Migrations
                     b.Navigation("BookedByUser");
 
                     b.Navigation("Psychologist");
+                });
+
+            modelBuilder.Entity("Sofia.Web.Models.UserStatistics", b =>
+                {
+                    b.HasOne("Sofia.Web.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sofia.Web.Models.Psychologist", b =>

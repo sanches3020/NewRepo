@@ -157,14 +157,15 @@ namespace Sofia.Web.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Content = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
-                    Tags = table.Column<string>(type: "TEXT", nullable: true),
+                    Tags = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     Emotion = table.Column<int>(type: "INTEGER", nullable: false),
-                    Activity = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Activity = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     IsPinned = table.Column<bool>(type: "INTEGER", nullable: false),
                     ShareWithPsychologist = table.Column<bool>(type: "INTEGER", nullable: false),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: true)
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,6 +210,45 @@ namespace Sofia.Web.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserStatistics",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    NotesCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    PinnedNotesCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    SharedNotesCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    GoalsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    CompletedGoalsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    ActiveGoalsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    AverageGoalProgress = table.Column<double>(type: "REAL", nullable: false),
+                    EmotionsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    DominantEmotion = table.Column<int>(type: "INTEGER", nullable: true),
+                    AverageEmotionScore = table.Column<double>(type: "REAL", nullable: false),
+                    PracticesCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    TotalPracticeMinutes = table.Column<int>(type: "INTEGER", nullable: false),
+                    AppointmentsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    CompletedAppointmentsCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    TotalActivityDays = table.Column<int>(type: "INTEGER", nullable: false),
+                    CurrentStreak = table.Column<int>(type: "INTEGER", nullable: false),
+                    LongestStreak = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserStatistics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserStatistics_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PsychologistAppointments",
                 columns: table => new
                 {
@@ -245,9 +285,14 @@ namespace Sofia.Web.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     PsychologistId = table.Column<int>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: true),
                     Rating = table.Column<int>(type: "INTEGER", nullable: false),
                     Comment = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Title = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    IsVisible = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsApproved = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -258,6 +303,12 @@ namespace Sofia.Web.Migrations
                         principalTable: "Psychologists",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PsychologistReviews_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -321,9 +372,9 @@ namespace Sofia.Web.Migrations
                 columns: new[] { "Id", "CreatedAt", "Date", "Description", "IsFromPsychologist", "Progress", "Status", "TargetDate", "Title", "Type", "UserId" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 10, 29, 9, 9, 52, 384, DateTimeKind.Local).AddTicks(9534), new DateTime(2025, 10, 29, 0, 0, 0, 0, DateTimeKind.Local), "Выполнять хотя бы одну практику в день", false, 30, 1, null, "Ежедневные практики", "Wellness", null },
-                    { 2, new DateTime(2025, 10, 29, 9, 9, 52, 386, DateTimeKind.Local).AddTicks(2405), new DateTime(2025, 10, 29, 0, 0, 0, 0, DateTimeKind.Local), "Записывать мысли и эмоции каждый день", false, 60, 1, null, "Ведение дневника", "Personal", null },
-                    { 3, new DateTime(2025, 10, 29, 9, 9, 52, 386, DateTimeKind.Local).AddTicks(2408), new DateTime(2025, 10, 29, 0, 0, 0, 0, DateTimeKind.Local), "Применять техники КПТ при тревоге", true, 25, 1, null, "Работа с тревогой", "Therapy", null }
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Выполнять хотя бы одну практику в день", false, 30, 0, null, "Ежедневные практики", "Wellness", null },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Записывать мысли и эмоции каждый день", false, 60, 0, null, "Ведение дневника", "Personal", null },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Применять техники КПТ при тревоге", true, 25, 0, null, "Работа с тревогой", "Therapy", null }
                 });
 
             migrationBuilder.InsertData(
@@ -331,11 +382,11 @@ namespace Sofia.Web.Migrations
                 columns: new[] { "Id", "Category", "Description", "DurationMinutes", "Instructions", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, "Breathing", "Техника успокоения через дыхание", 5, "Вдох на 4 счета, задержка на 7, выдох на 8", true, "Дыхание 4-7-8" },
-                    { 2, "Relaxation", "Постепенное расслабление мышц", 15, "Напрягайте и расслабляйте каждую группу мышц", true, "Прогрессивная релаксация" },
-                    { 3, "Visualization", "Создание мысленного убежища", 10, "Представьте место, где чувствуете себя в безопасности", true, "Визуализация безопасного места" },
-                    { 4, "CBT", "Анализ и изменение негативных мыслей", 20, "Запишите мысль, оцените её реалистичность, найдите альтернативу", true, "КПТ: Работа с мыслями" },
-                    { 5, "Mindfulness", "Фокус на настоящем моменте", 10, "Следите за дыханием, возвращайте внимание к настоящему", true, "Медитация осознанности" }
+                    { 1, "Breathing", "Техника успокоения через дыхание", 5, "Вдох на 4 счета, задержка на 7, выдох на 8", false, "Дыхание 4-7-8" },
+                    { 2, "Relaxation", "Постепенное расслабление мышц", 15, "Напрягайте и расслабляйте каждую группу мышц", false, "Прогрессивная релаксация" },
+                    { 3, "Visualization", "Создание мысленного убежища", 10, "Представьте место, где чувствуете себя в безопасности", false, "Визуализация безопасного места" },
+                    { 4, "CBT", "Анализ и изменение негативных мыслей", 20, "Запишите мысль, оцените её реалистичность, найдите альтернативу", false, "КПТ: Работа с мыслями" },
+                    { 5, "Mindfulness", "Фокус на настоящем моменте", 10, "Следите за дыханием, возвращайте внимание к настоящему", false, "Медитация осознанности" }
                 });
 
             migrationBuilder.InsertData(
@@ -343,20 +394,20 @@ namespace Sofia.Web.Migrations
                 columns: new[] { "Id", "ContactEmail", "ContactPhone", "CreatedAt", "Description", "Education", "Experience", "IsActive", "Languages", "Methods", "Name", "PricePerHour", "Specialization", "UserId" },
                 values: new object[,]
                 {
-                    { 1, "anna.petrova@psychology.ru", "+7 (495) 123-45-67", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Опытный психолог с 8-летним стажем", "МГУ", "8 лет", true, "Русский, английский", "КПТ, осознанность", "Анна Петрова", 3000m, "КПТ, тревожные расстройства", null },
-                    { 2, "mikhail.sokolov@family-psych.ru", "+7 (812) 234-56-78", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "12 лет опыта", "СПбГУ", "12 лет", true, "Русский, французский", "Системный подход", "Михаил Соколов", 4000m, "Семейная терапия", null },
-                    { 3, "elena.volkova@trauma-therapy.ru", "+7 (495) 345-67-89", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "10 лет опыта", "МГПУ", "10 лет", true, "Русский, немецкий", "EMDR, соматика", "Елена Волкова", 5000m, "EMDR терапия", null }
+                    { 1, null, null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, true, null, null, "Ирина Смирнова", null, null, null },
+                    { 2, null, null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, true, null, null, "Алексей Иванов", null, null, null },
+                    { 3, null, null, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, true, null, null, "Мария Коваль", null, null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "PsychologistReviews",
-                columns: new[] { "Id", "Comment", "CreatedAt", "PsychologistId", "Rating" },
+                columns: new[] { "Id", "Comment", "CreatedAt", "IsApproved", "IsVisible", "PsychologistId", "Rating", "Title", "UpdatedAt", "UserId" },
                 values: new object[,]
                 {
-                    { 1, "Отличный специалист!", new DateTime(2024, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 5 },
-                    { 2, "Профессиональный подход", new DateTime(2024, 1, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 1, 4 },
-                    { 3, "Помог решить семейные проблемы", new DateTime(2024, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 5 },
-                    { 4, "EMDR терапия действительно работает", new DateTime(2024, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), 3, 5 }
+                    { 1, "Отличный специалист!", new DateTime(2024, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc), true, true, 1, 5, null, null, null },
+                    { 2, "Профессиональный подход", new DateTime(2024, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, true, 1, 4, null, null, null },
+                    { 3, "Помог решить семейные проблемы", new DateTime(2024, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc), true, true, 2, 5, null, null, null },
+                    { 4, "EMDR терапия действительно работает", new DateTime(2024, 1, 20, 0, 0, 0, 0, DateTimeKind.Utc), true, true, 3, 5, null, null, null }
                 });
 
             migrationBuilder.CreateIndex(
@@ -390,6 +441,11 @@ namespace Sofia.Web.Migrations
                 column: "PsychologistId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PsychologistReviews_UserId",
+                table: "PsychologistReviews",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Psychologists_UserId",
                 table: "Psychologists",
                 column: "UserId",
@@ -409,6 +465,11 @@ namespace Sofia.Web.Migrations
                 name: "IX_PsychologistTimeSlots_PsychologistId",
                 table: "PsychologistTimeSlots",
                 column: "PsychologistId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserStatistics_UserId",
+                table: "UserStatistics",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -443,6 +504,9 @@ namespace Sofia.Web.Migrations
 
             migrationBuilder.DropTable(
                 name: "PsychologistTimeSlots");
+
+            migrationBuilder.DropTable(
+                name: "UserStatistics");
 
             migrationBuilder.DropTable(
                 name: "Psychologists");

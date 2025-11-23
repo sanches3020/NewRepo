@@ -46,7 +46,7 @@ public class NotesController : Controller
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> Create(string content, string? tags, EmotionType emotion, string? activity, DateTime? date, bool isPinned = false, bool shareWithPsychologist = false)
+    public async Task<IActionResult> Create([FromBody] CreateNoteRequest? request)
     {
         var userId = HttpContext.Session.GetString("UserId");
         if (string.IsNullOrEmpty(userId))
@@ -54,19 +54,31 @@ public class NotesController : Controller
             return Json(new { success = false, message = "Пользователь не авторизован" });
         }
 
+        if (request == null || string.IsNullOrEmpty(request.Content))
+        {
+            return Json(new { success = false, message = "Содержание заметки обязательно" });
+        }
+
+        if (!Enum.TryParse<EmotionType>(request.Emotion, true, out var emotionType))
+        {
+            return Json(new { success = false, message = "Неверный тип эмоции" });
+        }
+
         var userIdInt = int.Parse(userId);
-        var targetDate = date ?? DateTime.Today;
+        var targetDate = !string.IsNullOrEmpty(request.Date) && DateTime.TryParse(request.Date, out var parsedDate) 
+            ? parsedDate 
+            : DateTime.Today;
 
         var note = new Note
         {
             UserId = userIdInt,
-            Content = content,
-            Tags = tags,
-            Emotion = emotion,
-            Activity = activity,
+            Content = request.Content,
+            Tags = request.Tags,
+            Emotion = emotionType,
+            Activity = request.Activity,
             Date = targetDate,
-            IsPinned = isPinned,
-            ShareWithPsychologist = shareWithPsychologist,
+            IsPinned = request.IsPinned,
+            ShareWithPsychologist = request.ShareWithPsychologist,
             CreatedAt = DateTime.Now
         };
 
@@ -98,12 +110,22 @@ public class NotesController : Controller
     }
 
     [HttpPost("edit/{id}")]
-    public async Task<IActionResult> Edit(int id, string content, string? tags, EmotionType emotion, string? activity, DateTime? date, bool isPinned = false, bool shareWithPsychologist = false)
+    public async Task<IActionResult> Edit(int id, [FromBody] CreateNoteRequest? request)
     {
         var userId = HttpContext.Session.GetString("UserId");
         if (string.IsNullOrEmpty(userId))
         {
             return Json(new { success = false, message = "Пользователь не авторизован" });
+        }
+
+        if (request == null || string.IsNullOrEmpty(request.Content))
+        {
+            return Json(new { success = false, message = "Содержание заметки обязательно" });
+        }
+
+        if (!Enum.TryParse<EmotionType>(request.Emotion, true, out var emotionType))
+        {
+            return Json(new { success = false, message = "Неверный тип эмоции" });
         }
 
         var userIdInt = int.Parse(userId);
@@ -115,13 +137,17 @@ public class NotesController : Controller
             return Json(new { success = false, message = "Заметка не найдена" });
         }
 
-        note.Content = content;
-        note.Tags = tags;
-        note.Emotion = emotion;
-        note.Activity = activity;
-        note.Date = date ?? note.Date;
-        note.IsPinned = isPinned;
-        note.ShareWithPsychologist = shareWithPsychologist;
+        note.Content = request.Content;
+        note.Tags = request.Tags;
+        note.Emotion = emotionType;
+        note.Activity = request.Activity;
+        if (!string.IsNullOrEmpty(request.Date) && DateTime.TryParse(request.Date, out var parsedDate))
+        {
+            note.Date = parsedDate;
+        }
+        note.IsPinned = request.IsPinned;
+        note.ShareWithPsychologist = request.ShareWithPsychologist;
+        note.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
 
@@ -187,7 +213,7 @@ public class NotesController : Controller
 
         var userIdInt = int.Parse(userId);
         var today = DateTime.Today;
-
+                
         var todayNotes = await _context.Notes
             .CountAsync(n => n.UserId == userIdInt && n.Date.Date == today);
 

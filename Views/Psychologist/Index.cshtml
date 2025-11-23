@@ -203,10 +203,16 @@ function submitBooking() {
     const form = document.getElementById('bookingForm');
     const formData = new FormData(form);
     
+    const appointmentDateValue = formData.get('appointmentDate');
+    if (!appointmentDateValue) {
+        alert('Пожалуйста, выберите дату и время');
+        return;
+    }
+    
     const data = {
         psychologistId: parseInt(formData.get('psychologistId')),
-        appointmentDate: formData.get('appointmentDate'),
-        notes: formData.get('notes')
+        appointmentDate: appointmentDateValue,
+        notes: formData.get('notes') || ''
     };
     
     fetch('/psychologist/book', {
@@ -222,8 +228,10 @@ function submitBooking() {
             alert(result.message);
             bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
             form.reset();
+            // Перезагружаем страницу, чтобы обновить список
+            setTimeout(() => window.location.reload(), 500);
         } else {
-            alert('Ошибка при записи на консультацию');
+            alert('Ошибка при записи: ' + (result.message || 'Неизвестная ошибка'));
         }
     })
     .catch(error => {

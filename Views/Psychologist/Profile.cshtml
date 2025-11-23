@@ -419,18 +419,20 @@ let selectedSlot = null;
 function selectTimeSlot(date, time) {
     // Убираем выделение с предыдущего слота
     document.querySelectorAll('.time-slot-btn').forEach(btn => {
-        btn.classList.remove('btn-primary');
+        btn.classList.remove('btn-primary', 'active');
         btn.classList.add('btn-outline-primary');
     });
 
     // Выделяем выбранный слот
     const selectedBtn = event.target.closest('.time-slot-btn');
-    selectedBtn.classList.remove('btn-outline-primary');
-    selectedBtn.classList.add('btn-primary');
+    if (selectedBtn && !selectedBtn.disabled) {
+        selectedBtn.classList.remove('btn-outline-primary');
+        selectedBtn.classList.add('btn-primary', 'active');
 
-    // Сохраняем выбранное время
-    selectedSlot = date + 'T' + time;
-    document.getElementById('selectedDateTime').value = selectedSlot;
+        // Сохраняем выбранное время в формате ISO
+        const selectedSlot = date + 'T' + time;
+        document.getElementById('selectedDateTime').value = selectedSlot;
+    }
 }
 
 function submitReview(psychologistId) {
@@ -473,34 +475,38 @@ function submitReview(psychologistId) {
 
 // Обновляем функцию записи
 function bookAppointment() {
-    if (!selectedSlot) {
+    const selectedDateTime = document.getElementById('selectedDateTime').value;
+    if (!selectedDateTime) {
         alert('Пожалуйста, выберите время для записи');
         return;
     }
 
-    const form = document.getElementById('bookingForm');
-    const formData = new FormData(form);
-    
-    const data = {
-        psychologistId: parseInt(formData.get('psychologistId')),
-        appointmentDate: selectedSlot,
-        notes: formData.get('notes')
-    };
+    const psychologistId = document.getElementById('psychologistId').value;
+    const notes = document.getElementById('notes').value;
+
+    // Форматируем дату в формат ISO
+    const appointmentDateTime = new Date(selectedDateTime);
     
     fetch('/psychologist/book', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            psychologistId: parseInt(psychologistId),
+            appointmentDate: appointmentDateTime.toISOString(),
+            notes: notes || ''
+        })
     })
     .then(response => response.json())
     .then(result => {
         if (result.success) {
             alert(result.message);
-            location.reload();
+            setTimeout(() => {
+                window.location.href = '/psychologist/appointments';
+            }, 1000);
         } else {
-            alert('Ошибка: ' + result.message);
+            alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
         }
     })
     .catch(error => {

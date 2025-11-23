@@ -143,10 +143,28 @@ public class AuthController : Controller
                 Methods = methods,
                 PricePerHour = pricePerHour ?? 3000,
                 ContactPhone = contactPhone,
+                ContactEmail = email,
                 IsActive = true,
                 CreatedAt = DateTime.Now
             };
             _context.Psychologists.Add(psychologist);
+            await _context.SaveChangesAsync();
+            
+            // Создаем базовое расписание для нового психолога (понедельник-пятница, 10:00-18:00)
+            var schedules = new List<PsychologistSchedule>();
+            for (int day = 1; day <= 5; day++) // Понедельник-Пятница
+            {
+                schedules.Add(new PsychologistSchedule
+                {
+                    PsychologistId = psychologist.Id,
+                    DayOfWeek = (DayOfWeek)day,
+                    StartTime = new TimeSpan(10, 0, 0),
+                    EndTime = new TimeSpan(18, 0, 0),
+                    IsAvailable = true,
+                    CreatedAt = DateTime.Now
+                });
+            }
+            _context.PsychologistSchedules.AddRange(schedules);
             await _context.SaveChangesAsync();
             
             // Сохраняем ID психолога в сессию
