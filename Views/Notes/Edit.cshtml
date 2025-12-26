@@ -58,6 +58,7 @@
                     <div class="mb-3">
                         <label asp-for="Date" class="form-label">Дата</label>
                         <input asp-for="Date" type="date" class="form-control" id="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+                        <div id="dateHint" class="form-text mt-1">Дата: @Model.Date.ToString("dd.MM.yyyy")</div>
                     </div>
 
                     <div class="mb-3">
@@ -93,13 +94,22 @@ function saveNote() {
     const form = document.getElementById('noteForm');
     const formData = new FormData(form);
     const noteId = document.getElementById('noteId').value;
-    
+
     // Проверяем обязательные поля
     if (!formData.get('content') || !formData.get('emotion')) {
         alert('Пожалуйста, заполните все обязательные поля');
         return;
     }
-    
+
+    // Validate date and possibly confirm when too far
+    const dateStr = formData.get('date');
+    const dateCheck = evaluateDate(dateStr);
+    if (dateCheck.level === 'red') {
+        if (!confirm('Вы выбрали очень далёкую дату. Уверены, что хотите сохранить заметку?')) {
+            return;
+        }
+    }
+
     const data = {
         content: formData.get('content'),
         tags: formData.get('tags'),
@@ -109,7 +119,7 @@ function saveNote() {
         isPinned: formData.get('isPinned') === 'on',
         shareWithPsychologist: formData.get('shareWithPsychologist') === 'on'
     };
-    
+
     fetch('/notes/edit/' + noteId, {
         method: 'POST',
         headers: {
@@ -131,4 +141,40 @@ function saveNote() {
         alert('Произошла ошибка');
     });
 }
+
+// Date evaluation helpers
+function evaluateDate(dateStr) {
+    const today = new Date();
+    let d = dateStr ? new Date(dateStr) : today;
+    if (isNaN(d)) d = today;
+    const diffMs = Math.abs(today - d);
+    const diffYears = diffMs / (1000 * 60 * 60 * 24 * 365);
+
+    if (diffYears <= 1) {
+        return { level: 'green', message: 'Дата в пределах года — хорошая практическая запись', color: '#16a34a' };
+    }
+    if (diffYears <= 5) {
+        return { level: 'yellow', message: 'Дата в пределах 1–5 лет — проверьте, актуальна ли запись', color: '#f59e0b' };
+    }
+    return { level: 'red', message: 'Вы выбрали очень далёкую дату — это не рекомендуется', color: '#ef4444' };
+}
+
+function updateDateHint(dateStr) {
+    const hint = document.getElementById('dateHint');
+    if (!hint) return;
+    const res = evaluateDate(dateStr);
+    hint.textContent = res.message;
+    hint.style.color = res.color;
+}
+
+// Hook date input change
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('date');
+    if (dateInput) {
+        updateDateHint(dateInput.value);
+        dateInput.addEventListener('change', function() {
+            updateDateHint(this.value);
+        });
+    }
+});
 </script>

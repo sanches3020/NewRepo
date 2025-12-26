@@ -1,0 +1,84 @@
+/* System-level layout and alignment helpers */
+:root{
+    --system-max-width: 1100px;
+    --system-gutter: 16px;
+    --card-padding: 18px;
+    --form-height: 44px;
+    --modal-max-width: 840px;
+}
+
+/* Make sizing predictable */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Constrain main container to a stable width and center content */
+.container {
+    max-width: var(--system-max-width) !important;
+    padding-left: var(--system-gutter) !important;
+    padding-right: var(--system-gutter) !important;
+}
+
+/* Cards: consistent padding and prevent content overflow */
+.card {
+    overflow: visible; /* allow inner elements to extend (e.g., dropdowns) */
+}
+.card .card-body {
+    padding: var(--card-padding) !important;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+/* Forms: uniform control sizing and responsive width */
+.form-control, .form-select, textarea.form-control {
+    min-height: var(--form-height);
+    padding: 0.6rem 0.9rem;
+    width: 100%;
+}
+
+/* Buttons: consistent height and padding */
+.btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Ensure modals are readable and never overflow viewport */
+.modal-dialog {
+    max-width: var(--modal-max-width);
+    margin: 1.25rem auto;
+}
+.modal-content {
+    max-height: calc(100vh - 120px);
+    overflow: hidden;
+}
+.modal-body {
+    overflow-y: auto;
+    max-height: calc(100vh - 220px);
+}
+
+/* Tables responsive improved */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent long words from breaking layout */
+.break-word {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Safe cards for narrow screens */
+@media (max-width: 576px){
+    :root{ --system-max-width: 100%; }
+    .card .card-body { padding: 12px !important; }
+    .container { padding-left: 12px !important; padding-right: 12px !important; }
+}
+
+/* Small helpers to align consistent spacing */
+.section-header { margin: 0 0 12px 0; }
+.section-subtext { color: #6b7280; font-size: 0.95rem; }
+
+/* Ensure dropdown menus are not clipped inside overflow hidden parents */
+.dropdown, .btn-group { overflow: visible; }
+.dropdown-menu { z-index: 2000; }
