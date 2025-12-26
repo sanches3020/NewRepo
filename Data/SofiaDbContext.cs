@@ -20,6 +20,15 @@ public class SofiaDbContext : DbContext
     public DbSet<NotificationSettings> NotificationSettings { get; set; }
     public DbSet<EmotionEntry> EmotionEntries { get; set; }
     public DbSet<UserStatistics> UserStatistics { get; set; }
+    // Tests / assessments
+    public DbSet<Test> Tests { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<Answer> Answers { get; set; }
+    public DbSet<UserAnswer> UserAnswers { get; set; }
+    public DbSet<TestResult> TestResults { get; set; }
+
+    // Interpretation thresholds per test (percent-based)
+    public DbSet<TestInterpretation> TestInterpretations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -147,6 +156,79 @@ public class SofiaDbContext : DbContext
                 IsActive = true,
                 CreatedAt = createdDate
             }
+        );
+
+        // --- SEED: Built-in Tests (Depression, Anxiety, Stress) ---
+        modelBuilder.Entity<Test>().HasData(
+            new Test { Id = 1001, Name = "Шкала депрессии (PHQ-2)", Description = "Краткий скрининг симптомов депрессии", Type = Models.TestType.BuiltIn },
+            new Test { Id = 1002, Name = "Шкала тревожности (GAD-2)", Description = "Краткий скрининг тревожности", Type = Models.TestType.BuiltIn },
+            new Test { Id = 1003, Name = "Шкала стресса (PSS-4)", Description = "Краткая шкала восприятия стресса", Type = Models.TestType.BuiltIn }
+        );
+
+        // Questions for PHQ-2 (1001)
+        modelBuilder.Entity<Question>().HasData(
+            new Question { Id = 2001, TestId = 1001, Text = "За последние 2 недели: испытывали ли вы слабый интерес или удовольствие от занятий?" , Type = Models.AnswerType.SingleChoice},
+            new Question { Id = 2002, TestId = 1001, Text = "За последние 2 недели: чувствовали ли вы себя подавленным/унылым?" , Type = Models.AnswerType.SingleChoice}
+        );
+
+        // Questions for GAD-2 (1002)
+        modelBuilder.Entity<Question>().HasData(
+            new Question { Id = 2101, TestId = 1002, Text = "За последние 2 недели: сколько вы беспокоились и тревожились?" , Type = Models.AnswerType.SingleChoice},
+            new Question { Id = 2102, TestId = 1002, Text = "За последние 2 недели: было ли вам трудно перестать беспокоиться или контролировать беспокойство?" , Type = Models.AnswerType.SingleChoice}
+        );
+
+        // Questions for PSS-4 (1003)
+        modelBuilder.Entity<Question>().HasData(
+            new Question { Id = 2201, TestId = 1003, Text = "На прошлой неделе вы чувствовали, что не в состоянии контролировать важные вещи в жизни?" , Type = Models.AnswerType.SingleChoice},
+            new Question { Id = 2202, TestId = 1003, Text = "На прошлой неделе вы чувствовали напряжение и нервозность?" , Type = Models.AnswerType.SingleChoice},
+            new Question { Id = 2203, TestId = 1003, Text = "На прошлой неделе вы чувствовали, что справляетесь с личными проблемами?" , Type = Models.AnswerType.SingleChoice}
+        );
+
+        // Answers (scale 0-3) for PHQ-2
+        modelBuilder.Entity<Answer>().HasData(
+            new Answer { Id = 3001, QuestionId = 2001, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3002, QuestionId = 2001, Text = "Несколько дней", Value = 1, Order = 1 },
+            new Answer { Id = 3003, QuestionId = 2001, Text = "Более половины дней", Value = 2, Order = 2 },
+            new Answer { Id = 3004, QuestionId = 2001, Text = "Почти каждый день", Value = 3, Order = 3 },
+
+            new Answer { Id = 3011, QuestionId = 2002, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3012, QuestionId = 2002, Text = "Несколько дней", Value = 1, Order = 1 },
+            new Answer { Id = 3013, QuestionId = 2002, Text = "Более половины дней", Value = 2, Order = 2 },
+            new Answer { Id = 3014, QuestionId = 2002, Text = "Почти каждый день", Value = 3, Order = 3 }
+        );
+
+        // Answers for GAD-2
+        modelBuilder.Entity<Answer>().HasData(
+            new Answer { Id = 3101, QuestionId = 2101, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3102, QuestionId = 2101, Text = "Несколько дней", Value = 1, Order = 1 },
+            new Answer { Id = 3103, QuestionId = 2101, Text = "Более половины дней", Value = 2, Order = 2 },
+            new Answer { Id = 3104, QuestionId = 2101, Text = "Почти каждый день", Value = 3, Order = 3 },
+
+            new Answer { Id = 3111, QuestionId = 2102, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3112, QuestionId = 2102, Text = "Несколько дней", Value = 1, Order = 1 },
+            new Answer { Id = 3113, QuestionId = 2102, Text = "Более половины дней", Value = 2, Order = 2 },
+            new Answer { Id = 3114, QuestionId = 2102, Text = "Почти каждый день", Value = 3, Order = 3 }
+        );
+
+        // Answers for PSS-4 (we'll use 0-4 and normalize in interpretation)
+        modelBuilder.Entity<Answer>().HasData(
+            new Answer { Id = 3201, QuestionId = 2201, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3202, QuestionId = 2201, Text = "Почти никогда", Value = 1, Order = 1 },
+            new Answer { Id = 3203, QuestionId = 2201, Text = "Иногда", Value = 2, Order = 2 },
+            new Answer { Id = 3204, QuestionId = 2201, Text = "Часто", Value = 3, Order = 3 },
+            new Answer { Id = 3205, QuestionId = 2201, Text = "Очень часто", Value = 4, Order = 4 },
+
+            new Answer { Id = 3211, QuestionId = 2202, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3212, QuestionId = 2202, Text = "Почти никогда", Value = 1, Order = 1 },
+            new Answer { Id = 3213, QuestionId = 2202, Text = "Иногда", Value = 2, Order = 2 },
+            new Answer { Id = 3214, QuestionId = 2202, Text = "Часто", Value = 3, Order = 3 },
+            new Answer { Id = 3215, QuestionId = 2202, Text = "Очень часто", Value = 4, Order = 4 },
+
+            new Answer { Id = 3221, QuestionId = 2203, Text = "Никогда", Value = 0, Order = 0 },
+            new Answer { Id = 3222, QuestionId = 2203, Text = "Почти никогда", Value = 1, Order = 1 },
+            new Answer { Id = 3223, QuestionId = 2203, Text = "Иногда", Value = 2, Order = 2 },
+            new Answer { Id = 3224, QuestionId = 2203, Text = "Часто", Value = 3, Order = 3 },
+            new Answer { Id = 3225, QuestionId = 2203, Text = "Очень часто", Value = 4, Order = 4 }
         );
 
         //  Seed: Reviews (фиксированные даты)

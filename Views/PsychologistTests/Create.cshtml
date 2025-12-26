@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Создать тест";
+}
+
+<h2>Создать тест</h2>
+
+<form id="createTestForm">
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input type="text" id="testName" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание (необязательно)</label>
+        <textarea id="testDescription" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div id="questionsContainer"></div>
+
+    <button type="button" class="btn btn-outline-primary mb-3" onclick="addQuestion()">Добавить вопрос</button>
+    <br />
+    <button type="button" class="btn btn-success" onclick="submitForm()">Сохранить тест</button>
+    <a href="/psychologist/tests" class="btn btn-secondary ms-2">Отмена</a>
+</form>
+
+<script>
+let qCounter = 0;
+function addQuestion(){
+    qCounter++;
+    const qId = 'q' + qCounter;
+    const html = `
+    <div class="card mb-3 p-3" data-qid="${qId}">
+        <div class="d-flex justify-content-between">
+            <h6>Вопрос</h6>
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('[data-qid]').remove()">Удалить вопрос</button>
+        </div>
+        <div class="mb-2">
+            <input class="form-control question-text" placeholder="Текст вопроса" />
+        </div>
+        <div class="answers">
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addAnswer(this)">Добавить вариант</button>
+    </div>`;
+
+    document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', html);
+}
+
+function addAnswer(btn){
+    const container = btn.closest('[data-qid]').querySelector('.answers');
+    const html = `
+        <div class="d-flex gap-2 align-items-center mb-2">
+            <input class="form-control answer-text" placeholder="Ответ (текст)" />
+            <input class="form-control answer-value" placeholder="Балл" style="max-width:120px;" value="0" />
+            <button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">×</button>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function submitForm(){
+    const name = document.getElementById('testName').value;
+    const desc = document.getElementById('testDescription').value;
+    if (!name) { alert('Название обязательно'); return; }
+
+    const questions = [];
+    document.querySelectorAll('#questionsContainer [data-qid]').forEach(qEl => {
+        const text = qEl.querySelector('.question-text').value;
+        const answers = [];
+        qEl.querySelectorAll('.answers .d-flex').forEach(aEl => {
+            const at = aEl.querySelector('.answer-text').value;
+            const av = parseInt(aEl.querySelector('.answer-value').value || '0');
+            if (at) answers.push({ text: at, value: av });
+        });
+        if (text && answers.length) questions.push({ Text: text, Answers: answers });
+    });
+
+    fetch('/psychologist/tests/create', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Name: name, Description: desc, Questions: questions })
+    }).then(r => r.json()).then(j => {
+        if (j.success && j.redirect) window.location = j.redirect;
+        else alert(j.message || 'Ошибка');
+    });
+}
+</script>

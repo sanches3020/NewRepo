@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Результаты тестов клиента";
+    var client = ViewBag.Client as Sofia.Web.Models.User;
+    var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
+    var results = Model as List<Sofia.Web.Models.TestResult> ?? new List<Sofia.Web.Models.TestResult>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Результаты тестов: @(client?.Username ?? "Неизвестный")</h2>
+    <div>
+        <a href="/psychologist/dashboard/@(psychologist?.Id ?? 0)" class="btn btn-outline-secondary">← Назад к дашборду</a>
+        <a href="/psychologist/client/@(client?.Id ?? 0)/results/csv" class="btn btn-outline-success ms-2">⬇ Экспорт CSV</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (!results.Any())
+        {
+            <p class="text-muted">Нет результатов тестов у этого клиента.</p>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Тест</th>
+                        <th>Баллы</th>
+                        <th>Уровень</th>
+                        <th>Интерпретация</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in results)
+                    {
+                        <tr>
+                            <td>@r.TakenAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@r.Test?.Name</td>
+                            <td>@r.Score</td>
+                            <td>@r.Level</td>
+                            <td>@r.Interpretation</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

@@ -1,0 +1,75 @@
+@model List<Sofia.Web.Models.TestResult>
+
+@{
+    var test = ViewBag.Test as Sofia.Web.Models.Test;
+    ViewData["Title"] = "История теста";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>История: @test?.Name</h2>
+    <div>
+        <a href="/tests" class="btn btn-outline-secondary">← Все тесты</a>
+        <a class="btn btn-primary ms-2" href="@Url.Action("Take", "Tests", new { id = test?.Id })">Пройти снова</a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted">Вы ещё не проходили этот тест.</p>
+        }
+        else
+        {
+            <h5>Последние результаты</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Баллы</th>
+                            <th>Уровень</th>
+                            <th>Интерпретация</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td>@r.TakenAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@r.Score</td>
+                                <td>@r.Level</td>
+                                <td>@r.Interpretation</td>
+                                <td><a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Result", "Tests", new { id = r.Id })">Посмотреть</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <h5 class="mt-4">График динамики</h5>
+            <canvas id="historyChart" width="600" height="200"></canvas>
+        }
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var history = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OrderBy(r => r.TakenAt).Select(r => new { date = r.TakenAt.ToString("yyyy-MM-dd"), score = r.Score })));
+
+    var labels = history.map(h => h.date);
+    var data = history.map(h => h.score);
+
+    if (labels.length > 0) {
+        var ctx = document.getElementById('historyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Баллы', data: data, borderColor: 'rgb(75, 192, 192)', tension: 0.2 }]
+            },
+            options: { responsive: true }
+        });
+    }
+</script>

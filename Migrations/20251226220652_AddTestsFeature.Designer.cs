@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sofia.Web.Data;
 
@@ -10,9 +11,11 @@ using Sofia.Web.Data;
 namespace Sofia.Web.Migrations
 {
     [DbContext(typeof(SofiaDbContext))]
-    partial class SofiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251226220652_AddTestsFeature")]
+    partial class AddTestsFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -42,256 +45,6 @@ namespace Sofia.Web.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("Answers");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 3001,
-                            Order = 0,
-                            QuestionId = 2001,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3002,
-                            Order = 1,
-                            QuestionId = 2001,
-                            Text = "Несколько дней",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3003,
-                            Order = 2,
-                            QuestionId = 2001,
-                            Text = "Более половины дней",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3004,
-                            Order = 3,
-                            QuestionId = 2001,
-                            Text = "Почти каждый день",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3011,
-                            Order = 0,
-                            QuestionId = 2002,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3012,
-                            Order = 1,
-                            QuestionId = 2002,
-                            Text = "Несколько дней",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3013,
-                            Order = 2,
-                            QuestionId = 2002,
-                            Text = "Более половины дней",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3014,
-                            Order = 3,
-                            QuestionId = 2002,
-                            Text = "Почти каждый день",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3101,
-                            Order = 0,
-                            QuestionId = 2101,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3102,
-                            Order = 1,
-                            QuestionId = 2101,
-                            Text = "Несколько дней",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3103,
-                            Order = 2,
-                            QuestionId = 2101,
-                            Text = "Более половины дней",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3104,
-                            Order = 3,
-                            QuestionId = 2101,
-                            Text = "Почти каждый день",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3111,
-                            Order = 0,
-                            QuestionId = 2102,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3112,
-                            Order = 1,
-                            QuestionId = 2102,
-                            Text = "Несколько дней",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3113,
-                            Order = 2,
-                            QuestionId = 2102,
-                            Text = "Более половины дней",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3114,
-                            Order = 3,
-                            QuestionId = 2102,
-                            Text = "Почти каждый день",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3201,
-                            Order = 0,
-                            QuestionId = 2201,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3202,
-                            Order = 1,
-                            QuestionId = 2201,
-                            Text = "Почти никогда",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3203,
-                            Order = 2,
-                            QuestionId = 2201,
-                            Text = "Иногда",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3204,
-                            Order = 3,
-                            QuestionId = 2201,
-                            Text = "Часто",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3205,
-                            Order = 4,
-                            QuestionId = 2201,
-                            Text = "Очень часто",
-                            Value = 4
-                        },
-                        new
-                        {
-                            Id = 3211,
-                            Order = 0,
-                            QuestionId = 2202,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3212,
-                            Order = 1,
-                            QuestionId = 2202,
-                            Text = "Почти никогда",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3213,
-                            Order = 2,
-                            QuestionId = 2202,
-                            Text = "Иногда",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3214,
-                            Order = 3,
-                            QuestionId = 2202,
-                            Text = "Часто",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3215,
-                            Order = 4,
-                            QuestionId = 2202,
-                            Text = "Очень часто",
-                            Value = 4
-                        },
-                        new
-                        {
-                            Id = 3221,
-                            Order = 0,
-                            QuestionId = 2203,
-                            Text = "Никогда",
-                            Value = 0
-                        },
-                        new
-                        {
-                            Id = 3222,
-                            Order = 1,
-                            QuestionId = 2203,
-                            Text = "Почти никогда",
-                            Value = 1
-                        },
-                        new
-                        {
-                            Id = 3223,
-                            Order = 2,
-                            QuestionId = 2203,
-                            Text = "Иногда",
-                            Value = 2
-                        },
-                        new
-                        {
-                            Id = 3224,
-                            Order = 3,
-                            QuestionId = 2203,
-                            Text = "Часто",
-                            Value = 3
-                        },
-                        new
-                        {
-                            Id = 3225,
-                            Order = 4,
-                            QuestionId = 2203,
-                            Text = "Очень часто",
-                            Value = 4
-                        });
                 });
 
             modelBuilder.Entity("Sofia.Web.Models.EmotionEntry", b =>
@@ -933,57 +686,6 @@ namespace Sofia.Web.Migrations
                     b.HasIndex("TestId");
 
                     b.ToTable("Questions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 2001,
-                            TestId = 1001,
-                            Text = "За последние 2 недели: испытывали ли вы слабый интерес или удовольствие от занятий?",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2002,
-                            TestId = 1001,
-                            Text = "За последние 2 недели: чувствовали ли вы себя подавленным/унылым?",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2101,
-                            TestId = 1002,
-                            Text = "За последние 2 недели: сколько вы беспокоились и тревожились?",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2102,
-                            TestId = 1002,
-                            Text = "За последние 2 недели: было ли вам трудно перестать беспокоиться или контролировать беспокойство?",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2201,
-                            TestId = 1003,
-                            Text = "На прошлой неделе вы чувствовали, что не в состоянии контролировать важные вещи в жизни?",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2202,
-                            TestId = 1003,
-                            Text = "На прошлой неделе вы чувствовали напряжение и нервозность?",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 2203,
-                            TestId = 1003,
-                            Text = "На прошлой неделе вы чувствовали, что справляетесь с личными проблемами?",
-                            Type = 0
-                        });
                 });
 
             modelBuilder.Entity("Sofia.Web.Models.Test", b =>
@@ -1010,60 +712,6 @@ namespace Sofia.Web.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tests");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1001,
-                            Description = "Краткий скрининг симптомов депрессии",
-                            Name = "Шкала депрессии (PHQ-2)",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 1002,
-                            Description = "Краткий скрининг тревожности",
-                            Name = "Шкала тревожности (GAD-2)",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = 1003,
-                            Description = "Краткая шкала восприятия стресса",
-                            Name = "Шкала стресса (PSS-4)",
-                            Type = 0
-                        });
-                });
-
-            modelBuilder.Entity("Sofia.Web.Models.TestInterpretation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("InterpretationText")
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("MaxPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MinPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("TestId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TestId");
-
-                    b.ToTable("TestInterpretations");
                 });
 
             modelBuilder.Entity("Sofia.Web.Models.TestResult", b =>
@@ -1375,17 +1023,6 @@ namespace Sofia.Web.Migrations
                 {
                     b.HasOne("Sofia.Web.Models.Test", "Test")
                         .WithMany("Questions")
-                        .HasForeignKey("TestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Test");
-                });
-
-            modelBuilder.Entity("Sofia.Web.Models.TestInterpretation", b =>
-                {
-                    b.HasOne("Sofia.Web.Models.Test", "Test")
-                        .WithMany()
                         .HasForeignKey("TestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sofia.Web.Data;
 
@@ -10,9 +11,11 @@ using Sofia.Web.Data;
 namespace Sofia.Web.Migrations
 {
     [DbContext(typeof(SofiaDbContext))]
-    partial class SofiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251226222425_SeedBuiltInScales")]
+    partial class SeedBuiltInScales
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -1035,37 +1038,6 @@ namespace Sofia.Web.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Sofia.Web.Models.TestInterpretation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("InterpretationText")
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<double>("MaxPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("MinPercent")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("TestId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TestId");
-
-                    b.ToTable("TestInterpretations");
-                });
-
             modelBuilder.Entity("Sofia.Web.Models.TestResult", b =>
                 {
                     b.Property<int>("Id")
@@ -1375,17 +1347,6 @@ namespace Sofia.Web.Migrations
                 {
                     b.HasOne("Sofia.Web.Models.Test", "Test")
                         .WithMany("Questions")
-                        .HasForeignKey("TestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Test");
-                });
-
-            modelBuilder.Entity("Sofia.Web.Models.TestInterpretation", b =>
-                {
-                    b.HasOne("Sofia.Web.Models.Test", "Test")
-                        .WithMany()
                         .HasForeignKey("TestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

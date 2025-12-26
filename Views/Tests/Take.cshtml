@@ -1,0 +1,75 @@
+@model Sofia.Web.Models.Test
+
+@{
+    ViewData["Title"] = Model?.Name ?? "Тест";
+}
+
+<h2>@Model.Name</h2>
+<p>@Model.Description</p>
+
+<form id="testForm">
+    @foreach (var q in Model.Questions)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">@q.Text</h5>
+
+                @if (q.Type == Sofia.Web.Models.AnswerType.Text)
+                {
+                    <textarea class="form-control" name="q_@q.Id" rows="3"></textarea>
+                }
+                else if (q.Type == Sofia.Web.Models.AnswerType.MultipleChoice)
+                {
+                    foreach (var a in q.Answers)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="q_@q.Id" value="@a.Id" id="a_@a.Id" />
+                            <label class="form-check-label" for="a_@a.Id">@a.Text</label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    foreach (var a in q.Answers)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q_@q.Id" value="@a.Id" id="a_@a.Id" />
+                            <label class="form-check-label" for="a_@a.Id">@a.Text</label>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+
+    <button type="button" id="submitBtn" class="btn btn-success">Завершить тест</button>
+</form>
+
+<script>
+document.getElementById('submitBtn').addEventListener('click', function(){
+    var form = document.getElementById('testForm');
+    var data = new FormData(form);
+
+    // Normalize multiple checkboxes: collapse into comma-separated string per question
+    var payload = new URLSearchParams();
+    var map = {};
+    for (var pair of data.entries()){
+        var k = pair[0];
+        var v = pair[1];
+        if (!map[k]) map[k] = [];
+        map[k].push(v);
+    }
+    for (var k in map){
+        payload.append(k, map[k].join(','));
+    }
+
+    fetch('@Url.Action("Submit","Tests", new { id = Model.Id })', {
+        method: 'POST',
+        body: payload,
+        headers: { 'Accept': 'application/json' }
+    }).then(r => r.json()).then(j => {
+        if (j.success && j.redirect) window.location = j.redirect;
+        else alert(j.message || 'Ошибка');
+    });
+});
+</script>

@@ -4,10 +4,28 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Цели</h2>
-    <a href="/goals/create" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>Новая цель
-    </a>
+    <div class="d-flex align-items-center">
+        <h2 class="me-3">Цели</h2>
+        <div class="me-3">
+            <select id="sortSelect" class="form-select form-select-sm">
+                <option value="">Сортировка: По умолчанию (активные сверху)</option>
+                <option value="created_desc">По дате (новые сначала)</option>
+                <option value="created_asc">По дате (старые сначала)</option>
+                <option value="deadline_asc">По дедлайну (сначала ближайшие)</option>
+                <option value="deadline_desc">По дедлайну (сначала дальние)</option>
+                <option value="progress_desc">По прогрессу (сначала большие)</option>
+                <option value="progress_asc">По прогрессу (сначала маленькие)</option>
+            </select>
+        </div>
+        <div class="me-auto">
+            <a href="/goals/create?template=course" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Пройти курс</a>
+            <a href="/goals/create?template=sleep" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Улучшить сон</a>
+            <a href="/goals/create?template=presentation" class="btn btn-outline-secondary btn-sm">Шаблон: Сделать презентацию</a>
+        </div>
+        <a href="/goals/create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Новая цель
+        </a>
+    </div>
 </div>
 
 @if (!Model.Any())
@@ -16,7 +34,12 @@
         <div class="mb-3" style="font-size: 48px;">🎯</div>
         <h4 class="text-muted">Пока нет целей</h4>
         <p class="text-muted">Создайте свою первую цель для отслеживания прогресса</p>
-        <a href="/goals/create" class="btn btn-primary">Создать первую цель</a>
+        <div class="mt-3">
+            <a href="/goals/create?template=course" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Пройти курс</a>
+            <a href="/goals/create?template=sleep" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Улучшить сон</a>
+            <a href="/goals/create?template=presentation" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Сделать презентацию</a>
+            <a href="/goals/create" class="btn btn-primary">Создать первую цель</a>
+        </div>
     </div>
 }
 else

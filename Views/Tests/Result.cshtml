@@ -1,0 +1,37 @@
+@model Sofia.Web.Models.TestResult
+
+@{
+    ViewData["Title"] = "Результат теста";
+    var history = ViewBag.History as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<h2>Результат — @Model.Test?.Name</h2>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Итоговый балл: <strong>@Model.Score</strong></h5>
+        <p>Уровень: <strong>@Model.Level</strong></p>
+        <p>@Model.Interpretation</p>
+    </div>
+</div>
+
+<h4>Динамика</h4>
+<canvas id="historyChart" width="600" height="200"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var history = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(history.Select(h => new { date = ((DateTime)h.TakenAt).ToString("yyyy-MM-dd"), score = h.Score } )));
+
+    var labels = history.map(h => h.date);
+    var data = history.map(h => h.score);
+
+    var ctx = document.getElementById('historyChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Баллы', data: data, borderColor: 'rgb(75, 192, 192)', tension: 0.2 }]
+        },
+        options: { responsive: true }
+    });
+</script>

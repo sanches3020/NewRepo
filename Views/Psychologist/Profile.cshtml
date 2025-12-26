@@ -163,12 +163,12 @@
                                                     class="btn w-100 text-start time-slot-btn @(slot.IsBooked ? "btn-secondary disabled" : "btn-outline-primary")"
                                                     @(slot.IsBooked ? "disabled" : "")
                                                     data-slot-date="@slot.Date.ToString("yyyy-MM-dd")"
-                                                    data-slot-time="@slot.StartTime.ToString("HH:mm")"
-                                                    onclick="selectTimeSlot('@slot.Date.ToString("yyyy-MM-dd")', '@slot.StartTime.ToString("HH:mm")')">
+                                                    data-slot-time="@((slot.StartTime).ToString(@"hh\:mm"))"
+                                                    onclick="selectTimeSlot('@slot.Date.ToString("yyyy-MM-dd")', '@((slot.StartTime).ToString(@"hh\:mm"))')">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div>
                                                         <div class="fw-bold">@slotDateTime.ToString("dd.MM (ddd)")</div>
-                                                        <div class="small">@slotDateTime.ToString("HH:mm") - @slot.EndTime.ToString("HH:mm")</div>
+                                                        <div class="small">@slotDateTime.ToString("HH:mm") - @((slot.EndTime).ToString(@"hh\:mm"))</div>
                                                     </div>
                                                     @if (slot.IsBooked)
                                                     {

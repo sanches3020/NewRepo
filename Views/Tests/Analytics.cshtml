@@ -1,0 +1,76 @@
+@{
+    ViewData["Title"] = "Аналитика тестов";
+    var tests = ViewBag.Tests as IEnumerable<Sofia.Web.Models.Test> ?? Enumerable.Empty<Sofia.Web.Models.Test>();
+}
+
+<h2>Аналитика тестов</h2>
+
+<div class="row mb-3 g-2">
+    <div class="col-md-4">
+        <label class="form-label">Тест</label>
+        <select id="testSelect" class="form-select">
+            <option value="">Выберите тест</option>
+            @foreach (var t in tests)
+            {
+                <option value="@t.Id">@t.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Период с</label>
+        <input type="date" id="fromDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">по</label>
+        <input type="date" id="toDate" class="form-control" />
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" onclick="loadData()">Загрузить</button>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <canvas id="analyticsChart" width="800" height="300"></canvas>
+    </div>
+</div>
+
+<div id="interpretation" class="mb-3"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let chart = null;
+function loadData(){
+    const testId = document.getElementById('testSelect').value;
+    const from = document.getElementById('fromDate').value;
+    const to = document.getElementById('toDate').value;
+    if (!testId || !from || !to) { alert('Выберите тест и период'); return; }
+
+    const fromDT = new Date(from);
+    const toDT = new Date(to);
+    toDT.setHours(23,59,59,999);
+
+    fetch(`/tests/analytics/data?testId=${testId}&from=${fromDT.toISOString()}&to=${toDT.toISOString()}`)
+        .then(r => r.json()).then(j => {
+            if (!j.success) { alert(j.message || 'Ошибка'); return; }
+            const data = j.data;
+            const labels = data.map(d => new Date(d.date).toLocaleDateString());
+            const scores = data.map(d => d.score);
+            const avg = j.avg;
+            const trend = j.trend;
+
+            document.getElementById('interpretation').innerHTML = `<div class="alert alert-info">Средний балл: <strong>${avg.toFixed(1)}</strong>. Тренд: <strong>${trend}</strong>.</div>`;
+
+            if (chart) chart.destroy();
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Баллы', data: scores, borderColor: 'rgb(75, 192, 192)', tension: 0.2, fill: false }]
+                },
+                options: { responsive: true }
+            });
+        });
+}
+</script>

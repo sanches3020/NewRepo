@@ -360,6 +360,76 @@ public class PsychologistController : Controller
         return View();
     }
 
+    [HttpGet("client/{clientId}/results")]
+    public async Task<IActionResult> ClientResults(int clientId)
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (string.IsNullOrEmpty(userId) || userRole != "psychologist")
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var psychologist = await _context.Psychologists
+            .FirstOrDefaultAsync(p => p.UserId == int.Parse(userId));
+        if (psychologist == null) return NotFound();
+
+        // Ensure the client has at least one appointment with this psychologist
+        var hasRelation = await _context.PsychologistAppointments
+            .AnyAsync(a => a.PsychologistId == psychologist.Id && a.UserId == clientId);
+        if (!hasRelation) return Forbid();
+
+        var client = await _context.Users.FirstOrDefaultAsync(u => u.Id == clientId);
+        if (client == null) return NotFound();
+
+        var results = await _context.TestResults
+            .Where(r => r.UserId == clientId)
+            .Include(r => r.Test)
+            .OrderByDescending(r => r.TakenAt)
+            .ToListAsync();
+
+        ViewBag.Client = client;
+        ViewBag.Psychologist = psychologist;
+        return View(results);
+    }
+
+    [HttpGet("client/{clientId}/results/csv")]
+    public async Task<IActionResult> ClientResultsCsv(int clientId)
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (string.IsNullOrEmpty(userId) || userRole != "psychologist")
+        {
+            return Json(new { success = false, message = "Неавторизован" });
+        }
+
+        var psychologist = await _context.Psychologists
+            .FirstOrDefaultAsync(p => p.UserId == int.Parse(userId));
+        if (psychologist == null) return Json(new { success = false, message = "Психолог не найден" });
+
+        var hasRelation = await _context.PsychologistAppointments
+            .AnyAsync(a => a.PsychologistId == psychologist.Id && a.UserId == clientId);
+        if (!hasRelation) return Json(new { success = false, message = "Доступ запрещен" });
+
+        var results = await _context.TestResults
+            .Where(r => r.UserId == clientId)
+            .Include(r => r.Test)
+            .OrderByDescending(r => r.TakenAt)
+            .ToListAsync();
+
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Дата,Тест,Баллы,Уровень,Интерпретация");
+        foreach (var r in results)
+        {
+            var line = $"{r.TakenAt:yyyy-MM-dd HH:mm},\"{r.Test?.Name}\",{r.Score},\"{r.Level}\",\"{(r.Interpretation ?? string.Empty).Replace("\"","'" )}\"";
+            csv.AppendLine(line);
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+        var fileName = $"client_{clientId}_results_{DateTime.Now:yyyyMMdd}.csv";
+        return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
+
     [HttpPost("review/{id}/approve")]
     public async Task<IActionResult> ApproveReview(int id)
     {

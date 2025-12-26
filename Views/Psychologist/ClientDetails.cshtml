@@ -12,7 +12,8 @@
     <h2>👤 Данные клиента: @(client?.Username ?? "Неизвестный")</h2>
     <div>
         <a href="/psychologist/dashboard/@(psychologist?.Id ?? 0)" class="btn btn-outline-secondary">← Назад к дашборду</a>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRecommendationModal">
+        <a href="/psychologist/client/@(client?.Id ?? 0)/results" class="btn btn-outline-info ms-2">📊 Просмотреть тесты</a>
+        <button type="button" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addRecommendationModal">
             💡 Добавить рекомендацию
         </button>
     </div>
