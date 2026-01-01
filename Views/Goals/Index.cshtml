@@ -17,28 +17,154 @@
                 <option value="progress_asc">По прогрессу (сначала маленькие)</option>
             </select>
         </div>
-        <div class="me-auto">
-            <a href="/goals/create?template=course" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Пройти курс</a>
-            <a href="/goals/create?template=sleep" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Улучшить сон</a>
-            <a href="/goals/create?template=presentation" class="btn btn-outline-secondary btn-sm">Шаблон: Сделать презентацию</a>
-        </div>
-        <a href="/goals/create" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>Новая цель
+        <!-- Templates removed per request -->
+        <a href="/goals/create" class="btn btn-primary d-inline-flex align-items-center justify-content-center"
+           style="width:40px;height:40px;border-radius:50%;">
+            <i class="bi bi-plus" aria-hidden="true"></i>
+            <span class="visually-hidden">Новая цель</span>
         </a>
     </div>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="text-center py-5">
-        <div class="mb-3" style="font-size: 48px;">🎯</div>
-        <h4 class="text-muted">Пока нет целей</h4>
-        <p class="text-muted">Создайте свою первую цель для отслеживания прогресса</p>
-        <div class="mt-3">
-            <a href="/goals/create?template=course" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Пройти курс</a>
-            <a href="/goals/create?template=sleep" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Улучшить сон</a>
-            <a href="/goals/create?template=presentation" class="btn btn-outline-secondary btn-sm me-1">Шаблон: Сделать презентацию</a>
-            <a href="/goals/create" class="btn btn-primary">Создать первую цель</a>
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-success">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">👤</span>
+                        <span class="badge bg-success">Активна</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Улучшить сон</h5>
+                    <p class="card-text">Режим сна, ритуалы и трекер для регулярности.</p>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Прогресс</small>
+                            <small class="text-muted">20%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    <div class="small text-muted">
+                        <div>📅 Создано: @DateTime.Now.ToString("dd.MM.yyyy")</div>
+                        <div>🎯 Цель до: @DateTime.Now.AddMonths(1).ToString("dd.MM.yyyy")</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/goals/edit/1" class="btn btn-sm btn-outline-primary">✏️</a>
+                            <form method="post" action="/goals/delete/1" class="d-inline" onsubmit="return confirm('Удалить цель?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                            </form>
+                        </div>
+                        <div>
+                            <form method="post" action="/goals/update-progress/1" class="d-inline">
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <input type="number" name="progress" class="form-control" min="0" max="100" value="20" />
+                                    <button type="submit" class="btn btn-outline-success">✓</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-success">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">💼</span>
+                        <span class="badge bg-success">Активна</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Сделать презентацию</h5>
+                    <p class="card-text">Подготовьте слайды, репетиции и дедлайны.</p>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Прогресс</small>
+                            <small class="text-muted">45%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <div class="small text-muted">
+                        <div>📅 Создано: @DateTime.Now.AddDays(-7).ToString("dd.MM.yyyy")</div>
+                        <div>🎯 Цель до: @DateTime.Now.AddDays(14).ToString("dd.MM.yyyy")</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/goals/edit/2" class="btn btn-sm btn-outline-primary">✏️</a>
+                            <form method="post" action="/goals/delete/2" class="d-inline" onsubmit="return confirm('Удалить цель?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                            </form>
+                        </div>
+                        <div>
+                            <form method="post" action="/goals/update-progress/2" class="d-inline">
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <input type="number" name="progress" class="form-control" min="0" max="100" value="45" />
+                                    <button type="submit" class="btn btn-outline-success">✓</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-success">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">🌱</span>
+                        <span class="badge bg-success">Активна</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Пройти курс</h5>
+                    <p class="card-text">Разделите обучение на шаги и отслеживайте прогресс.</p>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Прогресс</small>
+                            <small class="text-muted">10%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 10%"></div>
+                        </div>
+                    </div>
+                    <div class="small text-muted">
+                        <div>📅 Создано: @DateTime.Now.ToString("dd.MM.yyyy")</div>
+                        <div>🎯 Цель до: @DateTime.Now.AddMonths(2).ToString("dd.MM.yyyy")</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/goals/edit/3" class="btn btn-sm btn-outline-primary">✏️</a>
+                            <form method="post" action="/goals/delete/3" class="d-inline" onsubmit="return confirm('Удалить цель?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                            </form>
+                        </div>
+                        <div>
+                            <form method="post" action="/goals/update-progress/3" class="d-inline">
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <input type="number" name="progress" class="form-control" min="0" max="100" value="10" />
+                                    <button type="submit" class="btn btn-outline-success">✓</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 }
