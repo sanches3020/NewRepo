@@ -18,6 +18,11 @@ public class CompanionController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index()
     {
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (userRole == "psychologist")
+        {
+            return RedirectToAction("Index", "Home");
+        }
         // Получаем последние эмоции пользователя
         var recentNotes = await _context.Notes
             .OrderByDescending(n => n.CreatedAt)

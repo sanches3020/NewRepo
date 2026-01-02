@@ -73,7 +73,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="education" class="form-label">Образование *</label>
-                                <input type="text" class="form-control" id="education" name="education" placeholder="МГУ, факультет психологии">
+                                <input type="text" class="form-control" id="education" name="education" placeholder="БГУ, факультет психологии">
                             </div>
                             <div class="col-md-6">
                                 <label for="experience" class="form-label">Опыт работы *</label>
@@ -94,12 +94,13 @@
                         
                         <div class="row g-3 mt-3">
                             <div class="col-md-6">
-                                <label for="pricePerHour" class="form-label">Цена за час (₽) *</label>
-                                <input type="number" class="form-control" id="pricePerHour" name="pricePerHour" placeholder="3000" min="1000" max="10000">
+                                <label for="pricePerHour" class="form-label">Цена за час (BYN) *</label>
+                                <input type="number" class="form-control" id="pricePerHour" name="pricePerHour" placeholder="300" min="0" max="1000" step="1">
+                                <div class="form-text">Введите сумму в BYN (0–1000)</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="contactPhone" class="form-label">Телефон</label>
-                                <input type="tel" class="form-control" id="contactPhone" name="contactPhone" placeholder="+7 (999) 123-45-67">
+                                <input type="tel" class="form-control" id="contactPhone" name="contactPhone" placeholder="+375 29 123-45-67">
                             </div>
                         </div>
                     </div>

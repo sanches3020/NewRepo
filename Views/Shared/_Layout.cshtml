@@ -97,6 +97,10 @@
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Expose current user role to client scripts
+        window.currentUserRole = '@(Context.Session.GetString("UserRole") ?? "")';
+    </script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     
     <style>

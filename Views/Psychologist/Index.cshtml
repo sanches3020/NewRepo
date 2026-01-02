@@ -58,7 +58,7 @@
                             <div class="text-end">
                                 @if (psychologist.PricePerHour.HasValue)
                                 {
-                                    <div class="h6 text-primary mb-0">@psychologist.PricePerHour.Value.ToString("N0") ₽/час</div>
+                                    <div class="h6 text-primary mb-0">@psychologist.PricePerHour.Value.ToString("N0") BYN/час</div>
                                 }
                             </div>
                         </div>
@@ -107,7 +107,7 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2">
-                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill">
+                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill d-flex justify-content-center align-items-center text-center">
                                 👤 Профиль
                             </a>
                             <button class="btn btn-outline-success btn-sm" onclick="bookAppointment(@psychologist.Id)">

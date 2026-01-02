@@ -97,17 +97,20 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-6">
-                        <a href="/home/companion" class="settings-link">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <div class="me-3" style="font-size: 24px;">🤖</div>
-                                <div>
-                                    <h6 class="mb-1">Компаньен</h6>
-                                    <small class="text-muted">ИИ помощник и поддержка</small>
+                    @if (Context.Session.GetString("UserRole") != "psychologist")
+                    {
+                        <div class="col-md-6">
+                            <a href="/home/companion" class="settings-link">
+                                <div class="d-flex align-items-center p-3 border rounded">
+                                    <div class="me-3" style="font-size: 24px;">🤖</div>
+                                    <div>
+                                        <h6 class="mb-1">Компаньен</h6>
+                                        <small class="text-muted">ИИ помощник и поддержка</small>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                        </div>
+                    }
                     <div class="col-md-6">
                         <a href="/settings/data" class="settings-link">
                             <div class="d-flex align-items-center p-3 border rounded">

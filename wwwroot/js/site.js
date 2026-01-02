@@ -873,7 +873,17 @@ class SofiaCompanion {
 
 // Initialize companion when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-  window.sofiaCompanion = new SofiaCompanion();
+  try {
+    if (typeof window.currentUserRole === 'undefined' || window.currentUserRole !== 'psychologist') {
+      window.sofiaCompanion = new SofiaCompanion();
+    } else {
+      // Do not initialize companion for psychologist role
+      window.sofiaCompanion = null;
+    }
+  } catch (e) {
+    console.error('Companion init error', e);
+    window.sofiaCompanion = null;
+  }
 });
 
 // Global functions for external use
