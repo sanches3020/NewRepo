@@ -194,38 +194,70 @@ public class PsychologistController : Controller
 
         var userIdInt = int.Parse(userId);
 
-        // Парсим дату
-        if (!DateTime.TryParse(request.AppointmentDate, out var appointmentDate))
+        // Парсим дату через DateTimeOffset, чтобы корректно обработать временные зоны
+        DateTime appointmentDateLocal;
+        if (DateTimeOffset.TryParse(request.AppointmentDate, out var dto))
+        {
+            appointmentDateLocal = dto.ToLocalTime().DateTime;
+        }
+        else if (DateTime.TryParse(request.AppointmentDate, out var tmp))
+        {
+            // Если пришла строка без зоны
+            appointmentDateLocal = DateTime.SpecifyKind(tmp, DateTimeKind.Local);
+        }
+        else
         {
             return Json(new { success = false, message = "Неверный формат даты" });
         }
 
-        // Нормализуем дату (убираем время, оставляем только дату)
-        var appointmentDateOnly = appointmentDate.Date;
-        var appointmentTime = appointmentDate.TimeOfDay;
+        // Нормализуем дату (дата и время в локальном формате)
+        var appointmentDateOnly = appointmentDateLocal.Date;
+        var appointmentTime = new TimeSpan(appointmentDateLocal.Hour, appointmentDateLocal.Minute, 0);
 
         // Проверяем, доступен ли слот
+        // Try to find exact matching slot by hours/minutes
         var timeSlot = await _context.PsychologistTimeSlots
-            .FirstOrDefaultAsync(t => t.PsychologistId == request.PsychologistId && 
-                                    t.Date.Date == appointmentDateOnly &&
-                                    t.StartTime == appointmentTime &&
-                                    t.IsAvailable && !t.IsBooked);
+            .Where(t => t.PsychologistId == request.PsychologistId &&
+                        t.Date.Date == appointmentDateOnly &&
+                        t.IsAvailable && !t.IsBooked)
+            .ToListAsync();
 
-        if (timeSlot == null)
+        var matchedSlot = timeSlot.FirstOrDefault(s => s.StartTime.Hours == appointmentTime.Hours && s.StartTime.Minutes == appointmentTime.Minutes);
+
+        // Выберем слот: точное совпадение или ближайший по времени в тот же день, иначе ближайший в будущем
+        PsychologistTimeSlot? selectedSlot = matchedSlot;
+        if (selectedSlot == null)
         {
-            return Json(new { success = false, message = "Выбранное время недоступно" });
+            if (timeSlot.Any())
+            {
+                selectedSlot = timeSlot.OrderBy(s => Math.Abs((s.StartTime - appointmentTime).TotalMinutes)).First();
+            }
+            else
+            {
+                selectedSlot = await _context.PsychologistTimeSlots
+                    .Where(t => t.PsychologistId == request.PsychologistId && t.Date.Date > appointmentDateOnly && t.IsAvailable && !t.IsBooked)
+                    .OrderBy(t => t.Date).ThenBy(t => t.StartTime)
+                    .FirstOrDefaultAsync();
+            }
         }
 
-        // Бронируем слот
-        timeSlot.IsBooked = true;
-        timeSlot.BookedByUserId = userIdInt;
+        if (selectedSlot == null)
+        {
+            return Json(new { success = false, message = "На выбранную дату и ближайшие дни нет доступных слотов." });
+        }
+
+        // Бронируем выбранный слот
+        selectedSlot.IsBooked = true;
+        selectedSlot.BookedByUserId = userIdInt;
+
+        var appointmentDateTime = selectedSlot.Date.Date.Add(selectedSlot.StartTime);
 
         // Создаем запись на консультацию
         var appointment = new PsychologistAppointment
         {
             PsychologistId = request.PsychologistId,
             UserId = userIdInt,
-            AppointmentDate = appointmentDateOnly.Add(appointmentTime),
+            AppointmentDate = appointmentDateTime,
             Notes = request.Notes ?? string.Empty,
             Status = AppointmentStatus.Scheduled,
             CreatedAt = DateTime.Now
@@ -234,10 +266,11 @@ public class PsychologistController : Controller
         _context.PsychologistAppointments.Add(appointment);
         await _context.SaveChangesAsync();
 
-        return Json(new { 
-            success = true, 
+        return Json(new {
+            success = true,
             message = "Запись на консультацию успешно создана!",
-            appointmentId = appointment.Id
+            appointmentId = appointment.Id,
+            appointmentDate = appointment.AppointmentDate
         });
     }
 

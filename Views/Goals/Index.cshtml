@@ -4,25 +4,18 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="d-flex align-items-center">
-        <h2 class="me-3">Цели</h2>
-        <div class="me-3">
-            <select id="sortSelect" class="form-select form-select-sm">
-                <option value="">Сортировка: По умолчанию (активные сверху)</option>
-                <option value="created_desc">По дате (новые сначала)</option>
-                <option value="created_asc">По дате (старые сначала)</option>
-                <option value="deadline_asc">По дедлайну (сначала ближайшие)</option>
-                <option value="deadline_desc">По дедлайну (сначала дальние)</option>
-                <option value="progress_desc">По прогрессу (сначала большие)</option>
-                <option value="progress_asc">По прогрессу (сначала маленькие)</option>
-            </select>
-        </div>
-        <!-- Templates removed per request -->
-        <a href="/goals/create" class="btn btn-primary d-inline-flex align-items-center justify-content-center"
-           style="width:40px;height:40px;border-radius:50%;">
-            <i class="bi bi-plus" aria-hidden="true"></i>
-            <span class="visually-hidden">Новая цель</span>
-        </a>
+    <h2>🎯 Цели</h2>
+    <div class="d-flex gap-2 align-items-center">
+        <select id="sortSelect" class="form-select form-select-sm" data-current-sort="@(ViewBag.CurrentSort ?? String.Empty)">
+            <option value="">Сортировка: По умолчанию (активные сверху)</option>
+            <option value="created_desc">По дате (новые сначала)</option>
+            <option value="created_asc">По дате (старые сначала)</option>
+            <option value="deadline_asc">По дедлайну (сначала ближайшие)</option>
+            <option value="deadline_desc">По дедлайну (сначала дальние)</option>
+            <option value="progress_desc">По прогрессу (сначала большие)</option>
+            <option value="progress_asc">По прогрессу (сначала маленькие)</option>
+        </select>
+        <a href="/goals/create" class="btn btn-primary btn-sm">+ Новая цель</a>
     </div>
 </div>
 
@@ -296,6 +289,20 @@ else
                     }
                 });
             });
+
+            // Sorting select: initialize value from server and redirect on change
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                const current = sortSelect.getAttribute('data-current-sort');
+                if (current) sortSelect.value = current;
+
+                sortSelect.addEventListener('change', function() {
+                    const v = this.value;
+                    const base = '/goals';
+                    if (v) window.location.href = base + '?sort=' + encodeURIComponent(v);
+                    else window.location.href = base;
+                });
+            }
             
             // React to goal cards based on status
             const goalCards = document.querySelectorAll('.card');

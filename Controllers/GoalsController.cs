@@ -26,6 +26,24 @@ public class GoalsController : Controller
 
         var query = _context.Goals.Where(g => g.UserId == int.Parse(userId));
 
+        // If user has no goals yet, seed three sample goals so they are actionable
+        if (!await query.AnyAsync())
+        {
+            var uid = int.Parse(userId);
+            var samples = new List<Goal>
+            {
+                new Goal { Title = "Улучшить сон", Description = "Режим сна, ритуалы и трекер для регулярности.", Type = GoalType.Wellness, Status = GoalStatus.Active, Progress = 20, CreatedAt = DateTime.Now, Date = DateTime.Today, TargetDate = DateTime.Today.AddMonths(1), UserId = uid },
+                new Goal { Title = "Сделать презентацию", Description = "Подготовьте слайды, репетиции и дедлайны.", Type = GoalType.Professional, Status = GoalStatus.Active, Progress = 45, CreatedAt = DateTime.Now.AddDays(-7), Date = DateTime.Today.AddDays(-7), TargetDate = DateTime.Today.AddDays(14), UserId = uid },
+                new Goal { Title = "Пройти курс", Description = "Разделите обучение на шаги и отслеживайте прогресс.", Type = GoalType.Professional, Status = GoalStatus.Active, Progress = 10, CreatedAt = DateTime.Now, Date = DateTime.Today, TargetDate = DateTime.Today.AddMonths(2), UserId = uid }
+            };
+
+            _context.Goals.AddRange(samples);
+            await _context.SaveChangesAsync();
+
+            // refresh query to include newly added goals
+            query = _context.Goals.Where(g => g.UserId == uid);
+        }
+
         // Sorting
         if (string.IsNullOrEmpty(sort))
         {
