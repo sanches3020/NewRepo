@@ -50,7 +50,7 @@ else
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
-                    <div class="h3 text-info">@(totalNotes / (double)daysBack):F1</div>
+                    <div class="h3 text-info">@((totalNotes / (double)daysBack).ToString("F1"))</div>
                     <div class="text-muted">Заметок в день</div>
                 </div>
             </div>
@@ -84,7 +84,7 @@ else
                                         <span class="fw-medium">@GetEmotionName(stat.Emotion)</span>
                                     </div>
                                     <div class="text-muted">
-                                        <span class="fw-bold">@stat.Count</span> (@percentage:F1%)
+                                        <span class="fw-bold">@stat.Count</span> (@(String.Format("{0:F1}%", percentage)))
                                     </div>
                                 </div>
                                 <div class="progress" style="height: 8px;">
@@ -156,7 +156,7 @@ else
                     <div class="alert alert-success">
                         <h6 class="alert-heading">📈 Активность</h6>
                         <p class="mb-0">
-                            Вы создаете в среднем <strong>@averagePerDay:F1 заметок в день</strong>. 
+                            Вы создаете в среднем <strong>@(averagePerDay.ToString("F1")) заметок в день</strong>. 
                             @if (averagePerDay >= 1)
                             {
                                 <span>Отличная регулярность!</span>

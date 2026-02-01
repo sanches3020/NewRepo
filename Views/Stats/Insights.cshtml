@@ -15,51 +15,12 @@
 <body>
     <div class="container">
 
+<!-- 'Ключевые наблюдения' удалены по запросу. -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>💡 Ключевые наблюдения</h2>
+    <h2>💡 Инсайты</h2>
     <div class="d-flex gap-2">
         <a href="/stats" class="btn btn-outline-secondary">← Статистика</a>
         <a href="/calendar" class="btn btn-outline-info">📅 Календарь</a>
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">📊 Ключевые наблюдения (автоматически сгенерированные)</h5>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th style="width: 200px;">Тип инсайта</th>
-                        <th>Пример</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (insights?.Any() == true)
-                    {
-                        @foreach (var insight in insights)
-                        {
-                            <tr>
-                                <td><strong>@insight.Type</strong></td>
-                                <td>@insight.Text</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="2" class="text-center text-muted py-4">
-                                <div style="font-size: 48px;">🔍</div>
-                                <p class="mb-0">Недостаточно данных для анализа</p>
-                                <p class="small">Создайте больше заметок и целей, чтобы получить персональные инсайты</p>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
     </div>
 </div>
 

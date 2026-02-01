@@ -69,7 +69,7 @@
     <div class="col-md-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <div class="h2 text-warning mb-2">@(recentNotes / (double)daysBack):F1</div>
+                <div class="h2 text-warning mb-2">@((recentNotes / (double)daysBack).ToString("F1"))</div>
                 <div class="text-muted">Заметок в день</div>
                 <small class="text-muted">Среднее за период</small>
             </div>

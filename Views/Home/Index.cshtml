@@ -259,30 +259,36 @@
         }
 
         function showOnboardingModal() {
-            const step = onboardingSteps[currentOnboardingStep];
-            const modal = document.createElement('div');
-            modal.className = 'onboarding-modal';
-            modal.innerHTML = `
-                <div class="onboarding-dialog">
-                    <div class="onboarding-header">
-                        <h3>${step.title}</h3>
-                        <button class="onboarding-close" onclick="closeOnboarding()">&times;</button>
-                    </div>
-                    <div class="onboarding-body">
-                        <p>${step.content}</p>
-                        <div class="onboarding-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${(currentOnboardingStep + 1) / onboardingSteps.length * 100}%"></div>
+                const step = onboardingSteps[currentOnboardingStep];
+                const modal = document.createElement('div');
+                modal.className = 'onboarding-modal';
+
+                // safe progress calculation
+                const totalSteps = onboardingSteps.length;
+                const displayStep = totalSteps > 0 ? Math.min(currentOnboardingStep + 1, totalSteps) : 0;
+                const progressPercent = totalSteps > 0 ? Math.round((displayStep / totalSteps) * 100) : 0;
+
+                modal.innerHTML = `
+                    <div class="onboarding-dialog">
+                        <div class="onboarding-header">
+                            <h3>${step.title}</h3>
+                            <button class="onboarding-close" onclick="closeOnboarding()">&times;</button>
+                        </div>
+                        <div class="onboarding-body">
+                            <p>${step.content}</p>
+                            <div class="onboarding-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${Math.max(0, Math.min(100, progressPercent))}%"></div>
+                                </div>
+                                <span class="progress-text">${displayStep} из ${totalSteps}</span>
                             </div>
-                            <span class="progress-text">${currentOnboardingStep + 1} из ${onboardingSteps.length}</span>
+                        </div>
+                        <div class="onboarding-footer">
+                            <button class="btn btn-secondary" onclick="closeOnboarding()">Пропустить</button>
+                            <button class="btn btn-primary" onclick="nextOnboardingStep()">${step.action}</button>
                         </div>
                     </div>
-                    <div class="onboarding-footer">
-                        <button class="btn btn-secondary" onclick="closeOnboarding()">Пропустить</button>
-                        <button class="btn btn-primary" onclick="nextOnboardingStep()">${step.action}</button>
-                    </div>
-                </div>
-            `;
+                `;
 
             document.body.appendChild(modal);
 

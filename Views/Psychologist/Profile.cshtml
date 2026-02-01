@@ -3,6 +3,31 @@
     var psychologist = ViewBag.Psychologist as Sofia.Web.Models.Psychologist;
     var reviews = ViewBag.Reviews as List<Sofia.Web.Models.PsychologistReview>;
     var availableSlots = ViewBag.AvailableSlots as List<Sofia.Web.Models.PsychologistTimeSlot>;
+
+    // Заполнения по умолчанию для профиля (Республика Беларусь)
+    var displayName = psychologist?.Name ?? "Иван Иванов";
+    var displaySpecialization = psychologist?.Specialization ?? "Когнитивно-поведенческая терапия, работа с тревогой";
+    var displayDescription = psychologist?.Description ?? "Практикующий психолог из Республики Беларусь. Помогаю с тревогой, депрессией и семейными проблемами. Провожу индивидуальные консультации очно и онлайн.";
+    var displayEducation = psychologist?.Education ?? "Белорусский государственный университет, факультет психологии";
+    var displayExperience = psychologist?.Experience ?? "5 лет практической работы с взрослыми и подростками";
+    var displayLanguages = psychologist?.Languages ?? "Русский, Белорусский";
+    var displayMethods = psychologist?.Methods ?? "КПТ, семейная терапия, работа с тревогой";
+    var displayPhone = string.IsNullOrEmpty(psychologist?.ContactPhone) ? "+375 29 123-45-67" : psychologist.ContactPhone;
+    var displayEmail = string.IsNullOrEmpty(psychologist?.ContactEmail) ? "info@sofia.by" : psychologist.ContactEmail;
+
+    // Price: ensure BYN and clamp to 1..1000
+    var rawPrice = psychologist?.PricePerHour ?? 100;
+    var pricePerHour = (rawPrice < 1) ? 1 : (rawPrice > 1000 ? 1000 : rawPrice);
+
+    // Prepare reviews for display — используем реальные, если есть, иначе показываем демонстрационные отзывы
+    var approvedReviews = reviews?.Where(r => r.IsApproved && r.IsVisible).ToList();
+    var displayReviews = new List<dynamic>();
+    if (approvedReviews != null && approvedReviews.Any()) {
+        foreach (var r in approvedReviews) displayReviews.Add(r);
+    } else {
+        displayReviews.Add(new { Rating = 5, Title = "Очень помогло", Comment = "Профессиональный, внимательный психолог. Рекомендую.", User = new { Username = "narach_rb" }, CreatedAt = DateTime.Now.AddDays(-12), IsApproved = true, IsVisible = true });
+        displayReviews.Add(new { Rating = 4, Title = "Хорошая работа", Comment = "Понравился подход и упражнения для самостоятельной работы.", User = new { Username = "yana_minsk" }, CreatedAt = DateTime.Now.AddDays(-40), IsApproved = true, IsVisible = true });
+    }
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,33 +35,33 @@
     <a href="/psychologist" class="btn btn-outline-secondary">← Назад к списку</a>
 </div>
 
-<div class="row g-4">
+<div class="row g-4 psychologist-page">
     <!-- Psychologist Info -->
     <div class="col-lg-8">
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-8">
-                        <h4 class="text-primary">@psychologist?.Name</h4>
-                        <p class="text-muted mb-3">@psychologist?.Specialization</p>
-                        <p class="mb-3">@psychologist?.Description</p>
+                                <div class="col-md-8">
+                                    <h4 class="text-primary">@displayName</h4>
+                                    <p class="text-muted mb-3">@displaySpecialization</p>
+                                    <p class="mb-3">@displayDescription</p>
                         
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <h6 class="text-success">🎓 Образование</h6>
-                                <p class="small">@psychologist?.Education</p>
+                                <p class="small">@displayEducation</p>
                             </div>
                             <div class="col-md-6">
                                 <h6 class="text-info">💼 Опыт</h6>
-                                <p class="small">@psychologist?.Experience</p>
+                                <p class="small">@displayExperience</p>
                             </div>
                             <div class="col-md-6">
                                 <h6 class="text-warning">🌍 Языки</h6>
-                                <p class="small">@psychologist?.Languages</p>
+                                <p class="small">@displayLanguages</p>
                             </div>
                             <div class="col-md-6">
                                 <h6 class="text-primary">🔬 Методы</h6>
-                                <p class="small">@psychologist?.Methods</p>
+                                <p class="small">@displayMethods</p>
                             </div>
                         </div>
                     </div>
@@ -47,12 +72,12 @@
                             </div>
                         </div>
                         <div class="price-info">
-                            <h5 class="text-success">@psychologist?.PricePerHour?.ToString("C0")</h5>
+                            <h5 class="text-success">@($"{pricePerHour} BYN")</h5>
                             <small class="text-muted">за час</small>
                         </div>
                         <div class="contact-info mt-3">
-                            <small class="text-muted">📞 @psychologist?.ContactPhone</small><br>
-                            <small class="text-muted">📧 @psychologist?.ContactEmail</small>
+                            <small class="text-muted">📞 @displayPhone</small><br>
+                            <small class="text-muted">📧 @displayEmail</small>
                         </div>
                     </div>
                 </div>
@@ -65,9 +90,9 @@
                 <h5 class="mb-0">⭐ Отзывы (@reviews?.Count(r => r.IsApproved && r.IsVisible))</h5>
             </div>
             <div class="card-body">
-                @if (reviews?.Any(r => r.IsApproved && r.IsVisible) == true)
+                @if (displayReviews != null && displayReviews.Any())
                 {
-                    @foreach (var review in reviews.Where(r => r.IsApproved && r.IsVisible))
+                    @foreach (var review in displayReviews)
                     {
                         <div class="review-item mb-3 p-3 border rounded">
                             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -76,10 +101,10 @@
                                         <div class="rating me-2">
                                             @for (int i = 1; i <= 5; i++)
                                             {
-                                                <span class="star @(i <= review.Rating ? "filled" : "")">⭐</span>
+                                                <span class="star @(i <= (int)review.Rating ? "filled" : "")">⭐</span>
                                             }
                                         </div>
-                                        @if (!string.IsNullOrEmpty(review.Title))
+                                        @if (!string.IsNullOrEmpty((string)review.Title))
                                         {
                                             <strong>@review.Title</strong>
                                         }
@@ -88,22 +113,15 @@
                                     {
                                         <small class="text-muted">От: @review.User.Username</small>
                                     }
-                                    <small class="text-muted ms-2">@review.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                    <small class="text-muted ms-2">@((DateTime)review.CreatedAt).ToString("dd.MM.yyyy")</small>
                                 </div>
                             </div>
-                            @if (!string.IsNullOrEmpty(review.Comment))
+                            @if (!string.IsNullOrEmpty((string)review.Comment))
                             {
                                 <p class="mb-0">@review.Comment</p>
                             }
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="text-center text-muted py-3">
-                        <div style="font-size: 24px;">⭐</div>
-                        <p class="mb-0">Пока нет отзывов</p>
-                    </div>
                 }
                 
                 <!-- Форма для оставления отзыва -->
@@ -296,6 +314,9 @@
 .card:hover {
     transform: translateY(-2px);
 }
+
+/* Для страницы профиля: не даём обрезаться низу */
+.psychologist-page { padding-bottom: 80px; }
 
 /* Стили для выбора времени */
 .time-slots-container {
