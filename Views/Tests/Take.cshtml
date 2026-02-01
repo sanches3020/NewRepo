@@ -4,10 +4,12 @@
     ViewData["Title"] = Model?.Name ?? "Тест";
 }
 
-<h2>@Model.Name</h2>
-<p>@Model.Description</p>
+<div class="mb-4">
+    <h2>🧪 @Model.Name</h2>
+    <p class="text-muted">@Model.Description</p>
+</div>
 
-<form id="testForm">
+<form id="testForm" style="padding-bottom: 100px;">
     @foreach (var q in Model.Questions)
     {
         <div class="card mb-3">
@@ -16,14 +18,14 @@
 
                 @if (q.Type == Sofia.Web.Models.AnswerType.Text)
                 {
-                    <textarea class="form-control" name="q_@q.Id" rows="3"></textarea>
+                    <textarea class="form-control test-input" name="q_@q.Id" rows="3"></textarea>
                 }
                 else if (q.Type == Sofia.Web.Models.AnswerType.MultipleChoice)
                 {
                     foreach (var a in q.Answers)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="q_@q.Id" value="@a.Id" id="a_@a.Id" />
+                            <input class="form-check-input test-input" type="checkbox" name="q_@q.Id" value="@a.Id" id="a_@a.Id" />
                             <label class="form-check-label" for="a_@a.Id">@a.Text</label>
                         </div>
                     }
@@ -33,7 +35,7 @@
                     foreach (var a in q.Answers)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="q_@q.Id" value="@a.Id" id="a_@a.Id" />
+                            <input class="form-check-input test-input" type="radio" name="q_@q.Id" value="@a.Id" id="a_@a.Id" />
                             <label class="form-check-label" for="a_@a.Id">@a.Text</label>
                         </div>
                     }
@@ -42,7 +44,7 @@
         </div>
     }
 
-    <button type="button" id="submitBtn" class="btn btn-success">Завершить тест</button>
+    <button type="button" id="submitBtn" class="btn btn-success btn-lg w-100">Завершить тест</button>
 </form>
 
 <script>
