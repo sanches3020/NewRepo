@@ -4,9 +4,14 @@
     ViewData["Title"] = Model?.Name ?? "Тест";
 }
 
-<div class="mb-4">
-    <h2>🧪 @Model.Name</h2>
-    <p class="text-muted">@Model.Description</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>🧪 @Model.Name</h2>
+        <p class="text-muted">@Model.Description</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <a href="/tests" class="btn btn-outline-secondary btn-sm">← Все тесты</a>
+    </div>
 </div>
 
 <form id="testForm" style="padding-bottom: 100px;">

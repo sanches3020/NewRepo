@@ -9,10 +9,12 @@ namespace Sofia.Web.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly SofiaDbContext _context;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, SofiaDbContext context)
     {
         _logger = logger;
+        _context = context;
     }
 
     [HttpGet]
@@ -24,9 +26,7 @@ public class HomeController : Controller
         // Если это психолог, перенаправляем на дашборд
         if (!string.IsNullOrEmpty(userId) && userRole == "psychologist")
         {
-            using var scope = HttpContext.RequestServices.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<Sofia.Web.Data.SofiaDbContext>();
-            var psychologist = await context.Psychologists
+            var psychologist = await _context.Psychologists
                 .FirstOrDefaultAsync(p => p.UserId == int.Parse(userId));
             if (psychologist != null)
             {
@@ -34,6 +34,13 @@ public class HomeController : Controller
             }
         }
         
+        // Загружаем активных психологов для отображения на главной странице
+        var psychologists = await _context.Psychologists
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+        
+        ViewBag.Psychologists = psychologists;
         return View();
     }
 

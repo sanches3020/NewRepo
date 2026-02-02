@@ -348,8 +348,8 @@ html {
 .card .card-header { padding: 0.75rem 1.25rem; }
 
 /* Auth unified styling */
-.auth-wrapper { min-height: calc(100vh - 140px); display: flex; align-items: flex-start; padding: 2rem 0; }
-.auth-split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; width: 100%; }
+.auth-wrapper { min-height: calc(100vh - 140px); display: flex; align-items: center; justify-content: center; padding: 2rem 0; }
+.auth-split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; width: 100%; max-width: 1200px; margin: 0 auto; }
 .auth-art { 
     background: #ffffff; 
     border: 1px solid var(--border-color); 
@@ -360,7 +360,11 @@ html {
     justify-content: center;
 }
 .auth-art::before {
-  display: none;
+  content: "S";
+  font-size: 120px;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 .auth-pane { background: var(--color-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); max-height: calc(100vh - 200px); overflow-y: auto; }
 .auth-title { font-weight: 700; }

@@ -111,7 +111,7 @@
     bindEvents() {
       // Add progress indicators to forms
       document.addEventListener('DOMContentLoaded', () => {
-        this.addFormProgress();
+        // this.addFormProgress();
         this.addScrollProgress();
       });
     },
