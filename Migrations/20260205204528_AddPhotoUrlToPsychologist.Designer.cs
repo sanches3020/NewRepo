@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sofia.Web.Data;
 
@@ -10,9 +11,11 @@ using Sofia.Web.Data;
 namespace Sofia.Web.Migrations
 {
     [DbContext(typeof(SofiaDbContext))]
-    partial class SofiaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260205204528_AddPhotoUrlToPsychologist")]
+    partial class AddPhotoUrlToPsychologist
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -2752,10 +2755,6 @@ namespace Sofia.Web.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PhotoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
                     b.Property<decimal?>("PricePerHour")
                         .HasColumnType("TEXT");
 
@@ -2777,53 +2776,23 @@ namespace Sofia.Web.Migrations
                         new
                         {
                             Id = 1,
-                            ContactEmail = "irina.smirnova@sofia.com",
-                            ContactPhone = "+375291234567",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Специалист в лечении тревожных расстройств и депрессии с 12-летним опытом работы",
-                            Education = "Московский государственный университет им. М.В. Ломоносова, факультет психологии",
-                            Experience = "12 лет в клинической психологии",
                             IsActive = true,
-                            Languages = "Русский, Английский",
-                            Methods = "КПТ, Экспозиционная терапия, Техники релаксации",
-                            Name = "Ирина Смирнова",
-                            PhotoUrl = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
-                            PricePerHour = 60m,
-                            Specialization = "Когнитивно-поведенческая терапия"
+                            Name = "Ирина Смирнова"
                         },
                         new
                         {
                             Id = 2,
-                            ContactEmail = "alexey.ivanov@sofia.com",
-                            ContactPhone = "+375291234568",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Помогаю парам и семьям улучшить отношения и преодолеть конфликты",
-                            Education = "Институт психологии АН России, специализация в семейной системной терапии",
-                            Experience = "9 лет опыта в семейном консультировании",
                             IsActive = true,
-                            Languages = "Русский, Немецкий",
-                            Methods = "Системная терапия, Эмоционально-фокусированная терапия, Коммуникативные техники",
-                            Name = "Алексей Иванов",
-                            PhotoUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-                            PricePerHour = 55m,
-                            Specialization = "Семейная психология и консультирование"
+                            Name = "Алексей Иванов"
                         },
                         new
                         {
                             Id = 3,
-                            ContactEmail = "maria.koval@sofia.com",
-                            ContactPhone = "+375291234569",
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Помогаю клиентам развить стрессоустойчивость и найти внутренний баланс",
-                            Education = "Санкт-Петербургский государственный университет, кафедра психологии развития",
-                            Experience = "7 лет в области позитивной психологии и mindfulness",
                             IsActive = true,
-                            Languages = "Русский, Французский, Английский",
-                            Methods = "Mindfulness, Медитация, Позитивная психология, Дыхательные практики",
-                            Name = "Мария Коваль",
-                            PhotoUrl = "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
-                            PricePerHour = 50m,
-                            Specialization = "Психология здоровья и благополучия"
+                            Name = "Мария Коваль"
                         });
                 });
 

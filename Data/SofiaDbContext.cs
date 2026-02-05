@@ -139,6 +139,16 @@ public class SofiaDbContext : DbContext
             {
                 Id = 1,
                 Name = "Ирина Смирнова",
+                Specialization = "Когнитивно-поведенческая терапия",
+                Description = "Специалист в лечении тревожных расстройств и депрессии с 12-летним опытом работы",
+                Education = "Московский государственный университет им. М.В. Ломоносова, факультет психологии",
+                Experience = "12 лет в клинической психологии",
+                Languages = "Русский, Английский",
+                Methods = "КПТ, Экспозиционная терапия, Техники релаксации",
+                PhotoUrl = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
+                PricePerHour = 60,
+                ContactPhone = "+375291234567",
+                ContactEmail = "irina.smirnova@sofia.com",
                 IsActive = true,
                 CreatedAt = createdDate
             },
@@ -146,6 +156,16 @@ public class SofiaDbContext : DbContext
             {
                 Id = 2,
                 Name = "Алексей Иванов",
+                Specialization = "Семейная психология и консультирование",
+                Description = "Помогаю парам и семьям улучшить отношения и преодолеть конфликты",
+                Education = "Институт психологии АН России, специализация в семейной системной терапии",
+                Experience = "9 лет опыта в семейном консультировании",
+                Languages = "Русский, Немецкий",
+                Methods = "Системная терапия, Эмоционально-фокусированная терапия, Коммуникативные техники",
+                PhotoUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+                PricePerHour = 55,
+                ContactPhone = "+375291234568",
+                ContactEmail = "alexey.ivanov@sofia.com",
                 IsActive = true,
                 CreatedAt = createdDate
             },
@@ -153,6 +173,16 @@ public class SofiaDbContext : DbContext
             {
                 Id = 3,
                 Name = "Мария Коваль",
+                Specialization = "Психология здоровья и благополучия",
+                Description = "Помогаю клиентам развить стрессоустойчивость и найти внутренний баланс",
+                Education = "Санкт-Петербургский государственный университет, кафедра психологии развития",
+                Experience = "7 лет в области позитивной психологии и mindfulness",
+                Languages = "Русский, Французский, Английский",
+                Methods = "Mindfulness, Медитация, Позитивная психология, Дыхательные практики",
+                PhotoUrl = "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
+                PricePerHour = 50,
+                ContactPhone = "+375291234569",
+                ContactEmail = "maria.koval@sofia.com",
                 IsActive = true,
                 CreatedAt = createdDate
             }

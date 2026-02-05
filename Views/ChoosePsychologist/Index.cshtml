@@ -15,50 +15,81 @@
         @foreach (var psychologist in psychologists)
         {
             <div class="col-lg-6">
-                <div class="card h-100">
+                <div class="card h-100 psychologist-card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="card-title mb-1">@psychologist.Name</h5>
-                                <p class="text-muted mb-2">@psychologist.Specialization</p>
-                            </div>
-                            <div class="text-end">
-                                @if (psychologist.PricePerHour.HasValue)
+                        <!-- Фото и основная информация -->
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="psychologist-avatar">
+                                @if (!string.IsNullOrEmpty(psychologist.PhotoUrl))
                                 {
-                                    <div class="h6 text-primary mb-0">@psychologist.PricePerHour.Value.ToString("N0") BYN/час</div>
+                                    <img src="@psychologist.PhotoUrl" alt="@psychologist.Name" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <div class="avatar-circle" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
+                                        @psychologist.Name.FirstOrDefault()
+                                    </div>
                                 }
                             </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1">@psychologist.Name</h5>
+                                <p class="text-muted small mb-2">@psychologist.Specialization</p>
+                                <div class="price-badge">
+                                    <span class="badge bg-success">💰 @psychologist.PricePerHour BYN/час</span>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Короткое описание -->
                         @if (!string.IsNullOrEmpty(psychologist.Description))
                         {
-                            <p class="card-text">@psychologist.Description</p>
+                            <p class="card-text small mb-3" style="line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@psychologist.Description</p>
                         }
 
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <small class="text-muted">Образование:</small><br>
-                                <small>@(psychologist.Education ?? "Не указано")</small>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Опыт:</small><br>
-                                <small>@(psychologist.Experience ?? "Не указано")</small>
+                        <!-- Иконки + ключевые параметры -->
+                        <div class="key-params mb-3">
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <div class="param-item text-center p-2 bg-light rounded">
+                                        <div class="param-icon">⏱️</div>
+                                        <small class="text-muted d-block">Опыт</small>
+                                        <small class="fw-bold">@(psychologist.Experience?.Split(' ').FirstOrDefault() ?? "—")</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="param-item text-center p-2 bg-light rounded">
+                                        <div class="param-icon">🌍</div>
+                                        <small class="text-muted d-block">Языки</small>
+                                        <small class="fw-bold">@(psychologist.Languages?.Split(',').FirstOrDefault()?.Trim() ?? "—")</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="param-item text-center p-2 bg-light rounded">
+                                        <div class="param-icon">📚</div>
+                                        <small class="text-muted d-block">Образование</small>
+                                        <small class="fw-bold">@(psychologist.Education?.Contains("государственный") == true ? "ВУЗ" : "—")</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <small class="text-muted">Языки:</small><br>
-                                <small>@(psychologist.Languages ?? "Не указано")</small>
+                        <!-- Теги компетенций -->
+                        @if (!string.IsNullOrEmpty(psychologist.Methods))
+                        {
+                            <div class="competency-tags mb-3">
+                                @foreach (var method in psychologist.Methods.Split(',').Take(3))
+                                {
+                                    <span class="badge bg-info me-1 mb-1">@method.Trim()</span>
+                                }
+                                @if (psychologist.Methods.Split(',').Length > 3)
+                                {
+                                    <span class="badge bg-secondary">+@(psychologist.Methods.Split(',').Length - 3)</span>
+                                }
                             </div>
-                            <div class="col-6">
-                                <small class="text-muted">Методы:</small><br>
-                                <small>@(psychologist.Methods ?? "Не указано")</small>
-                            </div>
-                        </div>
+                        }
 
                         <!-- Contact Info -->
-                        <div class="contact-info mb-3">
+                        <div class="contact-info mb-3 pb-3 border-bottom small">
                             @if (!string.IsNullOrEmpty(psychologist.ContactPhone))
                             {
                                 <div class="d-flex align-items-center mb-1">
@@ -68,7 +99,7 @@
                             }
                             @if (!string.IsNullOrEmpty(psychologist.ContactEmail))
                             {
-                                <div class="d-flex align-items-center mb-1">
+                                <div class="d-flex align-items-center">
                                     <span class="me-2">✉️</span>
                                     <small>@psychologist.ContactEmail</small>
                                 </div>
@@ -77,8 +108,8 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2">
-                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill d-flex justify-content-center align-items-center text-center">
-                                👤 Профиль
+                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill d-flex justify-content-center align-items-center">
+                                👤 Посмотреть профиль
                             </a>
                         </div>
                     </div>
@@ -95,3 +126,33 @@
         </div>
     }
 </div>
+
+<style>
+.psychologist-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.psychologist-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.psychologist-avatar {
+    flex-shrink: 0;
+}
+
+.param-item {
+    border: 1px solid var(--border-color);
+}
+
+.param-icon {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.competency-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+</style>
