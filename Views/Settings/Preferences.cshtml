@@ -45,15 +45,6 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="notifications" name="notifications" checked>
-                                <label class="form-check-label" for="notifications">
-                                    🔔 Уведомления
-                                </label>
-                                <small class="form-text text-muted d-block">Напоминания о записях и целях</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="emailUpdates" name="emailUpdates">
                                 <label class="form-check-label" for="emailUpdates">
                                     📧 Email обновления
@@ -110,10 +101,6 @@
                         <h6 class="text-success">⏰ Часовой пояс</h6>
                         <p class="small text-muted mb-0">Влияет на отображение времени в заметках и календаре.</p>
                     </div>
-                    <div class="info-item mb-3">
-                        <h6 class="text-info">🔔 Уведомления</h6>
-                        <p class="small text-muted mb-0">Напоминания о записи заметок и достижении целей.</p>
-                    </div>
                     <div class="info-item">
                         <h6 class="text-warning">📧 Email</h6>
                         <p class="small text-muted mb-0">Еженедельные отчёты о прогрессе и статистике.</p>
@@ -130,7 +117,6 @@
             <div class="card-body">
                 <div class="d-grid gap-2">
                     <a href="/settings/profile" class="btn btn-outline-primary btn-sm">👤 Профиль</a>
-                    <a href="/settings/notifications" class="btn btn-outline-info btn-sm">🔔 Уведомления</a>
                     <a href="/settings/privacy" class="btn btn-outline-warning btn-sm">🔒 Приватность</a>
                     <a href="/settings" class="btn btn-outline-secondary btn-sm">← Назад</a>
                 </div>
@@ -175,7 +161,6 @@ function updatePreferences() {
     const data = {
         language: formData.get('language'),
         timezone: formData.get('timezone'),
-        notifications: formData.get('notifications') === 'on',
         emailUpdates: formData.get('emailUpdates') === 'on',
         soundEffects: formData.get('soundEffects') === 'on',
         animations: formData.get('animations') === 'on'
@@ -252,9 +237,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (settings.timezone) {
             document.getElementById('timezone').value = settings.timezone;
         }
-        if (settings.notifications !== undefined) {
-            document.getElementById('notifications').checked = settings.notifications;
-        }
         if (settings.emailUpdates !== undefined) {
             document.getElementById('emailUpdates').checked = settings.emailUpdates;
         }
@@ -276,7 +258,6 @@ document.querySelectorAll('#preferencesForm input, #preferencesForm select').for
         const settings = {
             language: formData.get('language'),
             timezone: formData.get('timezone'),
-            notifications: formData.get('notifications') === 'on',
             emailUpdates: formData.get('emailUpdates') === 'on',
             soundEffects: formData.get('soundEffects') === 'on',
             animations: formData.get('animations') === 'on'
