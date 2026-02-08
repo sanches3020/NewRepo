@@ -81,18 +81,7 @@
                                 <div class="me-3" style="font-size: 24px;">🎨</div>
                                 <div>
                                     <h6 class="mb-1">Предпочтения</h6>
-                                    <small class="text-muted">Язык, интерфейс, уведомления</small>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="/notifications/settings" class="settings-link">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <div class="me-3" style="font-size: 24px;">🔔</div>
-                                <div>
-                                    <h6 class="mb-1">Уведомления</h6>
-                                    <small class="text-muted">Напоминания и алерты</small>
+                                    <small class="text-muted">Язык и интерфейс</small>
                                 </div>
                             </div>
                         </a>
@@ -134,7 +123,7 @@
             <div class="card-header">
                 <h6 class="mb-0">📝 Последние заметки</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body pb-3">
                 @if (recentNotes?.Any() == true)
                 {
                     <div class="recent-activity">
@@ -167,7 +156,7 @@
             <div class="card-header">
                 <h6 class="mb-0">🎯 Последние цели</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body pb-3">
                 @if (recentGoals?.Any() == true)
                 {
                     <div class="recent-activity">
@@ -246,6 +235,7 @@
 
 .activity-item:last-child {
     border-bottom: none;
+    padding-bottom: 8px;
 }
 
 .activity-text {
@@ -284,10 +274,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Сохранение настроек
 function saveSettings() {
+    const emailToggle = document.getElementById('emailToggle');
+    const privacyToggle = document.getElementById('privacyToggle');
     const settings = {
-        notifications: document.getElementById('notificationsToggle').checked,
-        emailUpdates: document.getElementById('emailToggle').checked,
-        privacy: document.getElementById('privacyToggle').checked
+        emailUpdates: emailToggle ? emailToggle.checked : true,
+        privacy: privacyToggle ? privacyToggle.checked : true
     };
     
     localStorage.setItem('sofiaSettings', JSON.stringify(settings));
@@ -316,9 +307,10 @@ function saveSettings() {
 }
 
 // Привязываем сохранение к изменениям
-document.getElementById('notificationsToggle').addEventListener('change', saveSettings);
-document.getElementById('emailToggle').addEventListener('change', saveSettings);
-document.getElementById('privacyToggle').addEventListener('change', saveSettings);
+['notificationsToggle', 'emailToggle', 'privacyToggle'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', saveSettings);
+});
 </script>
 
 @functions {

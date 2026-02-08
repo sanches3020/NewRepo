@@ -16,80 +16,78 @@
         {
             <div class="col-lg-6">
                 <div class="card h-100 psychologist-card">
-                    <div class="card-body">
-                        <!-- Фото и основная информация -->
-                        <div class="d-flex gap-3 mb-3">
-                            <div class="psychologist-avatar">
-                                @if (!string.IsNullOrEmpty(psychologist.PhotoUrl))
-                                {
-                                    <img src="@psychologist.PhotoUrl" alt="@psychologist.Name" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />
-                                }
-                                else
-                                {
-                                    <div class="avatar-circle" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
-                                        @psychologist.Name.FirstOrDefault()
-                                    </div>
-                                }
-                            </div>
-                            <div class="flex-grow-1">
-                                <h5 class="card-title mb-1">@psychologist.Name</h5>
-                                <p class="text-muted small mb-2">@psychologist.Specialization</p>
-                                <div class="price-badge">
-                                    <span class="badge bg-success">💰 @psychologist.PricePerHour BYN/час</span>
+                    <div class="card-body d-flex flex-column">
+                        <div class="flex-grow-1 d-flex flex-column">
+                            <!-- Фото и основная информация -->
+                            <div class="d-flex gap-3 mb-3">
+                                <div class="psychologist-avatar flex-shrink-0">
+                                    @if (!string.IsNullOrEmpty(psychologist.PhotoUrl))
+                                    {
+                                        <img src="@psychologist.PhotoUrl" alt="@psychologist.Name" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="avatar-circle" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
+                                            @psychologist.Name.FirstOrDefault()
+                                        </div>
+                                    }
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Короткое описание -->
-                        @if (!string.IsNullOrEmpty(psychologist.Description))
-                        {
-                            <p class="card-text small mb-3" style="line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@psychologist.Description</p>
-                        }
-
-                        <!-- Иконки + ключевые параметры -->
-                        <div class="key-params mb-3">
-                            <div class="row g-2">
-                                <div class="col-4">
-                                    <div class="param-item text-center p-2 bg-light rounded">
-                                        <div class="param-icon">⏱️</div>
-                                        <small class="text-muted d-block">Опыт</small>
-                                        <small class="fw-bold">@(psychologist.Experience?.Split(' ').FirstOrDefault() ?? "—")</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="param-item text-center p-2 bg-light rounded">
-                                        <div class="param-icon">🌍</div>
-                                        <small class="text-muted d-block">Языки</small>
-                                        <small class="fw-bold">@(psychologist.Languages?.Split(',').FirstOrDefault()?.Trim() ?? "—")</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="param-item text-center p-2 bg-light rounded">
-                                        <div class="param-icon">📚</div>
-                                        <small class="text-muted d-block">Образование</small>
-                                        <small class="fw-bold">@(psychologist.Education?.Contains("государственный") == true ? "ВУЗ" : "—")</small>
+                                <div class="flex-grow-1 min-w-0">
+                                    <h5 class="card-title mb-1 text-truncate">@psychologist.Name</h5>
+                                    <p class="text-muted small mb-2 text-truncate">@psychologist.Specialization</p>
+                                    <div class="price-badge">
+                                        <span class="badge bg-success">💰 @psychologist.PricePerHour BYN/час</span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Теги компетенций -->
-                        @if (!string.IsNullOrEmpty(psychologist.Methods))
-                        {
-                            <div class="competency-tags mb-3">
-                                @foreach (var method in psychologist.Methods.Split(',').Take(3))
+                            <!-- Короткое описание -->
+                            <p class="card-text small mb-3 psychologist-description">@(psychologist.Description ?? "")</p>
+
+                            <!-- Иконки + ключевые параметры -->
+                            <div class="key-params mb-3">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <div class="param-item text-center p-2 bg-light rounded">
+                                            <div class="param-icon">⏱️</div>
+                                            <small class="text-muted d-block">Опыт</small>
+                                            <small class="fw-bold">@(psychologist.Experience?.Split(' ').FirstOrDefault() ?? "—")</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="param-item text-center p-2 bg-light rounded">
+                                            <div class="param-icon">🌍</div>
+                                            <small class="text-muted d-block">Языки</small>
+                                            <small class="fw-bold">@(psychologist.Languages?.Split(',').FirstOrDefault()?.Trim() ?? "—")</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="param-item text-center p-2 bg-light rounded">
+                                            <div class="param-icon">📚</div>
+                                            <small class="text-muted d-block">Образование</small>
+                                            <small class="fw-bold">@(psychologist.Education?.Contains("государственный") == true ? "ВУЗ" : "—")</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Теги компетенций -->
+                            <div class="competency-tags mb-3" style="min-height: 28px;">
+                                @if (!string.IsNullOrEmpty(psychologist.Methods))
                                 {
-                                    <span class="badge bg-info me-1 mb-1">@method.Trim()</span>
-                                }
-                                @if (psychologist.Methods.Split(',').Length > 3)
-                                {
-                                    <span class="badge bg-secondary">+@(psychologist.Methods.Split(',').Length - 3)</span>
+                                    @foreach (var method in psychologist.Methods.Split(',').Take(3))
+                                    {
+                                        <span class="badge bg-info me-1 mb-1">@method.Trim()</span>
+                                    }
+                                    @if (psychologist.Methods.Split(',').Length > 3)
+                                    {
+                                        <span class="badge bg-secondary">+@(psychologist.Methods.Split(',').Length - 3)</span>
+                                    }
                                 }
                             </div>
-                        }
 
-                        <!-- Contact Info -->
-                        <div class="contact-info mb-3 pb-3 border-bottom small">
+                            <!-- Contact Info -->
+                            <div class="contact-info mb-3 pb-3 border-bottom small mt-auto">
                             @if (!string.IsNullOrEmpty(psychologist.ContactPhone))
                             {
                                 <div class="d-flex align-items-center mb-1">
@@ -104,13 +102,17 @@
                                     <small>@psychologist.ContactEmail</small>
                                 </div>
                             }
+                            </div>
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="d-flex gap-2">
-                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill d-flex justify-content-center align-items-center">
-                                👤 Посмотреть профиль
+                        <div class="d-flex gap-2 mt-auto pt-2 psychologist-card-buttons">
+                            <a href="/psychologist/profile/@psychologist.Id" class="btn btn-primary btn-sm flex-fill">
+                                👤 Профиль
                             </a>
+                            <button type="button" class="btn btn-outline-success btn-sm flex-fill" onclick="bookAppointment(@psychologist.Id)">
+                                📅 Записаться
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -155,4 +157,90 @@
     flex-wrap: wrap;
     gap: 0.25rem;
 }
+
+.psychologist-card-buttons .btn {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.psychologist-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
 </style>
+
+<!-- Booking Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📅 Запись на консультацию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bookingForm">
+                    <input type="hidden" id="psychologistId" name="psychologistId">
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">Дата и время</label>
+                        <input type="datetime-local" class="form-control" id="appointmentDate" name="appointmentDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Дополнительные заметки</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Опишите, с чем хотели бы поработать..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="submitBooking()">Записаться</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function bookAppointment(psychologistId) {
+    document.getElementById('psychologistId').value = psychologistId;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('appointmentDate').min = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T${pad(tomorrow.getHours())}:${pad(tomorrow.getMinutes())}`;
+    new bootstrap.Modal(document.getElementById('bookingModal')).show();
+}
+function submitBooking() {
+    const form = document.getElementById('bookingForm');
+    const formData = new FormData(form);
+    const appointmentDateValue = formData.get('appointmentDate');
+    if (!appointmentDateValue) {
+        alert('Пожалуйста, выберите дату и время');
+        return;
+    }
+    fetch('/psychologist/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            psychologistId: parseInt(formData.get('psychologistId')),
+            appointmentDate: appointmentDateValue,
+            notes: formData.get('notes') || ''
+        })
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            form.reset();
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            alert('Ошибка при записи: ' + (result.message || 'Неизвестная ошибка'));
+        }
+    })
+    .catch(() => alert('Произошла ошибка при записи'));
+}
+</script>
