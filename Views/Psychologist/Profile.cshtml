@@ -19,14 +19,11 @@
     var rawPrice = psychologist?.PricePerHour ?? 100;
     var pricePerHour = (rawPrice < 1) ? 1 : (rawPrice > 1000 ? 1000 : rawPrice);
 
-    // Prepare reviews for display — используем реальные, если есть, иначе показываем демонстрационные отзывы
+    // Prepare reviews for display — используем только реальные отзывы
     var approvedReviews = reviews?.Where(r => r.IsApproved && r.IsVisible).ToList();
     var displayReviews = new List<dynamic>();
     if (approvedReviews != null && approvedReviews.Any()) {
         foreach (var r in approvedReviews) displayReviews.Add(r);
-    } else {
-        displayReviews.Add(new { Rating = 5, Title = "Очень помогло", Comment = "Профессиональный, внимательный психолог. Рекомендую.", User = new { Username = "narach_rb" }, CreatedAt = DateTime.Now.AddDays(-12), IsApproved = true, IsVisible = true });
-        displayReviews.Add(new { Rating = 4, Title = "Хорошая работа", Comment = "Понравился подход и упражнения для самостоятельной работы.", User = new { Username = "yana_minsk" }, CreatedAt = DateTime.Now.AddDays(-40), IsApproved = true, IsVisible = true });
     }
 }
 
