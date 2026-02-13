@@ -240,33 +240,130 @@
 </div>
 
 <script>
-// Make selection vars globally accessible for modal helpers
+// Глобальные переменные
 window.selectedDate = null;
 window.selectedEmotion = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarDays = document.querySelectorAll('.calendar-day');
-    const emotionModalInstance = new bootstrap.Modal(document.getElementById('emotionModal'));
-    const dayDetailsModalInstance = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
+// Универсальный fetch-хелпер
+async function api(url, method = 'GET', body = null) {
+    const options = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) options.body = JSON.stringify(body);
 
-    // Calendar day click handler
-    calendarDays.forEach(day => {
-        day.addEventListener('click', function() {
-            const date = this.dataset.date;
-            if (date) {
-                openDayDetails(date, parseInt(this.querySelector('.emotion-count')?.textContent?.replace('+', '') || '0'));
-            }
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+    return response.json();
+}
+
+// Очистка зависших backdrop
+function cleanupModals() {
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+}
+
+// Открытие модалки эмоций
+function openEmotionModal(date) {
+    window.selectedDate = date;
+    const modal = new bootstrap.Modal(document.getElementById('emotionModal'));
+    modal.show();
+}
+
+// Быстрое добавление эмоции
+async function quickAddEmotion(date, emotion) {
+    try {
+        const data = await api('/calendar/save-emotion', 'POST', {
+            date,
+            emotion,
+            note: ''
+        });
+
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка при сохранении эмоции');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Произошла ошибка при сохранении');
+    }
+}
+
+// Открытие деталей дня
+function openDayDetails(date) {
+    window.selectedDate = date;
+
+    const modal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
+    const modalLabel = document.getElementById('dayDetailsModalLabel');
+    const modalContent = document.getElementById('dayDetailsContent');
+    const createNoteBtn = document.getElementById('createNoteBtn');
+
+    modalLabel.textContent = `Детали дня: ${new Date(date).toLocaleDateString('ru-RU')}`;
+    createNoteBtn.href = `/notes/create?date=${date}`;
+
+    fetch(`/calendar/day-details?date=${date}`)
+        .then(r => r.text())
+        .then(html => modalContent.innerHTML = html)
+        .catch(() => modalContent.innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>');
+
+    modal.show();
+}
+
+// Сохранение эмоции
+async function saveEmotion() {
+    if (!window.selectedEmotion) {
+        alert('Пожалуйста, выберите эмоцию');
+        return;
+    }
+
+    try {
+        const note = document.getElementById('emotionNote').value;
+
+        const data = await api('/calendar/save-emotion', 'POST', {
+            date: window.selectedDate,
+            emotion: window.selectedEmotion,
+            note
+        });
+
+        if (data.success) {
+            document.getElementById('emotionNote').value = '';
+            document.querySelectorAll('.emotion-btn').forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-outline-secondary');
+            });
+
+            window.selectedEmotion = null;
+
+            cleanupModals();
+            location.reload();
+        } else {
+            alert('Ошибка при сохранении: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Произошла ошибка при сохранении');
+    }
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+    const emotionModal = document.getElementById('emotionModal');
+    const dayDetailsModal = document.getElementById('dayDetailsModal');
+
+    // Календарные дни
+    document.querySelectorAll('.calendar-day').forEach(day => {
+        day.addEventListener('click', () => {
+            const date = day.dataset.date;
+            if (date) openDayDetails(date);
         });
     });
 
-    // Обработка выбора эмоции
+    // Выбор эмоции
     document.querySelectorAll('.emotion-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Убираем выделение с других кнопок
-            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('btn-primary', 'btn-secondary'));
-            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.add('btn-outline-secondary'));
+            document.querySelectorAll('.emotion-btn').forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-outline-secondary');
+            });
 
-            // Выделяем выбранную кнопку
             this.classList.remove('btn-outline-secondary');
             this.classList.add('btn-primary');
 
@@ -275,188 +372,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Сохранение эмоции
-    document.getElementById('saveEmotion').addEventListener('click', function() {
-        if (!window.selectedEmotion) {
-            alert('Пожалуйста, выберите эмоцию');
-            return;
-        }
+    document.getElementById('saveEmotion').addEventListener('click', saveEmotion);
 
-        const note = document.getElementById('emotionNote').value;
-
-        // Отправляем данные на сервер
-        fetch('/calendar/save-emotion', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                date: window.selectedDate,
-                emotion: window.selectedEmotion,
-                note: note
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                emotionModalInstance.hide();
-                // Очистка и корректное закрытие backdrop
-                document.getElementById('emotionNote').value = '';
-                document.querySelectorAll('.emotion-btn').forEach(b => {
-                    b.classList.remove('btn-primary');
-                    b.classList.add('btn-outline-secondary');
-                });
-                window.selectedEmotion = null;
-                // Удаляем возможные зависшие слои модалки
-                document.body.classList.remove('modal-open');
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                // Перезагружаем страницу
-                window.location.href = window.location.pathname + window.location.search;
-            } else {
-                alert('Ошибка при сохранении: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при сохранении');
-        });
-    });
-
-    // Cleanup backdrops on modal hidden
-    document.getElementById('emotionModal').addEventListener('hidden.bs.modal', function () {
-        document.body.classList.remove('modal-open');
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    });
-    document.getElementById('dayDetailsModal').addEventListener('hidden.bs.modal', function () {
-        document.body.classList.remove('modal-open');
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    });
+    // Очистка backdrop при закрытии
+    emotionModal.addEventListener('hidden.bs.modal', cleanupModals);
+    dayDetailsModal.addEventListener('hidden.bs.modal', cleanupModals);
 });
-
-// Function to open day details
-function openDayDetails(date, noteCount) {
-    const dayDetailsModal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
-    const modalLabel = document.getElementById('dayDetailsModalLabel');
-    const modalContent = document.getElementById('dayDetailsContent');
-    const createNoteBtn = document.getElementById('createNoteBtn');
-
-    const dateObj = new Date(date);
-    modalLabel.textContent = `Детали дня: ${dateObj.toLocaleDateString('ru-RU')}`;
-    createNoteBtn.href = `/notes/create?date=${date}`;
-
-    // Load day details via AJAX
-    fetch(`/calendar/day-details?date=${date}`)
-        .then(response => response.text())
-        .then(html => {
-            modalContent.innerHTML = html;
-        })
-        .catch(error => {
-            console.error('Error loading day details:', error);
-            modalContent.innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
-        });
-
-    dayDetailsModal.show();
-}
-
-// Function to open emotion modal
-function openEmotionModal(date) {
-    window.selectedDate = date;
-    const emotionModal = new bootstrap.Modal(document.getElementById('emotionModal'));
-    emotionModal.show();
-}
-
-// Quick emotion selection from calendar
-function quickAddEmotion(date, emotion) {
-    fetch('/calendar/save-emotion', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            date: date,
-            emotion: emotion,
-            note: ''
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Ошибка при сохранении эмоции');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при сохранении');
-    });
-}
 </script>
 
-@functions {
-    Sofia.Web.Models.EmotionType GetDominantEmotion(List<Sofia.Web.Models.EmotionEntry> emotions)
-    {
-        if (!emotions.Any()) return Sofia.Web.Models.EmotionType.Neutral;
-        
-        return emotions
-            .GroupBy(e => e.Emotion)
-            .OrderByDescending(g => g.Count())
-            .First().Key;
-    }
-    
-    string GetEmotionColor(Sofia.Web.Models.EmotionType emotion)
-    {
-        return emotion switch
-        {
-            Sofia.Web.Models.EmotionType.VerySad => "#fee2e2", // red-100
-            Sofia.Web.Models.EmotionType.Sad => "#fecaca", // red-200
-            Sofia.Web.Models.EmotionType.Neutral => "#f3f4f6", // gray-100
-            Sofia.Web.Models.EmotionType.Happy => "#dcfce7", // green-100
-            Sofia.Web.Models.EmotionType.VeryHappy => "#bbf7d0", // green-200
-            Sofia.Web.Models.EmotionType.Anxious => "#fef3c7", // yellow-100
-            Sofia.Web.Models.EmotionType.Calm => "#dbeafe", // blue-100
-            Sofia.Web.Models.EmotionType.Excited => "#fde68a", // yellow-200
-            Sofia.Web.Models.EmotionType.Frustrated => "#fed7aa", // orange-200
-            Sofia.Web.Models.EmotionType.Grateful => "#e0e7ff", // indigo-100
-            _ => "#f3f4f6"
-        };
-    }
-    
-    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
-    {
-        return emotion switch
-        {
-            Sofia.Web.Models.EmotionType.VerySad => "😢",
-            Sofia.Web.Models.EmotionType.Sad => "😔",
-            Sofia.Web.Models.EmotionType.Neutral => "😐",
-            Sofia.Web.Models.EmotionType.Happy => "😊",
-            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
-            Sofia.Web.Models.EmotionType.Anxious => "😰",
-            Sofia.Web.Models.EmotionType.Calm => "😌",
-            Sofia.Web.Models.EmotionType.Excited => "🤩",
-            Sofia.Web.Models.EmotionType.Frustrated => "😤",
-            Sofia.Web.Models.EmotionType.Grateful => "🙏",
-            _ => "😐"
-        };
-    }
-    
-    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
-    {
-        return emotion switch
-        {
-            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
-            Sofia.Web.Models.EmotionType.Sad => "Грустно",
-            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
-            Sofia.Web.Models.EmotionType.Happy => "Радостно",
-            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
-            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
-            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
-            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
-            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
-            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
-            _ => emotion.ToString()
-        };
-    }
-}
 
 <div class="page-bottom-spacer" style="height: 100px;"></div>
 
