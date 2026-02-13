@@ -407,11 +407,9 @@ function updatePetStats() {
 function feedPet() {
     fetch('/companion/feed', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
+        headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             petStats.happiness = Math.min(100, petStats.happiness + 10);
@@ -425,11 +423,9 @@ function feedPet() {
 function playWithPet() {
     fetch('/companion/play', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
+        headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             petStats.energy = Math.min(100, petStats.energy + 15);
@@ -443,11 +439,9 @@ function playWithPet() {
 function comfortPet() {
     fetch('/companion/comfort', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
+        headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             petStats.comfort = Math.min(100, petStats.comfort + 5);
@@ -461,12 +455,8 @@ function comfortPet() {
 function updatePetMessage(message) {
     const messageElement = document.getElementById('petMessage');
     messageElement.innerHTML = `<p class="mb-0">${message}</p>`;
-    
-    // Анимация появления сообщения
     messageElement.style.opacity = '0';
-    setTimeout(() => {
-        messageElement.style.opacity = '1';
-    }, 100);
+    setTimeout(() => messageElement.style.opacity = '1', 100);
 }
 
 function animatePet(mood) {
@@ -474,94 +464,31 @@ function animatePet(mood) {
     petAvatar.className = `pet-avatar ${mood}`;
 }
 
-// Обновление статуса питомца каждые 30 секунд
-setInterval(() => {
+// ⭐ Обновление статуса питомца + количества заметок
+function refreshPetStatus() {
     fetch('/companion/status')
-    .then(response => response.json())
-    .then(data => {
-        updatePetMessage(data.petMessage);
-        animatePet(data.petMood);
-    });
-}, 30000);
+        .then(r => r.json())
+        .then(data => {
+            updatePetMessage(data.petMessage);
+            animatePet(data.petMood);
+
+            // ⭐ Обновляем количество заметок
+            const notesCountEl = document.getElementById('notesCount');
+            if (notesCountEl) {
+                notesCountEl.textContent = `Всего заметок: ${data.notesCount}`;
+            }
+        });
+}
+
+// Обновление каждые 30 секунд
+setInterval(refreshPetStatus, 30000);
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     updatePetStats();
+    refreshPetStatus(); // ⭐ Загружаем статус сразу при открытии страницы
 });
 </script>
 
-@functions {
-    string GetMoodName(string mood)
-    {
-        return mood switch
-        {
-            "happy" => "Счастливый",
-            "sad" => "Грустный",
-            "excited" => "Возбужденный",
-            "neutral" => "Спокойный",
-            "worried" => "Волнующийся",
-            "peaceful" => "Умиротворенный",
-            "energetic" => "Энергичный",
-            "confused" => "Озадаченный",
-            "loving" => "Любящий",
-            "concerned" => "Обеспокоенный",
-            _ => "Неизвестно"
-        };
-    }
-    
-    string GetMoodDescription(string mood)
-    {
-        return mood switch
-        {
-            "happy" => "Питомец чувствует себя отлично!",
-            "sad" => "Питомец грустит и нуждается в поддержке",
-            "excited" => "Питомец полон энергии и готов играть!",
-            "neutral" => "Питомец спокоен и расслаблен",
-            "worried" => "Питомец волнуется о вас",
-            "peaceful" => "Питомец находится в гармонии",
-            "energetic" => "Питомец полон сил и активности",
-            "confused" => "Питомец не понимает, что происходит",
-            "loving" => "Питомец переполнен любовью к вам",
-            "concerned" => "Питомец беспокоится о вашем состоянии",
-            _ => "Состояние неизвестно"
-        };
-    }
-    
-    string GetEmotionEmoji(Sofia.Web.Models.EmotionType emotion)
-    {
-        return emotion switch
-        {
-            Sofia.Web.Models.EmotionType.VerySad => "😢",
-            Sofia.Web.Models.EmotionType.Sad => "😔",
-            Sofia.Web.Models.EmotionType.Neutral => "😐",
-            Sofia.Web.Models.EmotionType.Happy => "😊",
-            Sofia.Web.Models.EmotionType.VeryHappy => "😄",
-            Sofia.Web.Models.EmotionType.Anxious => "😰",
-            Sofia.Web.Models.EmotionType.Calm => "😌",
-            Sofia.Web.Models.EmotionType.Excited => "🤩",
-            Sofia.Web.Models.EmotionType.Frustrated => "😤",
-            Sofia.Web.Models.EmotionType.Grateful => "🙏",
-            _ => "😐"
-        };
-    }
-    
-    string GetEmotionName(Sofia.Web.Models.EmotionType emotion)
-    {
-        return emotion switch
-        {
-            Sofia.Web.Models.EmotionType.VerySad => "Очень грустно",
-            Sofia.Web.Models.EmotionType.Sad => "Грустно",
-            Sofia.Web.Models.EmotionType.Neutral => "Нейтрально",
-            Sofia.Web.Models.EmotionType.Happy => "Радостно",
-            Sofia.Web.Models.EmotionType.VeryHappy => "Очень радостно",
-            Sofia.Web.Models.EmotionType.Anxious => "Тревожно",
-            Sofia.Web.Models.EmotionType.Calm => "Спокойно",
-            Sofia.Web.Models.EmotionType.Excited => "Взволнованно",
-            Sofia.Web.Models.EmotionType.Frustrated => "Раздражённо",
-            Sofia.Web.Models.EmotionType.Grateful => "Благодарно",
-            _ => emotion.ToString()
-        };
-    }
-}
 
 
