@@ -355,58 +355,19 @@
 </style>
 
 <script>
-function bookAppointment() {
-    const psychologistId = document.getElementById('psychologistId').value;
-    const appointmentDate = document.getElementById('appointmentDate').value;
-    const notes = document.getElementById('notes').value;
-
-    if (!appointmentDate) {
-        showToast('Пожалуйста, выберите дату и время', 'error');
-        return;
-    }
-
-    const appointmentDateTime = new Date(appointmentDate);
-
-    fetch('/psychologist/book', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            psychologistId: parseInt(psychologistId),
-            appointmentDate: appointmentDateTime.toISOString(),
-            notes: notes
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            setTimeout(() => {
-                window.location.href = '/psychologist/appointments';
-            }, 2000);
-        } else {
-            showToast('Ошибка: ' + data.message, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showToast('Произошла ошибка при записи', 'error');
-    });
-}
-
+// Показываем уведомления
 function showToast(message, type) {
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.textContent = message;
-    
+
     const colors = {
         success: '#10b981',
         error: '#ef4444',
         info: '#3b82f6',
         warning: '#f59e0b'
     };
-    
+
     toast.style.cssText = `
         position: fixed;
         top: 20px;
@@ -418,56 +379,43 @@ function showToast(message, type) {
         z-index: 1000;
         animation: slideIn 0.3s ease;
     `;
-    
+
     document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+
+    setTimeout(() => toast.remove(), 3000);
 }
 
-// Обновляем доступные слоты каждые 30 секунд
-setInterval(function() {
-    // В реальном приложении здесь был бы AJAX запрос для обновления слотов
-}, 30000);
-
-// Новые функции для выбора времени
-let selectedSlot = null;
-
-function selectTimeSlot(date, time) {
-    // Убираем выделение с предыдущего слота
+// Выбор слота времени
+function selectTimeSlot(date, time, el) {
+    // Снимаем выделение со всех кнопок
     document.querySelectorAll('.time-slot-btn').forEach(btn => {
         btn.classList.remove('btn-primary', 'active');
         btn.classList.add('btn-outline-primary');
     });
 
-    // Выделяем выбранный слот
-    const selectedBtn = event.target.closest('.time-slot-btn');
-    if (selectedBtn && !selectedBtn.disabled) {
-        selectedBtn.classList.remove('btn-outline-primary');
-        selectedBtn.classList.add('btn-primary', 'active');
+    // Выделяем выбранную кнопку
+    el.classList.remove('btn-outline-primary');
+    el.classList.add('btn-primary', 'active');
 
-        // Сохраняем выбранное время в формате ISO
-        const selectedSlot = date + 'T' + time;
-        document.getElementById('selectedDateTime').value = selectedSlot;
-    }
+    // Сохраняем ISO‑дату
+    const iso = date + 'T' + time;
+    document.getElementById('selectedDateTime').value = iso;
 }
 
+// Отправка отзыва
 function submitReview(psychologistId) {
     const title = document.getElementById('reviewTitle').value;
     const rating = parseInt(document.getElementById('reviewRating').value);
     const comment = document.getElementById('reviewComment').value;
-    
+
     if (!rating || !comment) {
         alert('Пожалуйста, заполните все обязательные поля');
         return;
     }
-    
+
     fetch('/psychologist/review', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             psychologistId: psychologistId,
             rating: rating,
@@ -475,7 +423,7 @@ function submitReview(psychologistId) {
             comment: comment
         })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             showToast(data.message, 'success');
@@ -485,13 +433,13 @@ function submitReview(psychologistId) {
             showToast('Ошибка: ' + data.message, 'error');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
+    .catch(err => {
+        console.error(err);
         showToast('Произошла ошибка при отправке отзыва', 'error');
     });
 }
 
-// Обновляем функцию записи
+// Финальная, единственная версия записи на консультацию
 function bookAppointment() {
     const selectedDateTime = document.getElementById('selectedDateTime').value;
     if (!selectedDateTime) {
@@ -502,21 +450,18 @@ function bookAppointment() {
     const psychologistId = document.getElementById('psychologistId').value;
     const notes = document.getElementById('notes').value;
 
-    // Форматируем дату в формат ISO
     const appointmentDateTime = new Date(selectedDateTime);
-    
+
     fetch('/psychologist/book', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             psychologistId: parseInt(psychologistId),
             appointmentDate: appointmentDateTime.toISOString(),
             notes: notes || ''
         })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(result => {
         if (result.success) {
             alert(result.message);
@@ -527,9 +472,13 @@ function bookAppointment() {
             alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
+    .catch(err => {
+        console.error(err);
         alert('Произошла ошибка при записи на консультацию');
     });
 }
+
+// Интервал обновления слотов (пока заглушка)
+setInterval(() => {}, 30000);
 </script>
+
