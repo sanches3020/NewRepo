@@ -18,13 +18,20 @@ public class CompanionController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index()
     {
+        var userId = HttpContext.Session.GetString("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole == "psychologist")
-        {
-            return RedirectToAction("Index", "Home");
-        }
 
+        if (string.IsNullOrEmpty(userId))
+            return RedirectToAction("Login", "Auth");
+
+        if (userRole == "psychologist")
+            return RedirectToAction("Index", "Home");
+
+        var userIdInt = int.Parse(userId);
+
+        // Последние заметки ТОЛЬКО пользователя
         var recentNotes = await _context.Notes
+            .Where(n => n.UserId == userIdInt)
             .OrderByDescending(n => n.CreatedAt)
             .Take(5)
             .ToListAsync();
@@ -32,8 +39,10 @@ public class CompanionController : Controller
         var lastEmotion = recentNotes.FirstOrDefault()?.Emotion ?? EmotionType.Neutral;
         var petMood = GetPetMood(lastEmotion);
 
-        // ВАЖНО: передаём общее количество заметок
-        var totalNotes = await _context.Notes.CountAsync();
+        // Общее количество заметок пользователя
+        var totalNotes = await _context.Notes
+            .CountAsync(n => n.UserId == userIdInt);
+
         var petMessage = GetPetMessage(lastEmotion, totalNotes);
 
         ViewBag.PetMood = petMood;
@@ -93,13 +102,20 @@ public class CompanionController : Controller
     [HttpGet("status")]
     public async Task<IActionResult> GetStatus()
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+            return Json(new { success = false, message = "Пользователь не авторизован" });
+
+        var userIdInt = int.Parse(userId);
+
         var recentNotes = await _context.Notes
+            .Where(n => n.UserId == userIdInt)
             .OrderByDescending(n => n.CreatedAt)
             .Take(3)
             .ToListAsync();
 
-        // ✔ Исправлено: считаем ВСЕ заметки
-        var totalNotes = await _context.Notes.CountAsync();
+        var totalNotes = await _context.Notes
+            .CountAsync(n => n.UserId == userIdInt);
 
         var lastEmotion = recentNotes.FirstOrDefault()?.Emotion ?? EmotionType.Neutral;
         var petMood = GetPetMood(lastEmotion);
@@ -158,7 +174,7 @@ public class CompanionController : Controller
             },
             EmotionType.VeryHappy => new[] {
                 "🤩 Вау! Ты просто сияешь от счастья! Это прекрасно!",
-                "🎊 Твоя радость невероятна! Давай поделимся этим настроением!",
+                "🎊 Твоя радость просто невероятна! Давай поделимся этим настроением!",
                 "🌟 Ты делаешь мир лучше своей улыбкой! Я так горжусь тобой!"
             },
             EmotionType.Anxious => new[] {
@@ -173,12 +189,12 @@ public class CompanionController : Controller
             },
             EmotionType.Excited => new[] {
                 "🤩 Ты полон энергии! Давай направим её в игру!",
-                "⚡ Твоя энергия заразительна! Хочешь поиграть?",
+                "⚡ Твоя энергия заразительна! Хочешь поиграть в активную игру?",
                 "🎯 Я чувствую твой энтузиазм! Давай сделаем что-то крутое!"
             },
             EmotionType.Frustrated => new[] {
                 "😤 Понимаю твоё раздражение... Давай попробуем успокоиться?",
-                "🤝 Иногда всё идёт не так. Я помогу тебе справиться.",
+                "🤝 Иногда всё идёт не так, как хочется. Я помогу тебе справиться.",
                 "💪 Ты сильнее своих проблем. Давай найдём решение вместе!"
             },
             EmotionType.Grateful => new[] {
@@ -208,7 +224,7 @@ public class CompanionController : Controller
         var messages = new[] {
             "🎾 Ура! Игра была потрясающей! Я полон энергии!",
             "🏃‍♂️ Это было так весело! Хочешь ещё поиграть?",
-            "🎯 Отличная игра! Ты лучший партнёр!",
+            "🎯 Отличная игра! Ты лучший партнёр по играм!",
             "⚽ Я так счастлив, что мы играем вместе!"
         };
         return messages[Random.Shared.Next(messages.Length)];
@@ -218,7 +234,7 @@ public class CompanionController : Controller
     {
         var messages = new[] {
             "🤗 Твои объятия такие тёплые... Я чувствую себя в безопасности.",
-            "💙 Спасибо, что утешаешь меня. Ты лучший друг!",
+            "💙 Спасибо, что утешаешь меня. Ты самый лучший друг!",
             "😌 Твоя забота успокаивает меня. Я так счастлив рядом с тобой!",
             "🌟 Ты делаешь меня счастливым просто тем, что ты есть!"
         };
